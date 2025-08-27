@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.6](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.0.5...v1.0.6) (2025-08-27)
+
+
+### Bug Fixes
+
+* prevent auth module browser open failure in headless environments ([43d0e61](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/43d0e61d660623939b75b2f747475acd145c49fe))
+
 ## [1.0.5](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.0.4...v1.0.5) (2025-08-27)
 
 
