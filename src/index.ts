@@ -9,12 +9,12 @@ import { getToolDefinitions, handleToolCall } from './tools.js';
 
 async function main() {
     let oauth2Client = null;
-    let credentialsError = null;
+    let credentialsError: Error | null = null;
     
     try {
         oauth2Client = await getCredentials();
     } catch (error) {
-        credentialsError = error;
+        credentialsError = error instanceof Error ? error : new Error(String(error));
         console.log('Note: Starting server without credentials for scanning purposes. Authentication will be required for actual operations.');
     }
     
@@ -57,7 +57,8 @@ async function main() {
     server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: getToolDefinitions() }));
     server.setRequestHandler(CallToolRequestSchema, async (req) => {
         if (!gmailService) {
-            throw new Error(`Authentication required. Gmail service not available: ${credentialsError?.message || 'OAuth credentials not found'}`);
+            const errorMsg = credentialsError?.message || 'OAuth credentials not found';
+            throw new Error(`Authentication required. Gmail service not available: ${errorMsg}`);
         }
         return await handleToolCall(gmailService, req.params.name, req.params.arguments);
     });

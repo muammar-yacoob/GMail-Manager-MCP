@@ -44,5 +44,5 @@ fi
 echo -e "\n✨ Local testing complete!"
 echo "Next steps:"
 echo "  1. For interactive testing: npx @modelcontextprotocol/inspector dist/index.js"
-echo "  2. To commit: git add . && git commit -m 'fix: simplify server transport and update smithery config'"
+echo "  2. To commit: git add . && git commit -m 'fix: handle missing credentials gracefully for Smithery deployment'"
 echo "  3. To push: git push origin main"
