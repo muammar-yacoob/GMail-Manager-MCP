@@ -8,3 +8,4 @@ npm-debug.log*
 coverage/
 PUBLISH.md
 gcp-oauth.keys json.example
+learn/

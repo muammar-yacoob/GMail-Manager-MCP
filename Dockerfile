@@ -1,19 +1,31 @@
-FROM node:18-alpine
+FROM node:20-slim
 
 WORKDIR /app
 
-# Copy package files and TypeScript config
-COPY package*.json ./
-COPY tsconfig.json ./
+# Copy package files
+COPY package.json package-lock.json* ./
 
-# Install all dependencies (including dev deps for TypeScript)
+# Copy source files and config first
+COPY tsconfig.json ./
+COPY src ./src
+COPY gcp-oauth.keys.json* ./
+
+# Install dependencies (which will trigger build via prepare script)
 RUN npm ci
 
-# Copy source files for Smithery CLI build
-COPY src/ ./src/
+# Create directory for credentials and config
+RUN mkdir -p /gmail-server /root/.gmail-mcp
 
-# Build TypeScript
-RUN npm run build
+# Copy dummy OAuth file if it exists
+RUN if [ -f gcp-oauth.keys.json ]; then cp gcp-oauth.keys.json /root/.gmail-mcp/; fi
 
-# Start the MCP server
-CMD ["node", "dist/index.js"]
+# Set environment variables
+ENV NODE_ENV=production
+ENV GMAIL_CREDENTIALS_PATH=/gmail-server/credentials.json
+ENV GMAIL_OAUTH_PATH=/root/.gmail-mcp/gcp-oauth.keys.json
+
+# Expose port for OAuth flow
+EXPOSE 3000
+
+# Set entrypoint command
+ENTRYPOINT ["node", "dist/index.js"]

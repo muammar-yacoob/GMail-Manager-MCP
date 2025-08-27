@@ -23,17 +23,14 @@ export async function getCredentials(): Promise<OAuth2Client> {
     }
     
     if (!fs.existsSync(oauthPath)) {
-        console.error(`Error: OAuth keys file not found. Checked: ${oauthPath}`);
-        console.error(`Please place gcp-oauth.keys.json in project root or ${CONFIG_DIR}`);
-        process.exit(1);
+        throw new Error(`OAuth keys file not found. Checked: ${oauthPath}. Please place gcp-oauth.keys.json in project root or ${CONFIG_DIR}`);
     }
     
     const keysContent = JSON.parse(fs.readFileSync(oauthPath, 'utf8'));
     const keys = keysContent.installed || keysContent.web;
     
     if (!keys) {
-        console.error('Error: Invalid OAuth keys file format.');
-        process.exit(1);
+        throw new Error('Invalid OAuth keys file format. Expected "installed" or "web" key in OAuth file.');
     }
     
     const oauth2Client = new OAuth2Client(keys.client_id, keys.client_secret, "http://localhost:3000/oauth2callback");
