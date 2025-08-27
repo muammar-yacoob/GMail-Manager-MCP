@@ -9,6 +9,8 @@
 
 **Clean your inbox • Organize with labels • Bulk delete emails**
 
+<img src=".github/assets/meme.png" alt="Stop sending me unnecessary emails meme" width="400">
+
 </div>
 
 ## ⚡ Quick Setup
