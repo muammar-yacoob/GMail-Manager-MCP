@@ -1,10 +1,10 @@
 node_modules/
 *.tsbuildinfo
 .env.*
-gcp-oauth.keys.json
 .gmail-mcp/
 .vscode/
 *.log
 npm-debug.log*
 coverage/
 PUBLISH.md
+gcp-oauth.keys json.example

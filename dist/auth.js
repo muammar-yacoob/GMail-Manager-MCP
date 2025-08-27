@@ -5,15 +5,14 @@ import os from 'os';
 import http from 'http';
 import open from 'open';
 const CONFIG_DIR = path.join(os.homedir(), '.gmail-mcp');
-const OAUTH_PATH = process.env.GMAIL_OAUTH_PATH || path.join(CONFIG_DIR, 'gcp-oauth.keys.json');
+const LOCAL_OAUTH_PATH = path.join(process.cwd(), 'gcp-oauth.keys.json');
+const OAUTH_PATH = process.env.GMAIL_OAUTH_PATH ||
+    (fs.existsSync(LOCAL_OAUTH_PATH) ? LOCAL_OAUTH_PATH : path.join(CONFIG_DIR, 'gcp-oauth.keys.json'));
 const CREDENTIALS_PATH = process.env.GMAIL_CREDENTIALS_PATH || path.join(CONFIG_DIR, 'credentials.json');
 export async function getCredentials() {
-    if (!process.env.GMAIL_OAUTH_PATH && !fs.existsSync(CONFIG_DIR))
+    // Create config directory only if we need it (not using local file)
+    if (!process.env.GMAIL_OAUTH_PATH && !fs.existsSync(LOCAL_OAUTH_PATH) && !fs.existsSync(CONFIG_DIR)) {
         fs.mkdirSync(CONFIG_DIR, { recursive: true });
-    const localOAuthPath = path.join(process.cwd(), 'gcp-oauth.keys.json');
-    if (fs.existsSync(localOAuthPath) && !fs.existsSync(OAUTH_PATH)) {
-        fs.copyFileSync(localOAuthPath, OAUTH_PATH);
-        console.log('OAuth keys found and copied to config directory.');
     }
     if (!fs.existsSync(OAUTH_PATH)) {
         console.error('Error: OAuth keys file not found. Please place gcp-oauth.keys.json in', CONFIG_DIR);
