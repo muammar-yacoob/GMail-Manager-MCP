@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.2](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.0.1...v1.0.2) (2025-08-27)
+
+
+### Bug Fixes
+
+* add HTTP transport support for Smithery deployment ([46d7d2e](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/46d7d2e4bdc4963b94b5aa57e7fe2f221f5749a0))
+* simplify server transport & update smithery config ([2e856b4](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/2e856b46366b6b4d10c58067ef30139b974554ff))
+
 ## [1.0.1](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.0.0...v1.0.1) (2025-08-27)
 
 
