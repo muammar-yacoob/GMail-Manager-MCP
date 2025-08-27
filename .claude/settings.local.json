@@ -16,7 +16,8 @@
       "Bash(git log:*)",
       "mcp__github__get_commit",
       "mcp__github__list_commits",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(docker build:*)"
     ],
     "deny": [],
     "ask": []
