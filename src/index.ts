@@ -2,6 +2,7 @@
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import { authenticate, getCredentials } from './auth.js';
 import { GmailService } from './gmail-service.js';
@@ -18,7 +19,7 @@ async function main() {
     
     const server = new Server({
         name: "gmail-manager",
-        version: "1.0.0",
+        version: "1.0.1",
         capabilities: { tools: {} }
     });
     
@@ -28,7 +29,18 @@ async function main() {
     server.setRequestHandler(CallToolRequestSchema, async (req) => 
         await handleToolCall(gmailService, req.params.name, req.params.arguments));
     
-    server.connect(new StdioServerTransport());
+    // Use HTTP transport for Smithery deployments, stdio for local usage
+    const isSmitheryDeployment = process.env.PORT || process.env.NODE_ENV === 'production';
+    
+    if (isSmitheryDeployment) {
+        const port = parseInt(process.env.PORT || '8080');
+        const transport = new StreamableHTTPServerTransport(port, '/mcp');
+        console.log(`Starting HTTP MCP server on port ${port}`);
+        server.connect(transport);
+    } else {
+        console.log('Starting stdio MCP server');
+        server.connect(new StdioServerTransport());
+    }
 }
 
 main().catch(e => (console.error('Server error:', e), process.exit(1)));

@@ -1,22 +1,21 @@
+runtime: "container"
 startCommand:
-  type: stdio
+  type: "http"
   configSchema:
-    type: object
-    required:
-      - gcpOauthKeysPath
+    type: "object"
+    required: ["gcpOauthKeysPath"]
     properties:
       gcpOauthKeysPath:
-        type: string
-        description: Path to the GCP OAuth keys JSON file
+        type: "string"
+        title: "GCP OAuth Keys Path"
+        description: "Path to the GCP OAuth keys JSON file"
       credentialsPath:
-        type: string
-        description: Path to stored credentials (optional, defaults to ~/.gmail-mcp/credentials.json)
-  commandFunction: |-
-    (config) => ({
-      command: 'node',
-      args: ['dist/index.js'],
-      env: {
-        GMAIL_OAUTH_PATH: config.gcpOauthKeysPath,
-        ...(config.credentialsPath && { GMAIL_CREDENTIALS_PATH: config.credentialsPath })
-      }
-    })
+        type: "string"
+        title: "Credentials Path"
+        description: "Path to stored credentials (optional, defaults to ~/.gmail-mcp/credentials.json)"
+  exampleConfig:
+    gcpOauthKeysPath: "/app/gcp-oauth.keys.json"
+    credentialsPath: "/app/.gmail-mcp/credentials.json"
+build:
+  dockerfile: "Dockerfile"
+  dockerBuildPath: "."
