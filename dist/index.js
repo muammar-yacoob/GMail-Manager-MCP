@@ -14,12 +14,15 @@ async function main() {
     }
     const server = new Server({
         name: "gmail-manager",
-        version: "1.0.0",
+        version: "1.0.1",
         capabilities: { tools: {} }
     });
     const gmailService = new GmailService(oauth2Client);
     server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: getToolDefinitions() }));
     server.setRequestHandler(CallToolRequestSchema, async (req) => await handleToolCall(gmailService, req.params.name, req.params.arguments));
-    server.connect(new StdioServerTransport());
+    // Use stdio transport - Smithery will handle the HTTP wrapper
+    const transport = new StdioServerTransport();
+    server.connect(transport);
+    console.log('MCP server started');
 }
 main().catch(e => (console.error('Server error:', e), process.exit(1)));
