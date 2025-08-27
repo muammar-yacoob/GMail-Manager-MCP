@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.4](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.0.3...v1.0.4) (2025-08-27)
+
+
+### Bug Fixes
+
+* update Dockerfile and workflow for Smithery compatibility ([57054a1](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/57054a18c438f27f62c8bba5cd13328543f34658))
+
 ## [1.0.3](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.0.2...v1.0.3) (2025-08-27)
 
 
