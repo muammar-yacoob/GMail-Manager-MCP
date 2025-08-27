@@ -7,13 +7,15 @@ on:
 
 jobs:
   build:
-    # Skip if commit message starts with 'docs:', 'chore:', 'style:', 'test:'
+    # Only run for release-triggering commits (feat:, fix:, perf:, refactor: with BREAKING CHANGE)
     if: |
-      !startsWith(github.event.head_commit.message, 'docs:') &&
-      !startsWith(github.event.head_commit.message, 'chore:') &&
-      !startsWith(github.event.head_commit.message, 'style:') &&
-      !startsWith(github.event.head_commit.message, 'test:') &&
-      !contains(github.event.head_commit.message, '[skip ci]')
+      startsWith(github.event.head_commit.message, 'feat:') ||
+      startsWith(github.event.head_commit.message, 'feat!:') ||
+      startsWith(github.event.head_commit.message, 'fix:') ||
+      startsWith(github.event.head_commit.message, 'perf:') ||
+      (startsWith(github.event.head_commit.message, 'refactor:') && contains(github.event.head_commit.message, 'BREAKING CHANGE')) ||
+      contains(github.event.head_commit.message, 'BREAKING CHANGE:') ||
+      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       contents: write
