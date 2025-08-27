@@ -6,23 +6,29 @@ import http from 'http';
 import open from 'open';
 
 const CONFIG_DIR = path.join(os.homedir(), '.gmail-mcp');
-const LOCAL_OAUTH_PATH = path.join(process.cwd(), 'gcp-oauth.keys.json');
-const OAUTH_PATH = process.env.GMAIL_OAUTH_PATH || 
-    (fs.existsSync(LOCAL_OAUTH_PATH) ? LOCAL_OAUTH_PATH : path.join(CONFIG_DIR, 'gcp-oauth.keys.json'));
-const CREDENTIALS_PATH = process.env.GMAIL_CREDENTIALS_PATH || path.join(CONFIG_DIR, 'credentials.json');
 
 export async function getCredentials(): Promise<OAuth2Client> {
+    const localOAuthPath = path.join(process.cwd(), 'gcp-oauth.keys.json');
+    const oauthPath = process.env.GMAIL_OAUTH_PATH || 
+        (fs.existsSync(localOAuthPath) ? localOAuthPath : path.join(CONFIG_DIR, 'gcp-oauth.keys.json'));
+    const credentialsPath = process.env.GMAIL_CREDENTIALS_PATH || path.join(CONFIG_DIR, 'credentials.json');
+
     // Create config directory only if we need it (not using local file)
-    if (!process.env.GMAIL_OAUTH_PATH && !fs.existsSync(LOCAL_OAUTH_PATH) && !fs.existsSync(CONFIG_DIR)) {
-        fs.mkdirSync(CONFIG_DIR, { recursive: true });
+    if (!process.env.GMAIL_OAUTH_PATH && !fs.existsSync(localOAuthPath) && !fs.existsSync(CONFIG_DIR)) {
+        try {
+            fs.mkdirSync(CONFIG_DIR, { recursive: true });
+        } catch (error) {
+            // Ignore mkdir errors in read-only environments
+        }
     }
     
-    if (!fs.existsSync(OAUTH_PATH)) {
-        console.error('Error: OAuth keys file not found. Please place gcp-oauth.keys.json in', CONFIG_DIR);
+    if (!fs.existsSync(oauthPath)) {
+        console.error(`Error: OAuth keys file not found. Checked: ${oauthPath}`);
+        console.error(`Please place gcp-oauth.keys.json in project root or ${CONFIG_DIR}`);
         process.exit(1);
     }
     
-    const keysContent = JSON.parse(fs.readFileSync(OAUTH_PATH, 'utf8'));
+    const keysContent = JSON.parse(fs.readFileSync(oauthPath, 'utf8'));
     const keys = keysContent.installed || keysContent.web;
     
     if (!keys) {
@@ -32,13 +38,14 @@ export async function getCredentials(): Promise<OAuth2Client> {
     
     const oauth2Client = new OAuth2Client(keys.client_id, keys.client_secret, "http://localhost:3000/oauth2callback");
     
-    if (fs.existsSync(CREDENTIALS_PATH)) 
-        oauth2Client.setCredentials(JSON.parse(fs.readFileSync(CREDENTIALS_PATH, 'utf8')));
+    if (fs.existsSync(credentialsPath)) 
+        oauth2Client.setCredentials(JSON.parse(fs.readFileSync(credentialsPath, 'utf8')));
     
     return oauth2Client;
 }
 
-export async function authenticate(oauth2Client: OAuth2Client): Promise<void> {
+export async function authenticate(oauth2Client: OAuth2Client, credentialsPath?: string): Promise<void> {
+    const creds = credentialsPath || path.join(CONFIG_DIR, 'credentials.json');
     const server = http.createServer();
     server.listen(3000);
     
@@ -76,7 +83,7 @@ export async function authenticate(oauth2Client: OAuth2Client): Promise<void> {
             try {
                 const { tokens } = await oauth2Client.getToken(code);
                 oauth2Client.setCredentials(tokens);
-                fs.writeFileSync(CREDENTIALS_PATH, JSON.stringify(tokens));
+                fs.writeFileSync(creds, JSON.stringify(tokens));
                 res.writeHead(200) && res.end('Authentication successful! You can close this window.');
                 server.close();
                 resolve();

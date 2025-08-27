@@ -15,7 +15,8 @@
       "Bash(sed:*)",
       "Bash(git log:*)",
       "mcp__github__get_commit",
-      "mcp__github__list_commits"
+      "mcp__github__list_commits",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []

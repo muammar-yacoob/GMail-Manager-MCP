@@ -1,24 +1,22 @@
-runtime: "typescript"
 startCommand:
-  type: "stdio"
+  type: stdio
   configSchema:
-    type: "object"
-    required: ["gcpOauthKeysPath"]
+    type: object
     properties:
       gcpOauthKeysPath:
-        type: "string"
+        type: string
         title: "GCP OAuth Keys Path"
-        description: "Path to the GCP OAuth keys JSON file"
+        description: "Path to the GCP OAuth keys JSON file (optional, defaults to gcp-oauth.keys.json in project root)"
       credentialsPath:
-        type: "string"
-        title: "Credentials Path"
+        type: string
+        title: "Credentials Path"  
         description: "Path to stored credentials (optional, defaults to ~/.gmail-mcp/credentials.json)"
   commandFunction: |-
     (config) => ({
       command: 'node',
       args: ['dist/index.js'],
       env: {
-        GMAIL_OAUTH_PATH: config.gcpOauthKeysPath,
+        ...(config.gcpOauthKeysPath && { GMAIL_OAUTH_PATH: config.gcpOauthKeysPath }),
         ...(config.credentialsPath && { GMAIL_CREDENTIALS_PATH: config.credentialsPath })
       }
     })
