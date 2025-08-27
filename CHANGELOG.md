@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.3](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.0.2...v1.0.3) (2025-08-27)
+
+
+### Bug Fixes
+
+* add module field to package.json for Smithery CLI compatibility ([c40894d](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/c40894dc310d637347166d16ab8f2e3a21ccb3fc))
+
 ## [1.0.2](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.0.1...v1.0.2) (2025-08-27)
 
 
