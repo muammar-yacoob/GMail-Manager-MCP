@@ -24,11 +24,6 @@
 npx @smithery/cli install @muammar-yacoob/gmail-manager-mcp --client claude
 ```
 
-**Or use the full URL:**
-```bash
-npx @smithery/cli install https://smithery.ai/server/@muammar-yacoob/gmail-manager-mcp --client claude
-```
-
 **Alternative: Manual Claude Desktop config**
 ```json
 {
@@ -53,9 +48,11 @@ Place `gcp-oauth.keys.json` in your working directory. Claude will authenticate 
 
 ## 💬 Example Commands
 
-- *"Delete all emails older than 1 year"*
-- *"Find unread newsletters"*
-- *"Label emails from boss@company.com as Important"*
+- *"Find and label newsletter emails for review"*
+- *"Show me potentially spam messages to check"*
+- *"Delete all linkedIn and social media notifications"*
+- *"Delete all emails from domain.com"*
+- *"Delete all emails from amazon.com that are older than one year"*
 
 ---
 
