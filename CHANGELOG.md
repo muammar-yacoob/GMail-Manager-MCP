@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.7](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.0.6...v1.0.7) (2025-08-27)
+
+
+### Bug Fixes
+
+* make smithery oauth configuration optional for scanning ([5c57e99](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/5c57e99597180697950d639a84a62db77819742c))
+* prioritize local oauth keys file for Smithery compatibility ([57acaab](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/57acaab7526f724eadfc67b55d6a6267e3f200be))
+
 ## [1.0.6](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.0.5...v1.0.6) (2025-08-27)
 
 
