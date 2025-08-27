@@ -32,11 +32,17 @@ Perfect for inbox zero enthusiasts and anyone drowning in email overload!
 
 ### 2. Install via Smithery
 ```bash
+# 📋 Copy this command
 npx @smithery/cli install @muammar-yacoob/gmail-manager-mcp --client claude
 ```
 
+**Smithery Configuration:**
+- **GCP OAuth Keys File**: Path to your `gcp-oauth.keys.json` file (required)
+- **Credentials Storage Path**: Leave empty (optional - defaults to `~/.gmail-mcp/credentials.json`)
+
 **Alternative: Manual Claude Desktop config**
 ```json
+// 📋 Copy this config to your Claude Desktop settings
 {
   "mcpServers": {
     "gmail-manager": {
@@ -50,8 +56,22 @@ npx @smithery/cli install @muammar-yacoob/gmail-manager-mcp --client claude
 }
 ```
 
-### 3. First run
-Place `gcp-oauth.keys.json` in your working directory. Claude will authenticate automatically.
+### 3. One-time authentication setup
+
+**For Smithery users:**
+- Enter your `gcp-oauth.keys.json` file path in Smithery configuration
+- First Gmail tool use will authenticate automatically
+
+**For manual installation:**
+```bash
+# 📋 Place gcp-oauth.keys.json in project directory, then copy & run:
+npm run auth
+
+# ✅ Authentication completed successfully!
+# 🎉 Gmail Manager is now ready to use with Claude Desktop
+```
+
+After authentication, all Gmail tools work seamlessly without re-authentication!
 
 ## 🛠️ Tools
 
@@ -64,6 +84,16 @@ Place `gcp-oauth.keys.json` in your working directory. Claude will authenticate 
 - *"Delete all linkedIn and social media notifications"*
 - *"Delete all emails from domain.com"*
 - *"Delete all emails from amazon.com that are older than one year"*
+
+## 🔧 Troubleshooting
+
+**"Authentication required" error?**
+- Run `npm run auth` for one-time setup
+- For Smithery: ensure `gcp-oauth.keys.json` path is configured
+
+**Can't find gcp-oauth.keys.json?**
+- Download from [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Credentials
+- Choose "Desktop Application" when creating OAuth 2.0 credentials
 
 ---
 

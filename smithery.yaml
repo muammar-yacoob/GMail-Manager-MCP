@@ -2,15 +2,17 @@ startCommand:
   type: stdio
   configSchema:
     type: object
+    required:
+      - gcpOauthKeysPath
     properties:
       gcpOauthKeysPath:
         type: string
-        title: "GCP OAuth Keys Path"
-        description: "Path to the GCP OAuth keys JSON file (optional, defaults to gcp-oauth.keys.json in project root)"
+        title: "GCP OAuth Keys File"
+        description: "Path to your downloaded gcp-oauth.keys.json file from Google Cloud Console"
       credentialsPath:
         type: string
-        title: "Credentials Path"  
-        description: "Path to stored credentials (optional, defaults to ~/.gmail-mcp/credentials.json)"
+        title: "Credentials Storage Path"  
+        description: "Path to store Gmail credentials (optional, defaults to ~/.gmail-mcp/credentials.json)"
   commandFunction: |-
     (config) => ({
       command: 'node',
