@@ -4,7 +4,7 @@
 
 [![MCP Server](https://badge.mcpx.dev?type=server)](https://modelcontextprotocol.io)
 [![Gmail](https://img.shields.io/badge/Gmail-EA4335?style=flat-square&logo=gmail&logoColor=white)](https://developers.google.com/gmail/api)
-[![Smithery](https://smithery.ai/badge/gmail-manager)](https://smithery.ai/server/gmail-manager)
+[![Smithery](https://smithery.ai/badge/@muammar-yacoob/gmail-manager-mcp)](https://smithery.ai/server/@muammar-yacoob/gmail-manager-mcp)
 [![MIT](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
 
 **Clean your inbox • Organize with labels • Bulk delete emails**
@@ -19,7 +19,27 @@
 
 ### 2. Install via Smithery
 ```bash
-npx @smithery/cli install gmail-manager --client claude
+npx @smithery/cli install @muammar-yacoob/gmail-manager-mcp --client claude
+```
+
+**Or use the full URL:**
+```bash
+npx @smithery/cli install https://smithery.ai/server/@muammar-yacoob/gmail-manager-mcp --client claude
+```
+
+**Alternative: Manual Claude Desktop config**
+```json
+{
+  "mcpServers": {
+    "gmail-manager": {
+      "command": "node",
+      "args": ["path/to/gmail-manager-mcp/dist/index.js"],
+      "env": {
+        "GMAIL_OAUTH_PATH": "path/to/gcp-oauth.keys.json"
+      }
+    }
+  }
+}
 ```
 
 ### 3. First run
@@ -38,5 +58,5 @@ Place `gcp-oauth.keys.json` in your working directory. Claude will authenticate 
 ---
 
 <div align="center">
-<a href="https://smithery.ai/server/gmail-manager">Get on Smithery</a> • Made for Claude Desktop
+<a href="https://smithery.ai/server/@muammar-yacoob/gmail-manager-mcp">Get on Smithery</a> • Made for Claude Desktop
 </div>
