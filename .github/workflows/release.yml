@@ -1,0 +1,80 @@
+name: Create Release
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    if: "!contains(github.event.head_commit.message, 'skip-ci')"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build project
+        run: npm run build
+        
+      - name: Install semantic-release
+        run: npm install -g semantic-release @semantic-release/github @semantic-release/changelog @semantic-release/git
+        
+      - name: Semantic Release
+        id: semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release
+      
+      - name: Create Distribution Package
+        if: steps.semantic-release.outputs.new_release_published == 'true'
+        run: |
+          # Create distribution directory
+          mkdir -p dist-package
+          
+          # Copy essential files
+          cp package.json dist-package/
+          cp README.md dist-package/ 2>/dev/null || true
+          cp LICENSE dist-package/ 2>/dev/null || true
+          
+          # Copy built distribution
+          cp -r dist dist-package/
+          
+          # Update package.json version if new release
+          VERSION="${{ steps.semantic-release.outputs.new_release_version }}"
+          if [ ! -z "$VERSION" ]; then
+            cd dist-package
+            npm version "$VERSION" --no-git-tag-version
+            cd ..
+          fi
+          
+      - name: Create Release Archive
+        if: steps.semantic-release.outputs.new_release_published == 'true'
+        run: |
+          cd dist-package
+          tar -czf ../gmail-manager-mcp-v${{ steps.semantic-release.outputs.new_release_version }}.tar.gz *
+          cd ..
+
+      - name: Upload to Release
+        if: steps.semantic-release.outputs.new_release_published == 'true'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: gmail-manager-mcp-v${{ steps.semantic-release.outputs.new_release_version }}.tar.gz
+          name: Release ${{ steps.semantic-release.outputs.new_release_version }}
+          tag_name: v${{ steps.semantic-release.outputs.new_release_version }}
+          draft: false
+          prerelease: false
+          token: ${{ secrets.GITHUB_TOKEN }}
+          generate_release_notes: true 
