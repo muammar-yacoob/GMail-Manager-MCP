@@ -30,7 +30,7 @@ jobs:
         run: npm run build
         
       - name: Install semantic-release
-        run: npm install -g semantic-release @semantic-release/github @semantic-release/changelog @semantic-release/git
+        run: npm install -g semantic-release @semantic-release/github @semantic-release/changelog @semantic-release/git @semantic-release/commit-analyzer @semantic-release/release-notes-generator
         
       - name: Semantic Release
         id: semantic-release
