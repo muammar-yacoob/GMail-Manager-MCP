@@ -39,7 +39,19 @@ export async function authenticate(oauth2Client) {
             scope: ['https://www.googleapis.com/auth/gmail.modify', 'https://www.googleapis.com/auth/gmail.settings.basic']
         });
         console.log('Please visit this URL to authenticate:', authUrl);
-        open(authUrl);
+        // Only try to open browser if authUrl exists and not in headless environment
+        if (authUrl) {
+            try {
+                // Skip browser opening in Docker/headless environments
+                if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'production') {
+                    open(authUrl);
+                }
+            }
+            catch (error) {
+                // Ignore browser open errors in headless environments
+                console.log('Note: Could not auto-open browser. Please manually visit the URL above.');
+            }
+        }
         server.on('request', async (req, res) => {
             if (!req.url?.startsWith('/oauth2callback'))
                 return;
