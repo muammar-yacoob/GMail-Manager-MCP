@@ -1,0 +1,24 @@
+# Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
+
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    required:
+      - gcpOauthKeysPath
+    properties:
+      gcpOauthKeysPath:
+        type: string
+        description: Path to the GCP OAuth keys JSON file
+      credentialsPath:
+        type: string
+        description: Path to stored credentials (optional, defaults to ~/.gmail-mcp/credentials.json)
+  commandFunction: |-
+    (config) => ({
+      command: 'node',
+      args: ['dist/index.js'],
+      env: {
+        GMAIL_OAUTH_PATH: config.gcpOauthKeysPath,
+        ...(config.credentialsPath && { GMAIL_CREDENTIALS_PATH: config.credentialsPath })
+      }
+    })

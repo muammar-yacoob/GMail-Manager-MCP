@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.env.*
+gcp-oauth.keys.json
+.gmail-mcp/
+.vscode/
+*.log
+npm-debug.log*
+coverage/
