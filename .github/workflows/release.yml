@@ -7,6 +7,13 @@ on:
 
 jobs:
   build:
+    # Skip if commit message starts with 'docs:', 'chore:', 'style:', 'test:'
+    if: |
+      !startsWith(github.event.head_commit.message, 'docs:') &&
+      !startsWith(github.event.head_commit.message, 'chore:') &&
+      !startsWith(github.event.head_commit.message, 'style:') &&
+      !startsWith(github.event.head_commit.message, 'test:') &&
+      !contains(github.event.head_commit.message, '[skip ci]')
     runs-on: ubuntu-latest
     permissions:
       contents: write
