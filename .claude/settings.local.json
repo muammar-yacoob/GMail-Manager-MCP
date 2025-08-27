@@ -17,7 +17,9 @@
       "mcp__github__get_commit",
       "mcp__github__list_commits",
       "Bash(grep:*)",
-      "Bash(docker build:*)"
+      "Bash(docker build:*)",
+      "Bash(npm view:*)",
+      "Bash(npm publish:*)"
     ],
     "deny": [],
     "ask": []

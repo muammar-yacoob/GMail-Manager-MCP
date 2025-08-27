@@ -30,48 +30,65 @@ Perfect for inbox zero enthusiasts and anyone drowning in email overload!
 - Visit [Google Cloud Console](https://console.cloud.google.com/)
 - Enable Gmail API → Create OAuth 2.0 Desktop credentials → Download as `gcp-oauth.keys.json`
 
-### 2. Install via Smithery
-```bash
-# 📋 Copy this command
-npx @smithery/cli install @muammar-yacoob/gmail-manager-mcp --client claude
-```
+### 2. Installation Options
 
-**Smithery Configuration:**
-- **GCP OAuth Keys File**: Path to your `gcp-oauth.keys.json` file (required)
-- **Credentials Storage Path**: Leave empty (optional - defaults to `~/.gmail-mcp/credentials.json`)
+**Option A: Smithery Web Interface**
+1. Go to [smithery.ai/server/@muammar-yacoob/gmail-manager-mcp](https://smithery.ai/server/@muammar-yacoob/gmail-manager-mcp)
+2. Click "Install" → **GCP OAuth Keys File**: `/full/path/to/gcp-oauth.keys.json`
+3. **Credentials Storage Path**: Leave empty → "Install to Claude Desktop"
 
-**Alternative: Manual Claude Desktop config**
+**Option B: NPM Package** *(after publishing)*
 ```json
-// 📋 Copy this config to your Claude Desktop settings
+// 📋 Add this to Claude Desktop settings once published to npm
 {
   "mcpServers": {
     "gmail-manager": {
-      "command": "node",
-      "args": ["path/to/gmail-manager-mcp/dist/index.js"],
+      "command": "npx",
+      "args": ["gmail-manager-mcp"],
       "env": {
-        "GMAIL_OAUTH_PATH": "path/to/gcp-oauth.keys.json"
+        "GMAIL_OAUTH_PATH": "/full/path/to/gcp-oauth.keys.json"
       }
     }
   }
 }
 ```
 
-### 3. One-time authentication setup
-
-**For Smithery users:**
-- Enter your `gcp-oauth.keys.json` file path in Smithery configuration
-- First Gmail tool use will authenticate automatically
-
-**For manual installation:**
-```bash
-# 📋 Place gcp-oauth.keys.json in project directory, then copy & run:
-npm run auth
-
-# ✅ Authentication completed successfully!
-# 🎉 Gmail Manager is now ready to use with Claude Desktop
+**Option C: Direct Git Install** *(current working method)*
+```json
+// 📋 Add this to Claude Desktop settings (installs latest from GitHub)
+{
+  "mcpServers": {
+    "gmail-manager": {
+      "command": "npx",
+      "args": ["github:muammar-yacoob/Gmail-MCP-Server"],
+      "env": {
+        "GMAIL_OAUTH_PATH": "/full/path/to/gcp-oauth.keys.json"
+      }
+    }
+  }
+}
 ```
 
-After authentication, all Gmail tools work seamlessly without re-authentication!
+### 3. Authentication Flow
+
+**🔑 How Authentication Works:**
+1. **You provide OAuth keys**: Download `gcp-oauth.keys.json` from Google Cloud Console
+2. **First Gmail command**: When you ask Claude to check emails, authentication starts automatically
+3. **Google login screen**: Opens in your browser - sign in with your Gmail account
+4. **Grant permissions**: Allow Gmail access (read/modify emails, labels)
+5. **Done!** Credentials saved automatically - no need to re-authenticate
+
+**📁 File Path Examples:**
+```bash
+# 📋 Windows: C:\Users\YourName\Downloads\gcp-oauth.keys.json
+# 📋 macOS: /Users/YourName/Downloads/gcp-oauth.keys.json  
+# 📋 Linux: /home/username/gcp-oauth.keys.json
+```
+
+**⚡ Manual pre-authentication** *(optional)*:
+```bash
+# 📋 If you cloned the repo locally: npm run auth
+```
 
 ## 🛠️ Tools
 
@@ -87,13 +104,20 @@ After authentication, all Gmail tools work seamlessly without re-authentication!
 
 ## 🔧 Troubleshooting
 
+**Installation issues?**
+- **Smithery not working?** Use Option C (Direct Git Install) for latest fixes
+- **"Expected boolean, received null" error?** Package needs npm publishing - use Git install
+- **Package not found?** Try `npx github:muammar-yacoob/Gmail-MCP-Server` directly
+
 **"Authentication required" error?**
-- Run `npm run auth` for one-time setup
-- For Smithery: ensure `gcp-oauth.keys.json` path is configured
+- Verify your `gcp-oauth.keys.json` file path is correct
+- Full path required (e.g., `/Users/name/Downloads/gcp-oauth.keys.json`)
+- Try asking Claude to "check my Gmail" - authentication starts automatically
 
 **Can't find gcp-oauth.keys.json?**
 - Download from [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Credentials
 - Choose "Desktop Application" when creating OAuth 2.0 credentials
+- Save file & remember the full path for Smithery configuration
 
 ---
 

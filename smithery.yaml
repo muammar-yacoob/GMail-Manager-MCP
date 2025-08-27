@@ -15,8 +15,8 @@ startCommand:
         description: "Path to store Gmail credentials (optional, defaults to ~/.gmail-mcp/credentials.json)"
   commandFunction: |-
     (config) => ({
-      command: 'node',
-      args: ['dist/index.js'],
+      command: 'npx',
+      args: ['github:muammar-yacoob/Gmail-MCP-Server'],
       env: {
         ...(config.gcpOauthKeysPath && { GMAIL_OAUTH_PATH: config.gcpOauthKeysPath }),
         ...(config.credentialsPath && { GMAIL_CREDENTIALS_PATH: config.credentialsPath })

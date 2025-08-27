@@ -16,13 +16,23 @@ async function main() {
         console.log('Note: Starting server without credentials for scanning purposes. Authentication will be required for actual operations.');
     }
     if (process.argv[2] === 'auth') {
+        console.log('🔐 Gmail Manager - One-time Authentication Setup');
+        console.log('='.repeat(50));
         if (!oauth2Client) {
-            console.error('Error: Cannot authenticate without OAuth credentials.');
-            console.error(credentialsError?.message || 'OAuth credentials not available');
+            console.error('❌ Error: Cannot authenticate without OAuth credentials.');
+            console.error(`   ${credentialsError?.message || 'OAuth credentials not available'}`);
+            console.log('\n💡 Next steps:');
+            console.log('   1. Download gcp-oauth.keys.json from Google Cloud Console');
+            console.log('   2. Place it in your project directory or set GMAIL_OAUTH_PATH');
+            console.log('   3. Run authentication again');
             process.exit(1);
         }
+        console.log('🌐 Opening browser for Gmail authentication...');
+        console.log('📝 You\'ll need to grant Gmail access permissions');
         await authenticate(oauth2Client);
-        console.log('Authentication completed successfully');
+        console.log('✅ Authentication completed successfully!');
+        console.log('🎉 Gmail Manager is now ready to use with Claude Desktop');
+        console.log('\n💾 Credentials saved for future use - no need to authenticate again');
         process.exit(0);
     }
     const server = new Server({
@@ -51,7 +61,7 @@ async function main() {
     server.setRequestHandler(CallToolRequestSchema, async (req) => {
         if (!gmailService) {
             const errorMsg = credentialsError?.message || 'OAuth credentials not found';
-            throw new Error(`Authentication required. Gmail service not available: ${errorMsg}`);
+            throw new Error(`🔐 Authentication required. ${errorMsg}\n\n💡 Run one-time setup: npm run auth\nOr if using Smithery: provide your gcp-oauth.keys.json file path in configuration`);
         }
         return await handleToolCall(gmailService, req.params.name, req.params.arguments);
     });
