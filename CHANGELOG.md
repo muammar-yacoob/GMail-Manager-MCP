@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.8](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.0.7...v1.0.8) (2025-08-27)
+
+
+### Bug Fixes
+
+* handle missing credentials gracefully for Smithery deployment ([991ea64](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/991ea64392da1f0d80d91ea17438a463d0ef8a7b))
+* resolve TypeScript compilation errors for Smithery deployment ([5c36e03](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/5c36e03f6dc9a206fa6f5ee80e69909e083c373e))
+* update MCP server to properly handle initialization & deployment ([713eb03](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/713eb03b66663fc6b3ebfc0602137819583948a4))
+
 ## [1.0.7](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.0.6...v1.0.7) (2025-08-27)
 
 
