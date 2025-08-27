@@ -17,7 +17,7 @@ async function main() {
     }
     
     const server = new Server({
-        name: "gmail-declutter",
+        name: "gmail-manager",
         version: "1.0.0",
         capabilities: { tools: {} }
     });

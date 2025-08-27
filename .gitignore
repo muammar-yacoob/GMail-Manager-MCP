@@ -8,3 +8,4 @@ gcp-oauth.keys.json
 *.log
 npm-debug.log*
 coverage/
+PUBLISH.md
