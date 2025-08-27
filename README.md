@@ -1,4 +1,4 @@
-# 📧 Gmail Manager MCP
+# <img src="images/trash-mail.png" alt="Gmail Manager" width="48" height="48" style="vertical-align: middle;"> Gmail Manager MCP
 
 <div align="center">
 
@@ -9,9 +9,20 @@
 
 **Clean your inbox • Organize with labels • Bulk delete emails**
 
-<img src=".github/assets/meme.png" alt="Stop sending me unnecessary emails meme" width="400">
+<img src="images/meme.png" alt="Stop sending me unnecessary emails meme" width="400">
 
 </div>
+
+## 🎯 What It Does
+
+Gmail Manager MCP gives Claude Desktop direct access to your Gmail inbox, allowing you to:
+- **🔍 Search & Filter** - Find emails by sender, subject, date, or any Gmail query
+- **🏷️ Smart Organization** - Create and apply labels to categorize emails automatically  
+- **🗑️ Bulk Operations** - Delete multiple emails at once based on your criteria
+- **📊 Inbox Analytics** - Get insights about your email patterns and volume
+- **🧹 Smart Cleanup** - Remove old newsletters, notifications, and spam efficiently
+
+Perfect for inbox zero enthusiasts and anyone drowning in email overload!
 
 ## ⚡ Quick Setup
 
