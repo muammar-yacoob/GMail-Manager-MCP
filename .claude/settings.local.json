@@ -12,7 +12,8 @@
       "Bash(bash:*)",
       "Bash(node:*)",
       "Bash(dos2unix:*)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(git log:*)"
     ],
     "deny": [],
     "ask": []

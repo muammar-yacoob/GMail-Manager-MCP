@@ -36,7 +36,8 @@ async function main() {
             serverInfo: {
                 name: "gmail-manager",
                 version: "1.0.4"
-            }
+            },
+            remote: false
         };
     });
     
