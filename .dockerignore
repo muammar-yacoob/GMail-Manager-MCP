@@ -1,7 +1,5 @@
 node_modules/
-src/
 *.md
 .git/
 .gitignore
-tsconfig.json
 gcp-oauth.keys.json
