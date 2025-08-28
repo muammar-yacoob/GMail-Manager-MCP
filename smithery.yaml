@@ -1,5 +1,6 @@
+runtime: "container"
 startCommand:
-  type: stdio
+  type: "http"
   configSchema:
     type: object
     required:
@@ -13,12 +14,9 @@ startCommand:
         type: string
         title: "Credentials Storage Path"  
         description: "Path to store Gmail credentials (optional, defaults to ~/.gmail-mcp/credentials.json)"
-  commandFunction: |-
-    (config) => ({
-      command: 'npx',
-      args: ['github:muammar-yacoob/Gmail-MCP-Server'],
-      env: {
-        ...(config.gcpOauthKeysPath && { GMAIL_OAUTH_PATH: config.gcpOauthKeysPath }),
-        ...(config.credentialsPath && { GMAIL_CREDENTIALS_PATH: config.credentialsPath })
-      }
-    })
+  exampleConfig:
+    gcpOauthKeysPath: "/path/to/gcp-oauth.keys.json"
+    credentialsPath: "~/.gmail-mcp/credentials.json"
+build:
+  dockerfile: "Dockerfile"
+  dockerBuildPath: "."

@@ -8,7 +8,7 @@ COPY package.json package-lock.json* ./
 # Copy source files and config first
 COPY tsconfig.json ./
 COPY src ./src
-COPY gcp-oauth.keys.json* ./
+# Don't copy OAuth keys into the image - they should be provided at runtime
 
 # Install dependencies (which will trigger build via prepare script)
 RUN npm ci
@@ -16,8 +16,7 @@ RUN npm ci
 # Create directory for credentials and config
 RUN mkdir -p /gmail-server /root/.gmail-mcp
 
-# Copy dummy OAuth file if it exists
-RUN if [ -f gcp-oauth.keys.json ]; then cp gcp-oauth.keys.json /root/.gmail-mcp/; fi
+# OAuth keys should be provided via environment variables at runtime, not in the image
 
 # Set environment variables
 ENV NODE_ENV=production
