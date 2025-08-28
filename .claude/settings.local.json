@@ -26,7 +26,8 @@
       "Bash(GMAIL_OAUTH_PATH=\"/mnt/d/Keys/Google/gcp-oauth.keys.json\" timeout 5s node dist/index.js)",
       "Bash(GMAIL_OAUTH_PATH=\"/mnt/d/Keys/Google/gcp-oauth.keys.json\" npm run debug-auth)",
       "Bash(GMAIL_OAUTH_PATH=\"/mnt/d/Keys/Google/gcp-oauth.keys.json\" node dist/index.js auth)",
-      "Read(/home/spark/.gmail-mcp/**)"
+      "Read(/home/spark/.gmail-mcp/**)",
+      "Bash(GMAIL_OAUTH_PATH=\"/mnt/d/Keys/Google/gcp-oauth.keys.json\" ./test-local.sh)"
     ],
     "deny": [],
     "ask": []

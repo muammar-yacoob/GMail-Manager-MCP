@@ -2,7 +2,6 @@ import { OAuth2Client } from 'google-auth-library';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import open from 'open';
 import readline from 'readline';
 
 const CONFIG_DIR = path.join(os.homedir(), '.gmail-mcp');
@@ -61,8 +60,9 @@ export async function authenticate(oauth2Client: OAuth2Client, credentialsPath?:
     console.log('   3. Paste it when prompted below');
     console.log('');
     
-    // Try to open browser
+    // Try to open browser (only in non-containerized environments)
     try {
+        const { default: open } = await import('open');
         await open(authUrl);
         console.log('✅ Browser opened automatically');
     } catch (error) {

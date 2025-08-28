@@ -49,6 +49,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.10.5",
+    "graceful-fs": "^4.2.11",
     "typescript": "^5.3.3"
   }
 }
