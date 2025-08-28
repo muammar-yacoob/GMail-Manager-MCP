@@ -2,14 +2,15 @@
 
 <div align="center">
 
-[![MCP Server](https://badge.mcpx.dev?type=server)](https://modelcontextprotocol.io)
-[![Gmail](https://img.shields.io/badge/Gmail-EA4335?style=flat-square&logo=gmail&logoColor=white)](https://developers.google.com/gmail/api)
+![MCP Server](https://badge.mcpx.dev?type=server)
+![Gmail](https://img.shields.io/badge/Gmail-EA4335?style=flat-square&logo=gmail&logoColor=white)
 [![Smithery](https://smithery.ai/badge/@muammar-yacoob/gmail-manager-mcp)](https://smithery.ai/server/@muammar-yacoob/gmail-manager-mcp)
 [![MIT](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
 
+<img src="images/meme.png" alt="Stop sending me unnecessary emails meme" width="400">
+
 **Clean your inbox • Organize with labels • Bulk delete emails**
 
-<img src="images/meme.png" alt="Stop sending me unnecessary emails meme" width="400">
 
 </div>
 
@@ -30,65 +31,31 @@ Perfect for inbox zero enthusiasts and anyone drowning in email overload!
 - Visit [Google Cloud Console](https://console.cloud.google.com/)
 - Enable Gmail API → Create OAuth 2.0 Desktop credentials → Download as `gcp-oauth.keys.json`
 
-### 2. Installation Options
+### 2. Install via Smithery
+```bash
+npx @smithery/cli install @muammar-yacoob/gmail-manager-mcp --client claude --config '{"gcpOauthKeysPath": "path/to/gcp-oauth.keys.json", "credentialsPath": "~/.gmail-mcp/credentials.json"}'
+```
 
-**Option A: Smithery Web Interface**
-1. Go to [smithery.ai/server/@muammar-yacoob/gmail-manager-mcp](https://smithery.ai/server/@muammar-yacoob/gmail-manager-mcp)
-2. Click "Install" → **GCP OAuth Keys File**: `/full/path/to/gcp-oauth.keys.json`
-3. **Credentials Storage Path**: Leave empty → "Install to Claude Desktop"
+**Important**: After installation:
+1. **Manually restart Claude Desktop** (the auto-restart may not work on Windows/WSL)
+2. **Verify the config was added** to `C:\Users\[username]\AppData\Roaming\Claude\claude_desktop_config.json`
 
-**Option B: NPM Package** *(after publishing)*
+**Alternative: Manual Claude Desktop config**
+If the Smithery installation doesn't update your config, manually add this to your Claude Desktop config file:
 ```json
-// 📋 Add this to Claude Desktop settings once published to npm
 {
   "mcpServers": {
     "gmail-manager": {
       "command": "npx",
-      "args": ["gmail-manager-mcp"],
-      "env": {
-        "GMAIL_OAUTH_PATH": "/full/path/to/gcp-oauth.keys.json"
-      }
+      "args": ["-y", "@smithery/cli", "connect", "@muammar-yacoob/gmail-manager-mcp"]
     }
   }
 }
 ```
 
-**Option C: Direct Git Install** *(current working method)*
-```json
-// 📋 Add this to Claude Desktop settings (installs latest from GitHub)
-{
-  "mcpServers": {
-    "gmail-manager": {
-      "command": "npx",
-      "args": ["github:muammar-yacoob/Gmail-MCP-Server"],
-      "env": {
-        "GMAIL_OAUTH_PATH": "/full/path/to/gcp-oauth.keys.json"
-      }
-    }
-  }
-}
-```
-
-### 3. Authentication Flow
-
-**🔑 How Authentication Works:**
-1. **You provide OAuth keys**: Download `gcp-oauth.keys.json` from Google Cloud Console
-2. **First Gmail command**: When you ask Claude to check emails, authentication starts automatically
-3. **Google login screen**: Opens in your browser - sign in with your Gmail account
-4. **Grant permissions**: Allow Gmail access (read/modify emails, labels)
-5. **Done!** Credentials saved automatically - no need to re-authenticate
-
-**📁 File Path Examples:**
-```bash
-# 📋 Windows: C:\Users\YourName\Downloads\gcp-oauth.keys.json
-# 📋 macOS: /Users/YourName/Downloads/gcp-oauth.keys.json  
-# 📋 Linux: /home/username/gcp-oauth.keys.json
-```
-
-**⚡ Manual pre-authentication** *(optional)*:
-```bash
-# 📋 If you cloned the repo locally: npm run auth
-```
+### 3. First run
+1. **Restart Claude Desktop** completely (close and reopen)
+2. Claude will authenticate automatically on first use
 
 ## 🛠️ Tools
 
@@ -101,23 +68,6 @@ Perfect for inbox zero enthusiasts and anyone drowning in email overload!
 - *"Delete all linkedIn and social media notifications"*
 - *"Delete all emails from domain.com"*
 - *"Delete all emails from amazon.com that are older than one year"*
-
-## 🔧 Troubleshooting
-
-**Installation issues?**
-- **Smithery not working?** Use Option C (Direct Git Install) for latest fixes
-- **"Expected boolean, received null" error?** Package needs npm publishing - use Git install
-- **Package not found?** Try `npx github:muammar-yacoob/Gmail-MCP-Server` directly
-
-**"Authentication required" error?**
-- Verify your `gcp-oauth.keys.json` file path is correct
-- Full path required (e.g., `/Users/name/Downloads/gcp-oauth.keys.json`)
-- Try asking Claude to "check my Gmail" - authentication starts automatically
-
-**Can't find gcp-oauth.keys.json?**
-- Download from [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Credentials
-- Choose "Desktop Application" when creating OAuth 2.0 credentials
-- Save file & remember the full path for Smithery configuration
 
 ---
 
