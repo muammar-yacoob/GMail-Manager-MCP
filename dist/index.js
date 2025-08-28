@@ -45,7 +45,7 @@ async function main() {
             tools: {}
         }
     });
-    const gmailService = oauth2Client ? new GmailService(oauth2Client) : null;
+    let gmailService = oauth2Client ? new GmailService(oauth2Client) : null;
     // Handle initialization properly
     server.setRequestHandler(InitializeRequestSchema, async (request) => {
         return {
@@ -55,16 +55,27 @@ async function main() {
             },
             serverInfo: {
                 name: "gmail-manager",
-                version: "1.0.4"
-            },
-            remote: false
+                version: "1.0.9"
+            }
         };
     });
     server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: getToolDefinitions() }));
     server.setRequestHandler(CallToolRequestSchema, async (req) => {
         if (!gmailService) {
+            // If we have OAuth keys but no credentials, try to authenticate automatically
+            if (oauth2Client && !credentialsError?.message?.includes('OAuth credentials not found')) {
+                try {
+                    console.error('🔐 First-time authentication required. Opening browser...');
+                    await authenticate(oauth2Client);
+                    gmailService = new GmailService(oauth2Client);
+                    return await handleToolCall(gmailService, req.params.name, req.params.arguments);
+                }
+                catch (authError) {
+                    throw new Error(`🔐 Authentication failed: ${authError instanceof Error ? authError.message : String(authError)}`);
+                }
+            }
             const errorMsg = credentialsError?.message || 'OAuth credentials not found';
-            throw new Error(`🔐 Authentication required. ${errorMsg}\n\n💡 Run one-time setup: npm run auth\nOr if using Smithery: provide your gcp-oauth.keys.json file path in configuration`);
+            throw new Error(`🔐 Authentication required. ${errorMsg}\n\n💡 Ensure your gcp-oauth.keys.json file is at the correct path: ${process.env.GMAIL_OAUTH_PATH || 'not set'}`);
         }
         return await handleToolCall(gmailService, req.params.name, req.params.arguments);
     });

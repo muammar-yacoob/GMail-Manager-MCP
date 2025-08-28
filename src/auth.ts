@@ -2,8 +2,8 @@ import { OAuth2Client } from 'google-auth-library';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import http from 'http';
 import open from 'open';
+import readline from 'readline';
 
 const CONFIG_DIR = path.join(os.homedir(), '.gmail-mcp');
 
@@ -33,7 +33,9 @@ export async function getCredentials(): Promise<OAuth2Client> {
         throw new Error('Invalid OAuth keys file format. Expected "installed" or "web" key in OAuth file.');
     }
     
-    const oauth2Client = new OAuth2Client(keys.client_id, keys.client_secret, "http://localhost:3000/oauth2callback");
+    // For desktop apps, use the redirect URI from the keys file or OOB flow
+    const redirectUri = keys.redirect_uris?.[0] || "urn:ietf:wg:oauth:2.0:oob";
+    const oauth2Client = new OAuth2Client(keys.client_id, keys.client_secret, redirectUri);
     
     if (fs.existsSync(credentialsPath)) 
         oauth2Client.setCredentials(JSON.parse(fs.readFileSync(credentialsPath, 'utf8')));
@@ -43,50 +45,58 @@ export async function getCredentials(): Promise<OAuth2Client> {
 
 export async function authenticate(oauth2Client: OAuth2Client, credentialsPath?: string): Promise<void> {
     const creds = credentialsPath || path.join(CONFIG_DIR, 'credentials.json');
-    const server = http.createServer();
-    server.listen(3000);
+    
+    const authUrl = oauth2Client.generateAuthUrl({
+        access_type: 'offline',
+        scope: ['https://www.googleapis.com/auth/gmail.modify', 'https://www.googleapis.com/auth/gmail.settings.basic']
+    });
+    
+    console.log('🌐 Opening browser for Gmail authentication...');
+    console.log('📋 Please grant the requested permissions');
+    console.log('🔗 Visit this URL:', authUrl);
+    console.log('');
+    console.log('📝 After granting permission:');
+    console.log('   1. You will see "Please copy this code..." or similar');
+    console.log('   2. Copy the authorization code');
+    console.log('   3. Paste it when prompted below');
+    console.log('');
+    
+    // Try to open browser
+    try {
+        await open(authUrl);
+        console.log('✅ Browser opened automatically');
+    } catch (error) {
+        console.log('⚠️  Could not auto-open browser. Please manually visit the URL above.');
+    }
+    
+    // For desktop OAuth, we need to get the authorization code from the user
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
     
     return new Promise((resolve, reject) => {
-        const authUrl = oauth2Client.generateAuthUrl({
-            access_type: 'offline',
-            scope: ['https://www.googleapis.com/auth/gmail.modify', 'https://www.googleapis.com/auth/gmail.settings.basic']
-        });
-        
-        console.log('Please visit this URL to authenticate:', authUrl);
-        
-        // Only try to open browser if authUrl exists and not in headless environment
-        if (authUrl) {
-            try {
-                // Skip browser opening in Docker/headless environments
-                if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'production') {
-                    open(authUrl);
-                }
-            } catch (error) {
-                // Ignore browser open errors in headless environments
-                console.log('Note: Could not auto-open browser. Please manually visit the URL above.');
-            }
-        }
-        
-        server.on('request', async (req, res) => {
-            if (!req.url?.startsWith('/oauth2callback')) return;
+        rl.question('📋 Enter the authorization code: ', async (code) => {
+            rl.close();
             
-            const code = new URL(req.url, 'http://localhost:3000').searchParams.get('code');
-            
-            if (!code) {
-                res.writeHead(400) && res.end('No code provided');
-                return reject(new Error('No code provided'));
+            if (!code || code.trim() === '') {
+                return reject(new Error('No authorization code provided'));
             }
             
             try {
-                const { tokens } = await oauth2Client.getToken(code);
+                const { tokens } = await oauth2Client.getToken(code.trim());
                 oauth2Client.setCredentials(tokens);
+                
+                // Save credentials
+                if (!fs.existsSync(path.dirname(creds))) {
+                    fs.mkdirSync(path.dirname(creds), { recursive: true });
+                }
                 fs.writeFileSync(creds, JSON.stringify(tokens));
-                res.writeHead(200) && res.end('Authentication successful! You can close this window.');
-                server.close();
+                
+                console.log('✅ Authentication successful! Credentials saved.');
                 resolve();
-            } catch (error) {
-                res.writeHead(500) && res.end('Authentication failed');
-                reject(error);
+            } catch (tokenError) {
+                reject(new Error(`Failed to exchange authorization code: ${tokenError instanceof Error ? tokenError.message : String(tokenError)}`));
             }
         });
     });

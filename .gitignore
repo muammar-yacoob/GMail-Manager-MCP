@@ -1,4 +1,5 @@
 node_modules/
+dist/
 *.tsbuildinfo
 .env.*
 .gmail-mcp/
@@ -7,5 +8,6 @@ node_modules/
 npm-debug.log*
 coverage/
 PUBLISH.md
+gcp-oauth.keys.json
 gcp-oauth.keys json.example
 learn/
