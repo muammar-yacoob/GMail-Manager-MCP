@@ -148,4 +148,21 @@ async function main() {
     // No startup messages - they break the MCP protocol
 }
 
-main().catch(e => (console.error('Server error:', e), process.exit(1)));
+// Default export for Smithery compatibility
+export default async function({ config }: { config: any }) {
+    // Set environment variables from config if provided
+    if (config?.gcpOauthKeysPath) {
+        process.env.GMAIL_OAUTH_PATH = config.gcpOauthKeysPath;
+    }
+    if (config?.credentialsPath) {
+        process.env.GMAIL_CREDENTIALS_PATH = config.credentialsPath;
+    }
+    
+    // Run the main function
+    await main();
+}
+
+// Also support direct execution for local development
+if (import.meta.url === `file://${process.argv[1]}`) {
+    main().catch(e => (console.error('Server error:', e), process.exit(1)));
+}
