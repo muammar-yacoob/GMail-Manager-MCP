@@ -19,7 +19,9 @@
       "Bash(grep:*)",
       "Bash(docker build:*)",
       "Bash(npm view:*)",
-      "Bash(npm publish:*)"
+      "Bash(npm publish:*)",
+      "Bash(npm run debug-auth:*)",
+      "Bash(npm install)"
     ],
     "deny": [],
     "ask": []
