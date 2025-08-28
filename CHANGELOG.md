@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.9](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.0.8...v1.0.9) (2025-08-27)
+
+
+### Bug Fixes
+
+* add npm package preparation & Git-based installation options ([fe5267a](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/fe5267a170ddccfd8745606f36e59b97859e9a96))
+* enhance UX with pre-auth CLI & copy-friendly ([188fa50](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/188fa50fb6c65a889d85e6ac291e2e37b005d947))
+
 ## [1.0.8](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.0.7...v1.0.8) (2025-08-27)
 
 
