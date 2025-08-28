@@ -137,4 +137,58 @@ async function main() {
     }
     // No startup messages - they break the MCP protocol
 }
-main().catch(e => (console.error('Server error:', e), process.exit(1)));
+// Smithery stateful server export
+export default async function ({ sessionId, config }) {
+    // Set environment variables from config if provided
+    if (config?.gcpOauthKeysPath) {
+        process.env.GMAIL_OAUTH_PATH = config.gcpOauthKeysPath;
+    }
+    if (config?.credentialsPath) {
+        process.env.GMAIL_CREDENTIALS_PATH = config.credentialsPath;
+    }
+    // Force HTTP mode for Smithery
+    process.env.USE_HTTP = 'true';
+    // Create and return server instance
+    let oauth2Client = null;
+    let credentialsError = null;
+    try {
+        oauth2Client = await getCredentials();
+    }
+    catch (error) {
+        credentialsError = error instanceof Error ? error : new Error(String(error));
+    }
+    const server = new Server({
+        name: "gmail-manager",
+        version: "1.1.1",
+        capabilities: {
+            tools: {}
+        }
+    });
+    let gmailService = oauth2Client ? new GmailService(oauth2Client) : null;
+    // Handle initialization properly
+    server.setRequestHandler(InitializeRequestSchema, async (request) => {
+        return {
+            protocolVersion: "2025-06-18",
+            capabilities: {
+                tools: {}
+            },
+            serverInfo: {
+                name: "gmail-manager",
+                version: "1.1.1"
+            }
+        };
+    });
+    server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: getToolDefinitions() }));
+    server.setRequestHandler(CallToolRequestSchema, async (req) => {
+        if (!gmailService) {
+            const errorMsg = credentialsError?.message || 'OAuth credentials not found';
+            throw new Error(`🔐 Authentication required. ${errorMsg}\n\n💡 Ensure your gcp-oauth.keys.json file is provided in config.`);
+        }
+        return await handleToolCall(gmailService, req.params.name, req.params.arguments);
+    });
+    return server;
+}
+// Also support direct execution for local development
+if (import.meta.url === `file://${process.argv[1]}`) {
+    main().catch(e => (console.error('Server error:', e), process.exit(1)));
+}

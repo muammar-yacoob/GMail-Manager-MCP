@@ -38,10 +38,7 @@ npx @smithery/cli install @muammar-yacoob/gmail-manager-mcp --client claude --co
 
 **Important**: After installation:
 1. **Manually restart Claude Desktop** (the auto-restart may not work on Windows/WSL)
-2. **Verify the config was added** to `C:\Users\[username]\AppData\Roaming\Claude\claude_desktop_config.json`
-
-**Alternative: Manual Claude Desktop config**
-If the Smithery installation doesn't update your config, manually add this to your Claude Desktop config file:
+2. **Verify the config file [%APPDATA%\Claude\claude_desktop_config.json](%APPDATA%\Claude\claude_desktop_config.json) is amended, otherwise, manually add this to your Claude Desktop config file:
 ```json
 {
   "mcpServers": {
