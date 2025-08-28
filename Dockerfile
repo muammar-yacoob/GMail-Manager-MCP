@@ -21,9 +21,10 @@ RUN mkdir -p /gmail-server /root/.gmail-mcp
 # Set environment variables
 ENV NODE_ENV=production
 ENV GMAIL_CREDENTIALS_PATH=/gmail-server/credentials.json
-# Only set GMAIL_OAUTH_PATH if file exists, otherwise let server start without credentials
+ENV PORT=3000
+# OAuth keys should be provided via environment variables at runtime
 
-# Expose port for OAuth flow
+# Expose port for MCP HTTP server
 EXPOSE 3000
 
 # Set entrypoint command

@@ -2,10 +2,13 @@
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { CallToolRequestSchema, ListToolsRequestSchema, InitializeRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import { authenticate, getCredentials } from './auth.js';
 import { GmailService } from './gmail-service.js';
 import { getToolDefinitions, handleToolCall } from './tools.js';
+import http from 'http';
+import { URL } from 'url';
 
 async function main() {
     let oauth2Client = null;
@@ -77,9 +80,60 @@ async function main() {
         return await handleToolCall(gmailService, req.params.name, req.params.arguments);
     });
     
-    // Use stdio transport - Smithery will handle the HTTP wrapper
-    const transport = new StdioServerTransport();
-    await server.connect(transport);
+    // Check if we should run in HTTP mode (for Smithery deployments) or stdio mode (for local use)
+    const useHttp = process.env.PORT || process.env.USE_HTTP;
+    
+    if (useHttp) {
+        // HTTP mode for Smithery container deployments
+        const port = parseInt(process.env.PORT || '3000');
+        let transport: SSEServerTransport | null = null;
+        
+        const httpServer = http.createServer(async (req, res) => {
+            const url = new URL(req.url || '/', `http://${req.headers.host}`);
+            
+            if (url.pathname !== '/mcp') {
+                res.writeHead(404).end('Not found');
+                return;
+            }
+            
+            if (req.method === 'GET') {
+                // Handle SSE connection establishment
+                try {
+                    transport = new SSEServerTransport('/mcp', res);
+                    await server.connect(transport);
+                } catch (error) {
+                    res.writeHead(500).end('Failed to establish SSE connection');
+                }
+            } else if (req.method === 'POST') {
+                // Handle incoming JSON-RPC messages
+                if (transport && 'handleMessage' in transport) {
+                    try {
+                        await (transport as any).handleMessage(req, res);
+                    } catch (error) {
+                        res.writeHead(400).end('Failed to handle message');
+                    }
+                } else {
+                    res.writeHead(500).end('SSE connection not established');
+                }
+            } else if (req.method === 'DELETE') {
+                // Handle connection cleanup (optional)
+                res.writeHead(200).end('OK');
+            } else {
+                res.writeHead(405).end('Method not allowed');
+            }
+        });
+        
+        httpServer.listen(port, () => {
+            // Only log in development mode for debugging
+            if (process.env.NODE_ENV !== 'production') {
+                console.log(`HTTP server listening on port ${port}`);
+            }
+        });
+    } else {
+        // Stdio mode for local development and npm package usage
+        const transport = new StdioServerTransport();
+        await server.connect(transport);
+    }
     // No startup messages - they break the MCP protocol
 }
 
