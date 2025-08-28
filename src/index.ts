@@ -15,7 +15,10 @@ async function main() {
         oauth2Client = await getCredentials();
     } catch (error) {
         credentialsError = error instanceof Error ? error : new Error(String(error));
-        console.log('Note: Starting server without credentials for scanning purposes. Authentication will be required for actual operations.');
+        // Suppress startup message in production for scanning
+        if (process.env.NODE_ENV !== 'production') {
+            console.log('Note: Starting server without credentials for scanning purposes. Authentication will be required for actual operations.');
+        }
     }
     
     if (process.argv[2] === 'auth') {
@@ -80,7 +83,10 @@ async function main() {
     // Use stdio transport - Smithery will handle the HTTP wrapper
     const transport = new StdioServerTransport();
     await server.connect(transport);
-    console.log('MCP server started');
+    // Suppress startup message in production for scanning
+    if (process.env.NODE_ENV !== 'production') {
+        console.log('MCP server started');
+    }
 }
 
 main().catch(e => (console.error('Server error:', e), process.exit(1)));
