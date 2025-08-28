@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+# [1.1.0](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.0.9...v1.1.0) (2025-08-28)
+
+
+### Bug Fixes
+
+* suppress startup messages and handle missing credentials ([0adfbfc](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/0adfbfceec41e48b2ecbdd3e0d748efb060bd57a))
+* suppress startup messages and handle missing credentials gracefully for Smithery scanning compatibility ([3cca323](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/3cca323b67edfe1394f374c05e8b399a72c6fd50))
+* suppress startup messages in production for Smithery scanning compatibility ([23e28ef](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/23e28ef317528b1f23aa93f221d64b04b3923a8c))
+
+
+### Features
+
+* add HTTP server support for container deployments while maintaining stdio compatibility ([bb15f1b](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/bb15f1b59aae63fe143c6d5826ea0f2abe22a6ce))
+
 ## [1.0.9](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.0.8...v1.0.9) (2025-08-27)
 
 
