@@ -80,7 +80,6 @@ Or use local installation:
 
 ## 💬 Example Commands
 
-- *"Authenticate my Gmail account"* (uses `authenticate_gmail` tool)
 - *"Find and label newsletter emails for review"*
 - *"Show me potentially spam messages to check"*
 - *"Delete all linkedIn and social media notifications"*
