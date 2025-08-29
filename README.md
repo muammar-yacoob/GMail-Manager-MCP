@@ -2,41 +2,49 @@
 
 <div align="center">
 
+**🧹 Clean your inbox • 🏷️ Organize with labels • 🗑️ Bulk delete emails**
+
 ![MCP Server](https://badge.mcpx.dev?type=server)
 ![Gmail](https://img.shields.io/badge/Gmail-EA4335?style=flat-square&logo=gmail&logoColor=white)
 [![Smithery](https://smithery.ai/badge/@muammar-yacoob/gmail-manager-mcp)](https://smithery.ai/server/@muammar-yacoob/gmail-manager-mcp)
 [![MIT](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
 
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/muammar-yacoob?label=Sponsor&logo=github-sponsors&logoColor=white&color=pink)](https://github.com/sponsors/muammar-yacoob)
+[![Buy Me Coffee](https://img.shields.io/badge/Buy%20Me-Coffee-green?logo=buy-me-a-coffee&logoColor=white)](https://buymeacoffee.com/spark88)
+[![Report Bug](https://img.shields.io/badge/Report-Bug-red?logo=github&logoColor=white)](https://github.com/muammar-yacoob/GMail-Manager-MCP/issues)
+[![Downloads](https://img.shields.io/github/downloads/muammar-yacoob/GMail-Manager-MCP/total?logo=cloud-download&logoColor=white&color=blue)](https://github.com/muammar-yacoob/GMail-Manager-MCP/releases)
+[![GitHub Stars](https://img.shields.io/github/stars/muammar-yacoob/GMail-Manager-MCP?style=social)](https://github.com/muammar-yacoob/GMail-Manager-MCP/stargazers)
+
 <img src="images/meme.png" alt="Stop sending me unnecessary emails meme" width="400">
-
-**Clean your inbox • Organize with labels • Bulk delete emails**
-
 
 </div>
 
-## 🎯 What It Does
+## ✨ What It Does
 
-Gmail Manager MCP gives Claude Desktop direct access to your Gmail inbox, allowing you to:
-- **🔍 Search & Filter** - Find emails by sender, subject, date, or any Gmail query
-- **🏷️ Smart Organization** - Create and apply labels to categorize emails automatically  
-- **🗑️ Bulk Operations** - Delete multiple emails at once based on your criteria
-- **📊 Inbox Analytics** - Get insights about your email patterns and volume
-- **🧹 Smart Cleanup** - Remove old newsletters, notifications, and spam efficiently
+Gmail Manager MCP gives Claude Desktop **direct access** to your Gmail inbox, allowing you to:
 
-Perfect for inbox zero enthusiasts and anyone drowning in email overload!
+| Feature | Description |
+|---------|-------------|
+| ![Search](https://img.shields.io/badge/🔍-Search%20%26%20Filter-4285F4?style=for-the-badge&logo=gmail&logoColor=white) | Find emails by sender, subject, date, or any Gmail query |
+| ![Organize](https://img.shields.io/badge/🏷️-Smart%20Organization-34A853?style=for-the-badge&logo=googletasks&logoColor=white) | Create and apply labels to categorize emails automatically |
+| ![Bulk](https://img.shields.io/badge/🗑️-Bulk%20Operations-EA4335?style=for-the-badge&logo=googlesheets&logoColor=white) | Delete multiple emails at once based on your criteria |
+| ![Analytics](https://img.shields.io/badge/📊-Inbox%20Analytics-FBBC04?style=for-the-badge&logo=googleanalytics&logoColor=white) | Get insights about your email patterns and volume |
+| ![Cleanup](https://img.shields.io/badge/🧹-Smart%20Cleanup-9AA0A6?style=for-the-badge&logo=googleoptimize&logoColor=white) | Remove old newsletters, notifications, and spam efficiently |
 
-## ⚡ Quick Setup
+Perfect for **inbox zero enthusiasts** and anyone drowning in email overload! 📧💀
 
-### 1. Get Gmail credentials
+## 🚀 Installation
+
+### 1. Get Gmail Credentials
 - Visit [Google Cloud Console](https://console.cloud.google.com/)
 - Enable Gmail API → Create OAuth 2.0 Desktop credentials → Download as `gcp-oauth.keys.json`
 
 ### 2. Configure Claude Desktop
 
 Add this to your Claude Desktop config file:
-- **Windows**: [`%APPDATA%\Claude\claude_desktop_config.json`](%APPDATA%/Claude/claude_desktop_config.json)
-- **macOS**: [`~/Library/Application Support/Claude/claude_desktop_config.json`](~/Library/Application%20Support/Claude/claude_desktop_config.json)
-- **Linux**: [`~/.config/Claude/claude_desktop_config.json`](~/.config/Claude/claude_desktop_config.json)
+- ![Windows](https://img.shields.io/badge/Windows-0078D4?style=flat-square&logo=windows&logoColor=white) [`%APPDATA%\Claude\claude_desktop_config.json`](%APPDATA%/Claude/claude_desktop_config.json)
+- ![macOS](https://img.shields.io/badge/macOS-000000?style=flat-square&logo=apple&logoColor=white) [`~/Library/Application Support/Claude/claude_desktop_config.json`](~/Library/Application%20Support/Claude/claude_desktop_config.json)
+- ![Linux](https://img.shields.io/badge/Linux-FCC624?style=flat-square&logo=linux&logoColor=black) [`~/.config/Claude/claude_desktop_config.json`](~/.config/Claude/claude_desktop_config.json)
 
 ```json
 {
@@ -52,7 +60,7 @@ Add this to your Claude Desktop config file:
 }
 ```
 
-Or use local installation:
+**Or use local installation:**
 ```json
 {
   "mcpServers": {
@@ -74,9 +82,21 @@ Or use local installation:
 
 *Alternative: Run `npm run auth` in terminal for manual authentication*
 
-## 🛠️ Tools
+## 🛠️ Available Tools
 
-`authenticate_gmail` • `search_emails` • `read_email` • `delete_email` • `batch_delete_emails` • `list_labels` • `create_label` • `delete_label` • `apply_label` • `remove_label` • `batch_apply_labels`
+| Tool | Description |
+|------|-------------|
+| ![Auth](https://img.shields.io/badge/🔐-authenticate__gmail-blue?style=flat-square) | Authenticate Gmail access via web browser |
+| ![Search](https://img.shields.io/badge/🔍-search__emails-green?style=flat-square) | Search emails using Gmail query syntax |
+| ![Read](https://img.shields.io/badge/📖-read__email-orange?style=flat-square) | Read the full content of an email |
+| ![Delete](https://img.shields.io/badge/🗑️-delete__email-red?style=flat-square) | Permanently delete an email |
+| ![Batch Delete](https://img.shields.io/badge/💥-batch__delete__emails-darkred?style=flat-square) | Delete multiple emails at once |
+| ![Labels](https://img.shields.io/badge/📋-list__labels-purple?style=flat-square) | List all Gmail labels |
+| ![Create](https://img.shields.io/badge/➕-create__label-brightgreen?style=flat-square) | Create a new Gmail label |
+| ![Remove](https://img.shields.io/badge/❌-delete__label-red?style=flat-square) | Delete a Gmail label |
+| ![Apply](https://img.shields.io/badge/🏷️-apply__label-blue?style=flat-square) | Apply a label to an email |
+| ![Unlabel](https://img.shields.io/badge/🚫-remove__label-orange?style=flat-square) | Remove a label from an email |
+| ![Batch Apply](https://img.shields.io/badge/⚡-batch__apply__labels-yellow?style=flat-square) | Apply labels to multiple emails |
 
 ## 💬 Example Commands
 
@@ -103,6 +123,22 @@ Or use local installation:
 
 ---
 
+## 🌱 Support & Contributions
+
+⭐ **Star the repo** & I power up like Mario 🍄  
+☕ **Devs run on coffee** - [Buy me one?](https://buymeacoffee.com/spark88)  
+🤝 **Contributions are welcome** - Fork, improve, PR!
+
+## 💖 Sponsor
+
+If you find Gmail Manager MCP useful, please consider sponsoring the project! Your support helps maintain and improve the tool.
+
+---
+
 <div align="center">
-<a href="https://smithery.ai/server/@muammar-yacoob/gmail-manager-mcp">Get on Smithery</a> • Made for Claude Desktop
+
+**🚀 Ready to clean your inbox?**
+
+<a href="https://smithery.ai/server/@muammar-yacoob/gmail-manager-mcp">🎯 Get on Smithery</a> • **Made with ❤️ for Claude Desktop**
+
 </div>
