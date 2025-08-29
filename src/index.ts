@@ -215,7 +215,8 @@ export default async function({ sessionId, config }: { sessionId: string; config
 
 // Also support direct execution for local development
 // When the script is run directly with node, start the server
-if (process.argv[1] && import.meta.url.includes('index.js')) {
+// Check if running as main module (avoid import.meta for CommonJS compatibility)
+if (process.argv[1] && (process.argv[1].endsWith('index.js') || process.argv[1].endsWith('index.cjs'))) {
     main().catch(e => {
         console.error('Server error:', e);
         process.exit(1);
