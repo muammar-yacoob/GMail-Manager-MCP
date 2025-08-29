@@ -67,16 +67,20 @@ Or use local installation:
 }
 ```
 
-### 3. First run
+### 3. Authentication
 1. **Restart Claude Desktop** completely (close and reopen)
-2. Claude will authenticate automatically on first use
+2. **Use the `authenticate_gmail` tool** - Claude will open your browser automatically for Gmail authentication
+3. **Grant permissions** in the browser and return to Claude Desktop
+
+*Alternative: Run `npm run auth` in terminal for manual authentication*
 
 ## 🛠️ Tools
 
-`search_emails` • `read_email` • `delete_email` • `batch_delete_emails` • `list_labels` • `create_label` • `delete_label` • `apply_label` • `remove_label` • `batch_apply_labels`
+`authenticate_gmail` • `search_emails` • `read_email` • `delete_email` • `batch_delete_emails` • `list_labels` • `create_label` • `delete_label` • `apply_label` • `remove_label` • `batch_apply_labels`
 
 ## 💬 Example Commands
 
+- *"Authenticate my Gmail account"* (uses `authenticate_gmail` tool)
 - *"Find and label newsletter emails for review"*
 - *"Show me potentially spam messages to check"*
 - *"Delete all linkedIn and social media notifications"*
