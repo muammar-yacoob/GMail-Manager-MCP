@@ -1,7 +1,5 @@
 # Privacy Policy for Gmail Manager MCP
 
-*Last updated: January 2025*
-
 ## Overview
 
 Gmail Manager MCP is a Model Context Protocol (MCP) server that helps you manage your Gmail inbox. This privacy policy explains how we handle your data when you use our application.
