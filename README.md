@@ -52,10 +52,13 @@ Perfect for **inbox zero enthusiasts** and anyone drowning in email overload! ðŸ
 2. [Enable Gmail API](https://console.cloud.google.com/apis/api/gmail.googleapis.com/metrics).
 3. Create [OAuth 2.0 Desktop credentials](https://console.cloud.google.com/auth/clients) and download as `gcp-oauth.keys.json`.
 4. Navigate to [Data access](https://console.cloud.google.com/auth/scopes) and click **Add or remove scopes**.
-5. In **Manually add scopes**, add `https://www.googleapis.com/auth/gmail.modify` and click **Add to table** then **Update**.
+5. In **Manually add scopes**, add both scopes:
+   - `https://www.googleapis.com/auth/gmail.modify`
+   - `https://www.googleapis.com/auth/gmail.settings.basic`
+   Click **Add to table** then **Update** for each scope.
 6. Navigate to [Test users](https://console.cloud.google.com/auth/audience) and add your Google email account as a test user. 
 
-This scope allows the Gmail Manager MCP to read, send, delete, and modify your emails, as well as manage labels.
+These scopes allow the Gmail Manager MCP to read, send, delete, and modify your emails, manage labels, and access basic Gmail settings.
 
 ```json
 {

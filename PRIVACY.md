@@ -9,7 +9,9 @@ Gmail Manager MCP is a Model Context Protocol (MCP) server that helps you manage
 ## Data Collection and Usage
 
 ### What We Access
-- **Gmail Data**: When you authorize the application, it can access your Gmail emails, labels, and basic account information as specified by the `https://www.googleapis.com/auth/gmail.modify` scope.
+- **Gmail Data**: When you authorize the application, it can access your Gmail emails, labels, and basic account information as specified by these OAuth scopes:
+  - `https://www.googleapis.com/auth/gmail.modify` - for reading, sending, deleting, and modifying emails and labels
+  - `https://www.googleapis.com/auth/gmail.settings.basic` - for accessing basic Gmail settings
 - **Local Configuration**: OAuth credentials and authentication tokens are stored locally on your device.
 
 ### What We Don't Collect
