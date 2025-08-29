@@ -8,6 +8,7 @@ import { GmailService } from './gmail-service.js';
 import { getToolDefinitions, handleToolCall } from './tools.js';
 import http from 'http';
 import { URL } from 'url';
+import { fileURLToPath } from 'url';
 async function main() {
     let oauth2Client = null;
     let credentialsError = null;
@@ -192,8 +193,7 @@ export default async function ({ sessionId, config }) {
     if (config?.credentialsPath) {
         process.env.GMAIL_CREDENTIALS_PATH = config.credentialsPath;
     }
-    // Force HTTP mode for Smithery
-    process.env.USE_HTTP = 'true';
+    // Smithery handles HTTP layer - don't set USE_HTTP
     // Create and return server instance
     let oauth2Client = null;
     let credentialsError = null;
@@ -226,9 +226,32 @@ export default async function ({ sessionId, config }) {
     });
     server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: getToolDefinitions() }));
     server.setRequestHandler(CallToolRequestSchema, async (req) => {
+        // Handle authentication tool specially
+        if (req.params.name === 'authenticate_gmail') {
+            if (!oauth2Client) {
+                throw new Error(`🔐 Gmail OAuth credentials not configured. Setup required:
+
+1. Visit Google Cloud Console (https://console.cloud.google.com/)
+2. Enable Gmail API
+3. Create OAuth 2.0 Desktop credentials
+4. Download as 'gcp-oauth.keys.json'
+5. Provide the file path in Smithery config
+
+Current OAuth path: ${process.env.GMAIL_OAUTH_PATH || 'not set'}`);
+            }
+            try {
+                await authenticateWeb(oauth2Client);
+                // Recreate gmail service after authentication
+                gmailService = new GmailService(oauth2Client);
+                return { content: [{ type: "text", text: "✅ Authentication successful! Gmail Manager is now connected to your Gmail account. You can now use all Gmail tools." }] };
+            }
+            catch (error) {
+                throw new Error(`Authentication failed: ${error instanceof Error ? error.message : String(error)}`);
+            }
+        }
         if (!gmailService) {
             const errorMsg = credentialsError?.message || 'OAuth credentials not found';
-            throw new Error(`🔐 Authentication required. ${errorMsg}\n\n💡 Ensure your gcp-oauth.keys.json file is provided in config.`);
+            throw new Error(`🔐 Authentication required. ${errorMsg}\n\n💡 Use the 'authenticate_gmail' tool or ensure your gcp-oauth.keys.json file is provided in config.`);
         }
         return await handleToolCall(gmailService, req.params.name, req.params.arguments);
     });
@@ -236,9 +259,12 @@ export default async function ({ sessionId, config }) {
 }
 // Also support direct execution for local development
 // When the script is run directly with node, start the server
-// Check if running as main module (avoid import.meta for CommonJS compatibility)
+// Check if running as main module using ES module syntax
 // Don't auto-start if we're in Smithery mode (USE_HTTP is set by Smithery)
-if (process.argv[1] && (process.argv[1].endsWith('index.js') || process.argv[1].endsWith('index.cjs')) && !process.env.USE_HTTP) {
+// Also don't auto-start if this is being imported as a module
+const __filename = fileURLToPath(import.meta.url);
+const isMainModule = process.argv[1] && (process.argv[1] === __filename || process.argv[1].endsWith('index.js'));
+if (isMainModule && !process.env.USE_HTTP) {
     main().catch(e => {
         console.error('Server error:', e);
         process.exit(1);
