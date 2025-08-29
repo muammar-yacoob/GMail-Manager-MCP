@@ -3,7 +3,7 @@ import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { CallToolRequestSchema, ListToolsRequestSchema, InitializeRequestSchema } from "@modelcontextprotocol/sdk/types.js";
-import { authenticate, getCredentials } from './auth.js';
+import { authenticateWeb, getCredentials } from './auth.js';
 import { GmailService } from './gmail-service.js';
 import { getToolDefinitions, handleToolCall } from './tools.js';
 import http from 'http';
@@ -30,9 +30,9 @@ async function main() {
             console.log('   3. Run authentication again');
             process.exit(1);
         }
-        console.log('🌐 Opening browser for Gmail authentication...');
-        console.log('📝 You\'ll need to grant Gmail access permissions');
-        await authenticate(oauth2Client);
+        console.log('🌐 Starting web-based Gmail authentication...');
+        console.log('📝 Your browser will open automatically for Gmail access permissions');
+        await authenticateWeb(oauth2Client);
         console.log('✅ Authentication completed successfully!');
         console.log('🎉 Gmail Manager is now ready to use with Claude Desktop');
         console.log('\n💾 Credentials saved for future use - no need to authenticate again');
@@ -68,13 +68,39 @@ async function main() {
     });
     server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: getToolDefinitions() }));
     server.setRequestHandler(CallToolRequestSchema, async (req) => {
+        // Handle authentication tool specially
+        if (req.params.name === 'authenticate_gmail') {
+            if (!oauth2Client) {
+                throw new Error(`🔐 Gmail OAuth credentials not configured. Setup required:
+
+1. Visit Google Cloud Console (https://console.cloud.google.com/)
+2. Enable Gmail API
+3. Create OAuth 2.0 Desktop credentials
+4. Download as 'gcp-oauth.keys.json'
+5. Place file at: ${process.env.GMAIL_OAUTH_PATH || 'project directory'}
+6. Restart Claude Desktop after setup
+
+Current OAuth path: ${process.env.GMAIL_OAUTH_PATH || 'not set'}`);
+            }
+            try {
+                await authenticateWeb(oauth2Client);
+                return { content: [{ type: "text", text: "✅ Authentication successful! Gmail Manager is now connected to your Gmail account. You can now use all Gmail tools." }] };
+            }
+            catch (error) {
+                throw new Error(`Authentication failed: ${error instanceof Error ? error.message : String(error)}`);
+            }
+        }
         if (!gmailService) {
             const errorMsg = credentialsError?.message || 'OAuth credentials not found';
-            // Provide clear instructions for authentication
+            // Provide clear instructions for authentication with web option
             if (oauth2Client && !credentialsError?.message?.includes('OAuth credentials not found')) {
                 // We have OAuth keys but no valid credentials
-                throw new Error(`🔐 Gmail authentication required. Please run authentication setup:
+                throw new Error(`🔐 Gmail authentication required. Choose one of these options:
 
+**Option 1 - Web Authentication (Recommended):**
+Use the 'authenticate_gmail' tool to authenticate via web browser
+
+**Option 2 - Terminal Authentication:**
 1. Open a terminal in your project directory
 2. Run: npm run auth
 3. Follow the browser authentication flow
@@ -92,8 +118,7 @@ Credentials will be saved to: ${process.env.GMAIL_CREDENTIALS_PATH || '~/.gmail-
 3. Create OAuth 2.0 Desktop credentials
 4. Download as 'gcp-oauth.keys.json'
 5. Place file at: ${process.env.GMAIL_OAUTH_PATH || 'project directory'}
-6. Run: npm run auth
-7. Restart Claude Desktop
+6. Restart Claude Desktop after setup
 
 Current OAuth path: ${process.env.GMAIL_OAUTH_PATH || 'not set'}`);
             }

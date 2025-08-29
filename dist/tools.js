@@ -22,7 +22,8 @@ const schemas = {
     batch_apply_labels: z.object({
         messageIds: z.array(z.string()).describe("Array of email message IDs"),
         labelIds: z.array(z.string()).describe("Array of label IDs to apply")
-    })
+    }),
+    authenticate_gmail: z.object({})
 };
 const toolDescriptions = {
     search_emails: "Search emails using Gmail query syntax",
@@ -34,7 +35,8 @@ const toolDescriptions = {
     delete_label: "Delete a Gmail label",
     apply_label: "Apply a label to an email",
     remove_label: "Remove a label from an email",
-    batch_apply_labels: "Apply labels to multiple emails at once"
+    batch_apply_labels: "Apply labels to multiple emails at once",
+    authenticate_gmail: "Authenticate Gmail access via web browser (opens browser automatically)"
 };
 export const getToolDefinitions = () => Object.entries(schemas).map(([name, schema]) => ({
     name,
@@ -105,6 +107,10 @@ export async function handleToolCall(gmailService, name, args) {
                 const result = await gmailService.batchApplyLabels(v.messageIds, v.labelIds);
                 return { content: [{ type: "text",
                             text: `Batch label application completed:\nSuccessfully processed: ${result.successes} emails\nFailed: ${result.failures} emails` }] };
+            }
+            case "authenticate_gmail": {
+                // This is a special case - handled in index.ts
+                throw new Error("Authentication should be handled by the main server");
             }
             default: throw new Error(`Unknown tool: ${name}`);
         }

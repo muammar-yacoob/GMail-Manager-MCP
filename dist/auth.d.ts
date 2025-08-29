@@ -5,4 +5,5 @@ export declare function checkAuthStatus(): Promise<{
     hasCredentials: boolean;
     credentialsValid: boolean;
 }>;
+export declare function authenticateWeb(oauth2Client: OAuth2Client, credentialsPath?: string): Promise<void>;
 export declare function authenticate(oauth2Client: OAuth2Client, credentialsPath?: string): Promise<void>;

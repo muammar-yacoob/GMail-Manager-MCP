@@ -7,6 +7,7 @@
         "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
         "client_secret": "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",
         "redirect_uris": [
+            "http://localhost:3000/oauth/callback",
             "urn:ietf:wg:oauth:2.0:oob"
         ]
     }
