@@ -5,8 +5,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Development Rules
 
 ### GitHub
-- Use GitHub MCP only to read and bisect to find previous commits that worked but never commit or push to origin
-- After fixes, always suggest concise commit messages of one brief line only with "fix:", "feat:" prefixes when necessary for deployment focusing on the main change, not implementation details
+- NEVER push to origin - only make local commits
+- Use GitHub MCP only to read and analyze previous commits but NEVER push
+- After fixes, create local commits with concise messages using "fix:", "feat:" prefixes
+- Suggest deployment steps but let user handle pushing
 
 ### Communication
 - Be direct & concise
