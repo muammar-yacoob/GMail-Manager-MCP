@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.5](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.1.4...v1.1.5) (2025-08-29)
+
+
+### Bug Fixes
+
+* remove unnecessary files from git tracking ([9ac3e98](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/9ac3e98eafa27c2f0ffb999733e9452493febf01))
+
 ## [1.1.4](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.1.3...v1.1.4) (2025-08-29)
 
 
