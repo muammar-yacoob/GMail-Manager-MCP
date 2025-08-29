@@ -54,9 +54,12 @@ Perfect for **inbox zero enthusiasts** and anyone drowning in email overload! �
 ### 2. Configure Claude Desktop & Authentication ⚙️
 
 Add this to your Claude Desktop config file:
-- ![Windows](https://img.shields.io/badge/Windows-0078D4?style=flat-square&logo=windows&logoColor=white) [`%APPDATA%\Claude\claude_desktop_config.json`](file://%APPDATA%/Claude/)
-- ![macOS](https://img.shields.io/badge/macOS-000000?style=flat-square&logo=apple&logoColor=white) [`~/Library/Application Support/Claude/claude_desktop_config.json`](file:///Users/$USER/Library/Application%20Support/Claude/)
-- ![Linux](https://img.shields.io/badge/Linux-FCC624?style=flat-square&logo=linux&logoColor=black) [`~/.config/Claude/claude_desktop_config.json`](file://$HOME/.config/Claude/)
+
+| OS | Config File Location |
+|----|---------------------|
+| <img src="https://img.shields.io/badge/Windows-0078D4?style=flat-square&logo=windows&logoColor=white" alt="Windows" width="80" height="20" style="vertical-align: middle;"> | <kbd style="background: #2d333b; color: #f0f6fc; padding: 3px 6px; border-radius: 3px; font-family: 'Arial', Arial, sans-serif; font-size: 0.9em; border: 1px solid #444c56;">%APPDATA%\Claude\claude_desktop_config.json</kbd> |
+| <img src="https://img.shields.io/badge/macOS-000000?style=flat-square&logo=apple&logoColor=white" alt="macOS" width="80" height="20" style="vertical-align: middle;"> | <kbd style="background: #2d333b; color: #f0f6fc; padding: 3px 6px; border-radius: 3px; font-family: 'Arial', Arial, sans-serif; font-size: 0.9em; border: 1px solid #444c56;">~/Library/Application Support/Claude/claude_desktop_config.json</kbd> |
+| <img src="https://img.shields.io/badge/Linux-FCC624?style=flat-square&logo=linux&logoColor=black" alt="Linux" width="80" height="20" style="vertical-align: middle;"> | <kbd style="background: #2d333b; color: #f0f6fc; padding: 3px 6px; border-radius: 3px; font-family: 'Arial', Arial, sans-serif; font-size: 0.9em; border: 1px solid #444c56;">~/.config/Claude/claude_desktop_config.json</kbd> |
 
 ```json
 {
