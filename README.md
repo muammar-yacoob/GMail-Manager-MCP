@@ -89,11 +89,13 @@ Add this to your Claude Desktop config file:
 ```
 
 ### 3. Authentication 🔓
-1. **Restart Claude Desktop** completely (close and reopen)
-2. **Use the `authenticate_gmail` tool** - Claude will open your browser automatically for Gmail authentication
-3. **Grant permissions** in the browser and return to Claude Desktop
 
-*Alternative: Run `npm run auth` in terminal for manual authentication*
+1. **Restart Claude Desktop** completely (close from tray area if needed)
+2. **Try any Gmail command** from the examples below - Claude will automatically prompt for authentication
+3. **Use the `authenticate_gmail` tool** when prompted - your browser will open for Gmail login
+4. **Grant permissions** and return to Claude Desktop - you're ready to go! 🎉
+
+*💡 Alternative: Run `npm run auth` in your terminal for manual setup*
 
 ## 🛠️ Available Tools
 
