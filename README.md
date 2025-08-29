@@ -1,3 +1,16 @@
+[//]: # (Constants)
+[license-link]: ../../blob/main/LICENSE
+[stars-link]: ../../stargazers
+[vid-link]: https://www.youtube.com/shorts/CCbY_ETwFss
+[website-link]: https://spark-games.co.uk
+[coffee-link]: https://buymeacoffee.com/spark88
+[bug-link]: ../../issues
+[release-link]: ../../releases
+[object-tutorial-link]: https://youtu.be/3g1JKg0-Wtc
+[fork-link]: ../../fork
+[privacy-link]: ./PRIVACY.md
+[issues-link]: ../../issues
+
 # <img src="images/trash-mail.png" alt="Gmail Manager" width="48" height="48" style="vertical-align: middle;"> Gmail Manager MCP
 
 <div align="center">
@@ -10,10 +23,10 @@
 [![MIT](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
 
 [![GitHub Sponsors](https://img.shields.io/github/sponsors/muammar-yacoob?label=Sponsor&logo=github-sponsors&logoColor=white&color=pink)](https://github.com/sponsors/muammar-yacoob)
-[![Buy Me Coffee](https://img.shields.io/badge/Buy%20Me-Coffee-green?logo=buy-me-a-coffee&logoColor=white)](https://buymeacoffee.com/spark88)
-[![Report Bug](https://img.shields.io/badge/Report-Bug-red?logo=github&logoColor=white)](https://github.com/muammar-yacoob/GMail-Manager-MCP/issues)
-[![Downloads](https://img.shields.io/github/downloads/muammar-yacoob/GMail-Manager-MCP/total?logo=cloud-download&logoColor=white&color=blue)](https://github.com/muammar-yacoob/GMail-Manager-MCP/releases)
-[![GitHub Stars](https://img.shields.io/github/stars/muammar-yacoob/GMail-Manager-MCP?style=social)](https://github.com/muammar-yacoob/GMail-Manager-MCP/stargazers)
+[![Buy Me Coffee](https://img.shields.io/badge/Buy%20Me-Coffee-green?logo=buy-me-a-coffee&logoColor=white)][coffee-link]
+[![Report Bug](https://img.shields.io/badge/Report-Bug-red?logo=github&logoColor=white)][issues-link]
+[![Downloads](https://img.shields.io/github/downloads/muammar-yacoob/GMail-Manager-MCP/total?logo=cloud-download&logoColor=white&color=blue)][release-link]
+[![GitHub Stars](https://img.shields.io/github/stars/muammar-yacoob/GMail-Manager-MCP?style=social)][stars-link]
 
 <img src="images/meme.png" alt="Stop sending me unnecessary emails meme" width="400">
 
@@ -35,11 +48,11 @@ Perfect for **inbox zero enthusiasts** and anyone drowning in email overload! �
 
 ## 🚀 Installation
 
-### 1. Get Gmail Credentials
+### 1. Get Gmail Credentials 🗝️
 - Visit [Google Cloud Console](https://console.cloud.google.com/)
 - Enable Gmail API → Create OAuth 2.0 Desktop credentials → Download as `gcp-oauth.keys.json`
 
-### 2. Configure Claude Desktop
+### 2. Configure Claude Desktop ⚙️
 
 Add this to your Claude Desktop config file:
 - ![Windows](https://img.shields.io/badge/Windows-0078D4?style=flat-square&logo=windows&logoColor=white) [`%APPDATA%\Claude\claude_desktop_config.json`](%APPDATA%/Claude/claude_desktop_config.json)
@@ -75,7 +88,7 @@ Add this to your Claude Desktop config file:
 }
 ```
 
-### 3. Authentication
+### 3. Authentication 🔓
 1. **Restart Claude Desktop** completely (close and reopen)
 2. **Use the `authenticate_gmail` tool** - Claude will open your browser automatically for Gmail authentication
 3. **Grant permissions** in the browser and return to Claude Desktop
@@ -126,8 +139,8 @@ Add this to your Claude Desktop config file:
 ## 🌱 Support & Contributions
 
 ⭐ **Star the repo** & I power up like Mario 🍄  
-☕ **Devs run on coffee** - [Buy me one?](https://buymeacoffee.com/spark88)  
-🤝 **Contributions are welcome** - Fork, improve, PR!
+☕ **Devs run on coffee** - [Buy me one?][coffee-link]  
+🤝 **Contributions are welcome** - [🍴 Fork][fork-link], improve, PR!
 
 ## 💖 Sponsor
 
