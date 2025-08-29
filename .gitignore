@@ -1,13 +1,14 @@
+gcp-oauth.keys.json
+.env.*
 node_modules/
 *.tsbuildinfo
-.env.*
 .gmail-mcp/
-.vscode/
 *.log
 npm-debug.log*
+.vscode/
 coverage/
 PUBLISH.md
-gcp-oauth.keys.json
-gcp-oauth.keys json.example
 learn/
 .smithery/
+gcp-oauth.keys.json
+gcp-oauth.keys.json

@@ -69,20 +69,34 @@ async function main() {
     server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: getToolDefinitions() }));
     server.setRequestHandler(CallToolRequestSchema, async (req) => {
         if (!gmailService) {
-            // If we have OAuth keys but no credentials, try to authenticate automatically
-            if (oauth2Client && !credentialsError?.message?.includes('OAuth credentials not found')) {
-                try {
-                    console.error('🔐 First-time authentication required. Opening browser...');
-                    await authenticate(oauth2Client);
-                    gmailService = new GmailService(oauth2Client);
-                    return await handleToolCall(gmailService, req.params.name, req.params.arguments);
-                }
-                catch (authError) {
-                    throw new Error(`🔐 Authentication failed: ${authError instanceof Error ? authError.message : String(authError)}`);
-                }
-            }
             const errorMsg = credentialsError?.message || 'OAuth credentials not found';
-            throw new Error(`🔐 Authentication required. ${errorMsg}\n\n💡 Ensure your gcp-oauth.keys.json file is at the correct path: ${process.env.GMAIL_OAUTH_PATH || 'not set'}`);
+            // Provide clear instructions for authentication
+            if (oauth2Client && !credentialsError?.message?.includes('OAuth credentials not found')) {
+                // We have OAuth keys but no valid credentials
+                throw new Error(`🔐 Gmail authentication required. Please run authentication setup:
+
+1. Open a terminal in your project directory
+2. Run: npm run auth
+3. Follow the browser authentication flow
+4. Restart Claude Desktop after authentication
+
+OAuth keys found at: ${process.env.GMAIL_OAUTH_PATH || 'project directory'}
+Credentials will be saved to: ${process.env.GMAIL_CREDENTIALS_PATH || '~/.gmail-mcp/credentials.json'}`);
+            }
+            else {
+                // No OAuth keys found
+                throw new Error(`🔐 Gmail OAuth credentials not configured. Setup required:
+
+1. Visit Google Cloud Console (https://console.cloud.google.com/)
+2. Enable Gmail API
+3. Create OAuth 2.0 Desktop credentials
+4. Download as 'gcp-oauth.keys.json'
+5. Place file at: ${process.env.GMAIL_OAUTH_PATH || 'project directory'}
+6. Run: npm run auth
+7. Restart Claude Desktop
+
+Current OAuth path: ${process.env.GMAIL_OAUTH_PATH || 'not set'}`);
+            }
         }
         return await handleToolCall(gmailService, req.params.name, req.params.arguments);
     });
