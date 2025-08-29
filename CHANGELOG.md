@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.2](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.1.1...v1.1.2) (2025-08-29)
+
+
+### Bug Fixes
+
+* add default export for Smithery compatibility ([c3f0e2f](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/c3f0e2f872f9338f489f192c26e311488d4c14c1))
+* remove import.meta usage for CommonJS compatibility in Smithery deployments ([31feede](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/31feedec26afbb53b84edac5c0ebe1454f184ace))
+* remove unnecessary import.meta type check preventing server startup ([4ddd77b](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/4ddd77b5ebb0989022b439452aa9ba8477f64702))
+* smithery export format for stateful server compatibility ([e80dc2f](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/e80dc2fda97d148157112a5049d362becc66e955))
+
 ## [1.1.1](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.1.0...v1.1.1) (2025-08-28)
 
 
