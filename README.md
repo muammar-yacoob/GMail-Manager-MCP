@@ -34,9 +34,9 @@ Perfect for inbox zero enthusiasts and anyone drowning in email overload!
 ### 2. Configure Claude Desktop
 
 Add this to your Claude Desktop config file:
-- **Windows**: [`%APPDATA%\Claude\claude_desktop_config.json`](file:///%APPDATA%/Claude/claude_desktop_config.json)
-- **macOS**: [`~/Library/Application Support/Claude/claude_desktop_config.json`](file://~/Library/Application%20Support/Claude/claude_desktop_config.json)
-- **Linux**: [`~/.config/Claude/claude_desktop_config.json`](file://~/.config/Claude/claude_desktop_config.json)
+- **Windows**: [`%APPDATA%\Claude\claude_desktop_config.json`](%APPDATA%/Claude/claude_desktop_config.json)
+- **macOS**: [`~/Library/Application Support/Claude/claude_desktop_config.json`](~/Library/Application%20Support/Claude/claude_desktop_config.json)
+- **Linux**: [`~/.config/Claude/claude_desktop_config.json`](~/.config/Claude/claude_desktop_config.json)
 
 ```json
 {

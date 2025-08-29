@@ -212,7 +212,8 @@ export default async function ({ sessionId, config }) {
 // Also support direct execution for local development
 // When the script is run directly with node, start the server
 // Check if running as main module (avoid import.meta for CommonJS compatibility)
-if (process.argv[1] && (process.argv[1].endsWith('index.js') || process.argv[1].endsWith('index.cjs'))) {
+// Don't auto-start if we're in Smithery mode (USE_HTTP is set by Smithery)
+if (process.argv[1] && (process.argv[1].endsWith('index.js') || process.argv[1].endsWith('index.cjs')) && !process.env.USE_HTTP) {
     main().catch(e => {
         console.error('Server error:', e);
         process.exit(1);
