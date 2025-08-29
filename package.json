@@ -8,6 +8,7 @@
   "bin": {
     "gmail-manager": "dist/index.js"
   },
+  "preferGlobal": true,
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc --watch",
