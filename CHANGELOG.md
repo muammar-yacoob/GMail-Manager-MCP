@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.4](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.1.3...v1.1.4) (2025-08-29)
+
+
+### Bug Fixes
+
+* remove gcp-oauth.keys.json from tracking and clean up .gitignore ([9c4e145](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/9c4e145d51ee28ff00073bf67ffbd7fb59ca82fc))
+* resolve import.meta.url CommonJS compatibility issue for Smithery deployment ([60b34de](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/60b34def343847146782eeeea9bf0e43de33bfed))
+
 ## [1.1.3](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.1.2...v1.1.3) (2025-08-29)
 
 
