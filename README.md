@@ -54,9 +54,9 @@ Perfect for **inbox zero enthusiasts** and anyone drowning in email overload! �
 ### 2. Configure Claude Desktop & Authentication ⚙️
 
 Add this to your Claude Desktop config file:
-- ![Windows](https://img.shields.io/badge/Windows-0078D4?style=flat-square&logo=windows&logoColor=white) [`%APPDATA%\Claude\claude_desktop_config.json`](%APPDATA%/Claude/claude_desktop_config.json)
-- ![macOS](https://img.shields.io/badge/macOS-000000?style=flat-square&logo=apple&logoColor=white) [`~/Library/Application Support/Claude/claude_desktop_config.json`](~/Library/Application%20Support/Claude/claude_desktop_config.json)
-- ![Linux](https://img.shields.io/badge/Linux-FCC624?style=flat-square&logo=linux&logoColor=black) [`~/.config/Claude/claude_desktop_config.json`](~/.config/Claude/claude_desktop_config.json)
+- ![Windows](https://img.shields.io/badge/Windows-0078D4?style=flat-square&logo=windows&logoColor=white) [`%APPDATA%\Claude\claude_desktop_config.json`](file://%APPDATA%/Claude/)
+- ![macOS](https://img.shields.io/badge/macOS-000000?style=flat-square&logo=apple&logoColor=white) [`~/Library/Application Support/Claude/claude_desktop_config.json`](file:///Users/$USER/Library/Application%20Support/Claude/)
+- ![Linux](https://img.shields.io/badge/Linux-FCC624?style=flat-square&logo=linux&logoColor=black) [`~/.config/Claude/claude_desktop_config.json`](file://$HOME/.config/Claude/)
 
 ```json
 {

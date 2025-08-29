@@ -39,7 +39,9 @@
       "Bash(npm:*)",
       "Bash(echo $BROWSER)",
       "Bash(export BROWSER=sensible-browser)",
-      "Bash(export BROWSER=\"cmd.exe /c start\")"
+      "Bash(export BROWSER=\"cmd.exe /c start\")",
+      "Bash(docker run:*)",
+      "Bash(pkill:*)"
     ],
     "deny": [],
     "ask": []
