@@ -80,11 +80,26 @@ Or use local installation:
 
 ## 💬 Example Commands
 
-- *"Find and label newsletter emails for review"*
-- *"Show me potentially spam messages to check"*
-- *"Delete all linkedIn and social media notifications"*
-- *"Delete all emails from domain.com"*
-- *"Delete all emails from amazon.com that are older than one year"*
+### 🧹 Storage Cleanup Commands
+- *"Delete all emails from noreply addresses older than 6 months"*
+- *"Find and delete all promotional emails from shopping sites"*
+- *"Remove all LinkedIn notification emails from the past year"*
+- *"Delete all automated emails from GitHub, Slack, and Jira"*
+- *"Clean up all newsletter emails I haven't opened in 3 months"*
+- *"Delete all 'password reset' and 'account verification' emails"*
+- *"Remove all calendar invites and meeting reminders older than 30 days"*
+- *"Find and delete all emails with large attachments over 10MB"*
+
+### 📊 Smart Organization
+- *"Label all emails from banks and financial institutions as 'Finance'"*
+- *"Create 'Archive-2024' label and move all old work emails there"*
+- *"Find all subscription confirmation emails and label them 'Subscriptions'"*
+- *"Group all travel booking confirmations under 'Travel' label"*
+
+### 🔍 Inbox Analysis  
+- *"Show me my top 10 email senders by volume this year"*
+- *"Find all unread emails older than 1 month"*
+- *"List all emails taking up the most storage space"*
 
 ---
 
