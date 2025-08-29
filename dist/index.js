@@ -48,16 +48,23 @@ async function main() {
     let gmailService = oauth2Client ? new GmailService(oauth2Client) : null;
     // Handle initialization properly
     server.setRequestHandler(InitializeRequestSchema, async (request) => {
-        return {
-            protocolVersion: "2025-06-18",
-            capabilities: {
-                tools: {}
-            },
-            serverInfo: {
-                name: "gmail-manager",
-                version: "1.0.9"
-            }
-        };
+        try {
+            const response = {
+                protocolVersion: "2025-06-18",
+                capabilities: {
+                    tools: {}
+                },
+                serverInfo: {
+                    name: "gmail-manager",
+                    version: "1.0.9"
+                }
+            };
+            return response;
+        }
+        catch (error) {
+            console.error('Error in initialization handler:', error);
+            throw error;
+        }
     });
     server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: getToolDefinitions() }));
     server.setRequestHandler(CallToolRequestSchema, async (req) => {
@@ -189,7 +196,8 @@ export default async function ({ sessionId, config }) {
     return server;
 }
 // Also support direct execution for local development
-if (import.meta.url === `file://${process.argv[1]}`) {
+// When the script is run directly with node, start the server
+if (process.argv[1] && import.meta.url.includes('index.js')) {
     main().catch(e => {
         console.error('Server error:', e);
         process.exit(1);
