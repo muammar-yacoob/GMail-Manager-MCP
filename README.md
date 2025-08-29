@@ -62,11 +62,8 @@ Add this to your Claude Desktop config file:
 {
   "mcpServers": {
     "gmail-manager": {
-      "command": "npx",
-      "args": ["-y", "@muammar-yacoob/gmail-manager-mcp@latest"],
-      "env": {
-        "GMAIL_OAUTH_PATH": "path/to/gcp-oauth.keys.json"
-      }
+      "command": "npx", "args": ["-y", "@muammar-yacoob/gmail-manager-mcp@latest"],
+      "env": {"GMAIL_OAUTH_PATH": "path/to/gcp-oauth.keys.json"}
     }
   }
 }
@@ -77,11 +74,8 @@ Add this to your Claude Desktop config file:
 {
   "mcpServers": {
     "gmail-manager": {
-      "command": "node",
-      "args": ["path/to/gmail-mcp-server/dist/index.js"],
-      "env": {
-        "GMAIL_OAUTH_PATH": "path/to/gcp-oauth.keys.json"
-      }
+      "command": "node", "args": ["path/to/gmail-mcp-server/dist/index.js"],
+      "env": {"GMAIL_OAUTH_PATH": "path/to/gcp-oauth.keys.json"}
     }
   }
 }
