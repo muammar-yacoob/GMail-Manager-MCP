@@ -28,7 +28,8 @@
       "Bash(GMAIL_OAUTH_PATH=\"/mnt/d/Keys/Google/gcp-oauth.keys.json\" node dist/index.js auth)",
       "Read(/home/spark/.gmail-mcp/**)",
       "Bash(GMAIL_OAUTH_PATH=\"/mnt/d/Keys/Google/gcp-oauth.keys.json\" ./test-local.sh)",
-      "Bash(npx -y @smithery/cli@1.2.21 build -o .smithery/index.cjs)"
+      "Bash(npx -y @smithery/cli@1.2.21 build -o .smithery/index.cjs)",
+      "Bash(timeout:*)"
     ],
     "deny": [],
     "ask": []

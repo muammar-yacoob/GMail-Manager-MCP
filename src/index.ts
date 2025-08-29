@@ -208,6 +208,9 @@ export default async function({ sessionId, config }: { sessionId: string; config
 }
 
 // Also support direct execution for local development
-if (typeof import.meta !== 'undefined' && import.meta.url === `file://${process.argv[1]}`) {
-    main().catch(e => (console.error('Server error:', e), process.exit(1)));
+if (import.meta.url === `file://${process.argv[1]}`) {
+    main().catch(e => {
+        console.error('Server error:', e);
+        process.exit(1);
+    });
 }

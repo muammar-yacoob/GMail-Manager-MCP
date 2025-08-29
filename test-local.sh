@@ -135,7 +135,57 @@ else
     echo "      3. Run: npm run auth"
 fi
 
-# Test 4: Docker build (if Docker is available)
+# Test 4: Full MCP protocol handshake test
+echo -e "\n🤝 Testing full MCP protocol handshake..."
+mcp_init_response=$(echo '{"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"test","version":"0.1.0"}},"jsonrpc":"2.0","id":0}' | timeout 1s node dist/index.js 2>/dev/null | head -1)
+mcp_init_exit=$?
+
+# For MCP servers, timeout is expected (they keep running), but we should get a response
+if echo "$mcp_init_response" | grep -q '"protocolVersion"'; then
+    echo "✅ Server responds correctly to MCP initialization"
+    if echo "$mcp_init_response" | grep -q '"version":"1.0.9"'; then
+        echo "   Server version: 1.0.9"
+    fi
+    if echo "$mcp_init_response" | grep -q '"name":"gmail-manager"'; then
+        echo "   Server name: gmail-manager"
+    fi
+elif [ -n "$mcp_init_response" ]; then
+    log_error "Invalid MCP response" "$mcp_init_response"
+else
+    echo "⚠️  No MCP response received (server may not be starting properly)"
+fi
+
+# Test 5: HTTP/SSE mode test (for Smithery)
+echo -e "\n🌐 Testing HTTP/SSE mode (Smithery deployment)..."
+# Start server in HTTP mode in background
+USE_HTTP=true PORT=3456 timeout 3s node dist/index.js 2>/dev/null &
+http_pid=$!
+sleep 1
+
+# Check if server is listening
+if kill -0 $http_pid 2>/dev/null; then
+    echo "✅ HTTP server started on port 3456"
+    
+    # Test HTTP endpoint
+    if command -v curl &> /dev/null; then
+        http_response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3456/mcp 2>/dev/null || echo "000")
+        if [ "$http_response" = "404" ] || [ "$http_response" = "200" ]; then
+            echo "   ✅ HTTP endpoint responds (status: $http_response)"
+        else
+            echo "   ⚠️  HTTP endpoint not responding (status: $http_response)"
+        fi
+    else
+        echo "   ⚠️  curl not available, skipping HTTP endpoint test"
+    fi
+    
+    # Clean up
+    kill $http_pid 2>/dev/null
+    wait $http_pid 2>/dev/null
+else
+    echo "⚠️  HTTP server failed to start"
+fi
+
+# Test 6: Docker build (if Docker is available)
 if command -v docker &> /dev/null; then
     echo -e "\n🐳 Testing Docker build..."
     
@@ -154,3 +204,4 @@ fi
 echo -e "\n✨ Local testing complete!"
 echo "Next steps:"
 echo "  1. For interactive testing: npx @modelcontextprotocol/inspector dist/index.js"
+echo "  2. Test with Claude Desktop after pushing to GitHub"
