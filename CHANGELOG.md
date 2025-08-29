@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.6](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.1.5...v1.1.6) (2025-08-29)
+
+
+### Bug Fixes
+
+* readme and npm package scope ([16fe343](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/16fe3437487f36de4f55bacdb1fb6aa12b525c55))
+
 ## [1.1.5](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.1.4...v1.1.5) (2025-08-29)
 
 
