@@ -18,7 +18,7 @@
 
 ![MCP Server](https://badge.mcpx.dev?type=server)
 ![Gmail](https://img.shields.io/badge/Gmail-EA4335?style=flat-square&logo=gmail&logoColor=white)
-[![Smithery](https://smithery.ai/badge/@muammar-yacoob/gmail-manager-mcp)](https://smithery.ai/server/@muammar-yacoob/gmail-manager-mcp)
+[![Smithery](https://smithery.ai/badge/@spark-apps/gmail-manager-mcp)](https://smithery.ai/server/@spark-apps/gmail-manager-mcp)
 [![MIT](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
 
 [![GitHub Sponsors](https://img.shields.io/github/sponsors/muammar-yacoob?label=Sponsor&logo=github-sponsors&logoColor=white&color=pink)](https://github.com/sponsors/muammar-yacoob)
@@ -62,7 +62,7 @@ Add this to your Claude Desktop config file:
 {
   "mcpServers": {
     "gmail-manager": {
-      "command": "npx", "args": ["-y", "@muammar-yacoob/gmail-manager-mcp@latest"],
+      "command": "npx", "args": ["-y", "@spark-apps/gmail-manager-mcp@latest"],
       "env": {"GMAIL_OAUTH_PATH": "path/to/gcp-oauth.keys.json"}
     }
   }
@@ -147,6 +147,6 @@ If you find Gmail Manager MCP useful, please consider sponsoring the project! Yo
 
 **🚀 Ready to clean your inbox?**
 
-<a href="https://smithery.ai/server/@muammar-yacoob/gmail-manager-mcp">🎯 Get on Smithery</a> • **Made with ❤️ for Claude Desktop**
+<a href="https://smithery.ai/server/@spark-apps/gmail-manager-mcp">🎯 Get on Smithery</a> • **Made with ❤️ for Claude Desktop**
 
 </div>

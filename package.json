@@ -1,12 +1,12 @@
 {
-  "name": "@muammar-yacoob/gmail-manager-mcp",
+  "name": "@spark-apps/gmail-manager-mcp",
   "version": "1.1.4",
   "description": "A minimal MCP server for Gmail to help you manage, organize, and clean up your inbox",
   "type": "module",
   "main": "dist/index.js",
   "module": "./src/index.ts",
   "bin": {
-    "gmail-manager": "./dist/index.js"
+    "gmail-manager": "dist/index.js"
   },
   "scripts": {
     "build": "tsc",
@@ -35,9 +35,12 @@
   ],
   "author": "Gmail Manager MCP",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/muammar-yacoob/GMail-Manager-MCP"
+    "url": "git+https://github.com/muammar-yacoob/GMail-Manager-MCP.git"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^0.4.0",
