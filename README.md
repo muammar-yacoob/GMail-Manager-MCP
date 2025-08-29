@@ -6,7 +6,6 @@
 [coffee-link]: https://buymeacoffee.com/spark88
 [bug-link]: ../../issues
 [release-link]: ../../releases
-[object-tutorial-link]: https://youtu.be/3g1JKg0-Wtc
 [fork-link]: ../../fork
 [privacy-link]: ./PRIVACY.md
 [issues-link]: ../../issues

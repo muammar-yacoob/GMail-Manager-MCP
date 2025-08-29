@@ -259,11 +259,21 @@ Current OAuth path: ${process.env.GMAIL_OAUTH_PATH || 'not set'}`);
 }
 // Also support direct execution for local development
 // When the script is run directly with node, start the server
-// Check if running as main module using ES module syntax
+// Check if running as main module (compatible with both ES modules and CommonJS)
 // Don't auto-start if we're in Smithery mode (USE_HTTP is set by Smithery)
 // Also don't auto-start if this is being imported as a module
-const __filename = fileURLToPath(import.meta.url);
-const isMainModule = process.argv[1] && (process.argv[1] === __filename || process.argv[1].endsWith('index.js'));
+let isMainModule = false;
+try {
+    // ES module detection - import.meta.url is available
+    if (import.meta.url) {
+        const __filename = fileURLToPath(import.meta.url);
+        isMainModule = Boolean(process.argv[1] && (process.argv[1] === __filename || process.argv[1].endsWith('index.js')));
+    }
+}
+catch (e) {
+    // CommonJS fallback - just check if process.argv[1] ends with known entry points
+    isMainModule = Boolean(process.argv[1] && (process.argv[1].endsWith('index.js') || process.argv[1].endsWith('index.cjs')));
+}
 if (isMainModule && !process.env.USE_HTTP) {
     main().catch(e => {
         console.error('Server error:', e);
