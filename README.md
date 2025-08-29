@@ -48,16 +48,14 @@ Perfect for **inbox zero enthusiasts** and anyone drowning in email overload! �
 ## 🚀 Installation
 
 ### 1. Get Gmail Credentials 🗝️
-- Visit [Google Cloud Console](https://console.cloud.google.com/)
-- Enable Gmail API → Create OAuth 2.0 Desktop credentials → Download as `gcp-oauth.keys.json`
+1. [Create New Project](https://console.cloud.google.com/projectcreate).
+2. [Enable Gmail API](https://console.cloud.google.com/apis/api/gmail.googleapis.com/metrics).
+3. Create [OAuth 2.0 Desktop credentials](https://console.cloud.google.com/auth/clients) and download as `gcp-oauth.keys.json`.
+4. Navigate to [Data access](https://console.cloud.google.com/auth/scopes) and click **Add or remove scopes**.
+5. In **Manually add scopes**, add `https://www.googleapis.com/auth/gmail.modify` and click **Add to table** then **Update**.
+6. Navigate to [Test users](https://console.cloud.google.com/auth/audience) and add your Google email account as a test user. 
 
-### 2. Configure Claude Desktop & Authentication ⚙️
-
-Add this to your Claude Desktop config file:
-
-<img src="https://img.shields.io/badge/Windows-0078D4?style=flat-square&logo=windows&logoColor=white" alt="Windows" width="80" height="20" style="vertical-align: middle;"> `%APPDATA%\Claude\claude_desktop_config.json`<br>
-<img src="https://img.shields.io/badge/macOS-000000?style=flat-square&logo=apple&logoColor=white" alt="macOS" width="80" height="20" style="vertical-align: middle;"> `~/Library/Application Support/Claude/claude_desktop_config.json`<br>
-<img src="https://img.shields.io/badge/Linux-FCC624?style=flat-square&logo=linux&logoColor=black" alt="Linux" width="80" height="20" style="vertical-align: middle;"> `~/.config/Claude/claude_desktop_config.json`
+This scope allows the Gmail Manager MCP to read, send, delete, and modify your emails, as well as manage labels.
 
 ```json
 {
@@ -148,6 +146,6 @@ If you find Gmail Manager MCP useful, please consider sponsoring the project! Yo
 
 **🚀 Ready to clean your inbox?**
 
-<a href="https://smithery.ai/server/@spark-apps/gmail-manager-mcp">🎯 Get on Smithery</a> • **Made with ❤️ for Claude Desktop**
+**Made with ❤️ for Claude Desktop** • [Privacy Policy](PRIVACY.md)
 
 </div>
