@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.3](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.1.2...v1.1.3) (2025-08-29)
+
+
+### Bug Fixes
+
+* improve authentication flow and error messages for Claude Desktop ([0836e35](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/0836e358ac39aeadb413f1871a1276ea799f491a))
+* resolve Smithery port conflict by using http mode and preventing dual server startup ([73a23f1](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/73a23f10bf0baf89ad883c1f7ad38bdda903b8d4))
+
 ## [1.1.2](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.1.1...v1.1.2) (2025-08-29)
 
 
