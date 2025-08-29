@@ -16,10 +16,10 @@
 
 **🧹 Clean your inbox • 🏷️ Organize with labels • 🗑️ Bulk delete emails**
 
-![MCP Server](https://badge.mcpx.dev?type=server)
-![Gmail](https://img.shields.io/badge/Gmail-EA4335?style=flat-square&logo=gmail&logoColor=white)
-[![Smithery](https://smithery.ai/badge/@spark-apps/gmail-manager-mcp)](https://smithery.ai/server/@spark-apps/gmail-manager-mcp)
-[![MIT](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
+
+[![npm](https://img.shields.io/npm/v/@spark-apps/gmail-manager-mcp?style=flat-square&logo=npm&logoColor=white&color=red)](https://www.npmjs.com/package/@spark-apps/gmail-manager-mcp)
+[![MCP Server](https://badge.mcpx.dev?type=server&color=yellow)](https://smithery.ai/server/@muammar-yacoob/gmail-manager-mcp)
+[![MIT](https://img.shields.io/badge/License-MIT-purple?style=flat-square)](LICENSE)
 
 [![GitHub Sponsors](https://img.shields.io/github/sponsors/muammar-yacoob?label=Sponsor&logo=github-sponsors&logoColor=white&color=pink)](https://github.com/sponsors/muammar-yacoob)
 [![Buy Me Coffee](https://img.shields.io/badge/Buy%20Me-Coffee-green?logo=buy-me-a-coffee&logoColor=white)][coffee-link]
