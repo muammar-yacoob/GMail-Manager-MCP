@@ -31,20 +31,37 @@ Perfect for inbox zero enthusiasts and anyone drowning in email overload!
 - Visit [Google Cloud Console](https://console.cloud.google.com/)
 - Enable Gmail API → Create OAuth 2.0 Desktop credentials → Download as `gcp-oauth.keys.json`
 
-### 2. Install via Smithery
-```bash
-npx @smithery/cli install @muammar-yacoob/gmail-manager-mcp --client claude --config '{"gcpOauthKeysPath": "path/to/gcp-oauth.keys.json", "credentialsPath": "~/.gmail-mcp/credentials.json"}'
-```
+### 2. Configure Claude Desktop
 
-**Important**: After installation:
-1. **Manually restart Claude Desktop** (the auto-restart may not work on Windows/WSL)
-2. **Verify the config file [%APPDATA%\Claude\claude_desktop_config.json](%APPDATA%\Claude\claude_desktop_config.json) is amended, otherwise, manually add this to your Claude Desktop config file:
+Add this to your Claude Desktop config file:
+- **Windows**: [`%APPDATA%\Claude\claude_desktop_config.json`](file:///%APPDATA%/Claude/claude_desktop_config.json)
+- **macOS**: [`~/Library/Application Support/Claude/claude_desktop_config.json`](file://~/Library/Application%20Support/Claude/claude_desktop_config.json)
+- **Linux**: [`~/.config/Claude/claude_desktop_config.json`](file://~/.config/Claude/claude_desktop_config.json)
+
 ```json
 {
   "mcpServers": {
     "gmail-manager": {
       "command": "npx",
-      "args": ["-y", "@smithery/cli", "connect", "@muammar-yacoob/gmail-manager-mcp"]
+      "args": ["-y", "@muammar-yacoob/gmail-manager-mcp@latest"],
+      "env": {
+        "GMAIL_OAUTH_PATH": "path/to/gcp-oauth.keys.json"
+      }
+    }
+  }
+}
+```
+
+Or use local installation:
+```json
+{
+  "mcpServers": {
+    "gmail-manager": {
+      "command": "node",
+      "args": ["path/to/gmail-mcp-server/dist/index.js"],
+      "env": {
+        "GMAIL_OAUTH_PATH": "path/to/gcp-oauth.keys.json"
+      }
     }
   }
 }
