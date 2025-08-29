@@ -55,11 +55,9 @@ Perfect for **inbox zero enthusiasts** and anyone drowning in email overload! ðŸ
 
 Add this to your Claude Desktop config file:
 
-| OS | Config File Location |
-|----|---------------------|
-| <img src="https://img.shields.io/badge/Windows-0078D4?style=flat-square&logo=windows&logoColor=white" alt="Windows" width="80" height="20" style="vertical-align: middle;"> | <kbd style="background: #2d333b; color: #f0f6fc; padding: 3px 6px; border-radius: 3px; font-family: 'Arial', Arial, sans-serif; font-size: 0.9em; border: 1px solid #444c56;">%APPDATA%\Claude\claude_desktop_config.json</kbd> |
-| <img src="https://img.shields.io/badge/macOS-000000?style=flat-square&logo=apple&logoColor=white" alt="macOS" width="80" height="20" style="vertical-align: middle;"> | <kbd style="background: #2d333b; color: #f0f6fc; padding: 3px 6px; border-radius: 3px; font-family: 'Arial', Arial, sans-serif; font-size: 0.9em; border: 1px solid #444c56;">~/Library/Application Support/Claude/claude_desktop_config.json</kbd> |
-| <img src="https://img.shields.io/badge/Linux-FCC624?style=flat-square&logo=linux&logoColor=black" alt="Linux" width="80" height="20" style="vertical-align: middle;"> | <kbd style="background: #2d333b; color: #f0f6fc; padding: 3px 6px; border-radius: 3px; font-family: 'Arial', Arial, sans-serif; font-size: 0.9em; border: 1px solid #444c56;">~/.config/Claude/claude_desktop_config.json</kbd> |
+<img src="https://img.shields.io/badge/Windows-0078D4?style=flat-square&logo=windows&logoColor=white" alt="Windows" width="80" height="20" style="vertical-align: middle;"> `%APPDATA%\Claude\claude_desktop_config.json`<br>
+<img src="https://img.shields.io/badge/macOS-000000?style=flat-square&logo=apple&logoColor=white" alt="macOS" width="80" height="20" style="vertical-align: middle;"> `~/Library/Application Support/Claude/claude_desktop_config.json`<br>
+<img src="https://img.shields.io/badge/Linux-FCC624?style=flat-square&logo=linux&logoColor=black" alt="Linux" width="80" height="20" style="vertical-align: middle;"> `~/.config/Claude/claude_desktop_config.json`
 
 ```json
 {
