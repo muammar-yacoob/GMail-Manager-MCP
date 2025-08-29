@@ -149,6 +149,6 @@ If you find Gmail Manager MCP useful, please consider sponsoring the project! Yo
 
 **🚀 Ready to clean your inbox?**
 
-**Made with ❤️ for Claude Desktop** • [Privacy Policy](PRIVACY.md)
+**Made with ❤️ for Claude Desktop** • [Privacy Policy](PRIVACY.md) • [Terms of Service](TERMS.md)
 
 </div>
