@@ -51,13 +51,9 @@ Perfect for **inbox zero enthusiasts** and anyone drowning in email overload! �
 - Visit [Google Cloud Console](https://console.cloud.google.com/)
 - Enable Gmail API → Create OAuth 2.0 Desktop credentials → Download as `gcp-oauth.keys.json`
 
-### 2. Configure Claude Desktop ⚙️
+### 2. Installation Options
 
-Add this to your Claude Desktop config file:
-- ![Windows](https://img.shields.io/badge/Windows-0078D4?style=flat-square&logo=windows&logoColor=white) [`%APPDATA%\Claude\claude_desktop_config.json`](%APPDATA%/Claude/claude_desktop_config.json)
-- ![macOS](https://img.shields.io/badge/macOS-000000?style=flat-square&logo=apple&logoColor=white) [`~/Library/Application Support/Claude/claude_desktop_config.json`](~/Library/Application%20Support/Claude/claude_desktop_config.json)
-- ![Linux](https://img.shields.io/badge/Linux-FCC624?style=flat-square&logo=linux&logoColor=black) [`~/.config/Claude/claude_desktop_config.json`](~/.config/Claude/claude_desktop_config.json)
-
+#### Option A: NPM Package (Recommended)
 ```json
 {
   "mcpServers": {
@@ -69,7 +65,15 @@ Add this to your Claude Desktop config file:
 }
 ```
 
-**Or use local installation:**
+#### Option B: Smithery Installation
+```bash
+npx @smithery/cli install @muammar-yacoob/gmail-manager-mcp --client claude --config '{
+  "gcpOauthKeysPath": "/path/to/gcp-oauth.keys.json",
+  "credentialsPath": "~/.gmail-mcp/credentials.json"
+}'
+```
+
+#### Option C: Local Development
 ```json
 {
   "mcpServers": {
@@ -81,7 +85,14 @@ Add this to your Claude Desktop config file:
 }
 ```
 
-### 3. Authentication 🔓
+### 3. Configure Claude Desktop ⚙️
+
+Add the configuration to your Claude Desktop config file:
+- ![Windows](https://img.shields.io/badge/Windows-0078D4?style=flat-square&logo=windows&logoColor=white) [`%APPDATA%\Claude\claude_desktop_config.json`](%APPDATA%/Claude/claude_desktop_config.json)
+- ![macOS](https://img.shields.io/badge/macOS-000000?style=flat-square&logo=apple&logoColor=white) [`~/Library/Application Support/Claude/claude_desktop_config.json`](~/Library/Application%20Support/Claude/claude_desktop_config.json)
+- ![Linux](https://img.shields.io/badge/Linux-FCC624?style=flat-square&logo=linux&logoColor=black) [`~/.config/Claude/claude_desktop_config.json`](~/.config/Claude/claude_desktop_config.json)
+
+### 4. Authentication 🔓
 
 1. **Restart Claude Desktop** completely (close from tray area if needed)
 2. **Try any Gmail command** from the examples below - Claude will automatically prompt for authentication

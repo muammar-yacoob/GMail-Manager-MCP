@@ -41,7 +41,7 @@ async function main() {
     }
     const server = new Server({
         name: "gmail-manager",
-        version: "1.0.4",
+        version: "1.1.5",
         capabilities: {
             tools: {}
         }
@@ -51,13 +51,13 @@ async function main() {
     server.setRequestHandler(InitializeRequestSchema, async (request) => {
         try {
             const response = {
-                protocolVersion: "2025-06-18",
+                protocolVersion: "2024-11-05",
                 capabilities: {
                     tools: {}
                 },
                 serverInfo: {
                     name: "gmail-manager",
-                    version: "1.0.9"
+                    version: "1.1.5"
                 }
             };
             return response;
@@ -193,7 +193,6 @@ export default async function ({ sessionId, config }) {
     if (config?.credentialsPath) {
         process.env.GMAIL_CREDENTIALS_PATH = config.credentialsPath;
     }
-    // Smithery handles HTTP layer - don't set USE_HTTP
     // Create and return server instance
     let oauth2Client = null;
     let credentialsError = null;
@@ -205,7 +204,7 @@ export default async function ({ sessionId, config }) {
     }
     const server = new Server({
         name: "gmail-manager",
-        version: "1.1.1",
+        version: "1.1.5",
         capabilities: {
             tools: {}
         }
@@ -214,13 +213,13 @@ export default async function ({ sessionId, config }) {
     // Handle initialization properly
     server.setRequestHandler(InitializeRequestSchema, async (request) => {
         return {
-            protocolVersion: "2025-06-18",
+            protocolVersion: "2024-11-05",
             capabilities: {
                 tools: {}
             },
             serverInfo: {
                 name: "gmail-manager",
-                version: "1.1.1"
+                version: "1.1.5"
             }
         };
     });
