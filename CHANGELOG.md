@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.7](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.1.6...v1.1.7) (2025-08-30)
+
+
+### Bug Fixes
+
+* add preferGlobal for better npm compatibility ([61b707a](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/61b707a83fc9f2fe3098ab56d5d311370eca378c))
+* Gmail MCP Server now working with Claude Desktop! ([6ffb608](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/6ffb608b399c884cdd7c8867366812120f86a9c6))
+* resolve Smithery Docker deployment issues ([bf99263](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/bf99263f0c68d55ef05c88e84202f059412da920))
+* revert to SDK v0.4.0 for Claude Desktop compatibility ([e5cf0f9](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/e5cf0f98f08330a1832efc5ddfa498282eaa4c9a))
+* update package and documentation ([d92ab0c](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/d92ab0ce01aaa9a6762d3f5fac329fc1709385ec))
+
 ## [1.1.6](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.1.5...v1.1.6) (2025-08-29)
 
 
