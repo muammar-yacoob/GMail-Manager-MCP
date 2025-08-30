@@ -213,7 +213,7 @@ export default async function ({ sessionId, config }) {
     // Handle initialization properly
     server.setRequestHandler(InitializeRequestSchema, async (request) => {
         return {
-            protocolVersion: "2024-11-05",
+            protocolVersion: "2025-06-18",
             capabilities: {
                 tools: {}
             },
