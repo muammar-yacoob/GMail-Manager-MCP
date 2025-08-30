@@ -51,6 +51,7 @@ Perfect for **inbox zero enthusiasts** and anyone drowning in email overload! ðŸ
 1. [Create New Project](https://console.cloud.google.com/projectcreate).
 2. [Enable Gmail API](https://console.cloud.google.com/apis/api/gmail.googleapis.com/metrics).
 3. Create [OAuth 2.0 Desktop credentials](https://console.cloud.google.com/auth/clients) and download as `gcp-oauth.keys.json`.
+   - **Important**: Add `http://localhost:3000/oauth/callback` to the **Authorized redirect URIs**
 4. Navigate to [Data access](https://console.cloud.google.com/auth/scopes) and click **Add or remove scopes**.
 5. In **Manually add scopes**, add both scopes:
    - `https://www.googleapis.com/auth/gmail.modify`
