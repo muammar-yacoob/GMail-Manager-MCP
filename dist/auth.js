@@ -76,10 +76,13 @@ export async function getCredentials() {
             await oauth2Client.getAccessToken();
         }
         catch (error) {
-            // If token refresh fails, return oauth2Client without credentials
-            // This allows for re-authentication
-            return oauth2Client;
+            // If token refresh fails, return null to force re-authentication
+            return null;
         }
+    }
+    else {
+        // No credentials file exists, return null to indicate authentication needed
+        return null;
     }
     return oauth2Client;
 }

@@ -61,6 +61,7 @@ export async function getCredentials(): Promise<OAuth2Client | null> {
     const credentialsPath = process.env.GMAIL_CREDENTIALS_PATH || 
                            path.join(CONFIG_DIR, 'credentials.json');
     
+    
     // Create config directory if needed
     if (!process.env.GMAIL_OAUTH_PATH && !fs.existsSync(path.join(process.cwd(), 'gcp-oauth.keys.json')) && !fs.existsSync(CONFIG_DIR)) {
         try {
@@ -89,10 +90,12 @@ export async function getCredentials(): Promise<OAuth2Client | null> {
         try {
             await oauth2Client.getAccessToken();
         } catch (error) {
-            // If token refresh fails, return oauth2Client without credentials
-            // This allows for re-authentication
-            return oauth2Client;
+            // If token refresh fails, return null to force re-authentication
+            return null;
         }
+    } else {
+        // No credentials file exists, return null to indicate authentication needed
+        return null;
     }
     
     return oauth2Client;
