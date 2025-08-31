@@ -433,9 +433,9 @@ export async function authenticateWeb(oauth2Client, credentialsPath) {
             }
         });
         server.listen(port, async () => {
-            console.log(`\nOpening authentication in your browser...`);
-            console.log(`\nIf the browser doesn't open automatically, please visit:`);
-            console.log(`\n${authUrl}\n`);
+            console.error(`\nOpening authentication in your browser...`);
+            console.error(`\nIf the browser doesn't open automatically, please visit:`);
+            console.error(`\n${authUrl}\n`);
             // Open browser (platform-agnostic)
             const { exec } = require('child_process');
             const platform = os.platform();
@@ -449,7 +449,7 @@ export async function authenticateWeb(oauth2Client, credentialsPath) {
                         // Try PowerShell as fallback
                         exec(`powershell.exe -Command "Start-Process '${authUrl}'"`, (error2) => {
                             if (error2) {
-                                console.log('Could not open browser automatically. Please open the URL manually.');
+                                console.error('Could not open browser automatically. Please open the URL manually.');
                             }
                         });
                     }
@@ -458,14 +458,14 @@ export async function authenticateWeb(oauth2Client, credentialsPath) {
             else if (platform === 'darwin') {
                 exec(`open "${authUrl}"`, (error) => {
                     if (error) {
-                        console.log('Could not open browser automatically. Please open the URL manually.');
+                        console.error('Could not open browser automatically. Please open the URL manually.');
                     }
                 });
             }
             else if (platform === 'win32') {
                 exec(`cmd.exe /c start "" "${authUrl}"`, (error) => {
                     if (error) {
-                        console.log('Could not open browser automatically. Please open the URL manually.');
+                        console.error('Could not open browser automatically. Please open the URL manually.');
                     }
                 });
             }
@@ -476,7 +476,7 @@ export async function authenticateWeb(oauth2Client, credentialsPath) {
                         // Try alternative methods
                         exec(`sensible-browser "${authUrl}"`, (error2) => {
                             if (error2) {
-                                console.log('Could not open browser automatically. Please open the URL manually.');
+                                console.error('Could not open browser automatically. Please open the URL manually.');
                             }
                         });
                     }
