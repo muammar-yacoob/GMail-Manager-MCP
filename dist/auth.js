@@ -126,6 +126,33 @@ async function authenticateUser(oauth2Client) {
                         res.end(getAuthErrorHTML());
                     }
                 }
+                else if (url.pathname.startsWith('/images/')) {
+                    // Serve static images
+                    const imagePath = path.join(__dirname, '..', 'public', url.pathname);
+                    try {
+                        if (fs.existsSync(imagePath)) {
+                            const imageData = fs.readFileSync(imagePath);
+                            const ext = path.extname(imagePath).toLowerCase();
+                            let contentType = 'application/octet-stream';
+                            if (ext === '.gif')
+                                contentType = 'image/gif';
+                            else if (ext === '.png')
+                                contentType = 'image/png';
+                            else if (ext === '.jpg' || ext === '.jpeg')
+                                contentType = 'image/jpeg';
+                            res.writeHead(200, { 'Content-Type': contentType });
+                            res.end(imageData);
+                        }
+                        else {
+                            res.writeHead(404, { 'Content-Type': 'text/plain' });
+                            res.end('Image not found');
+                        }
+                    }
+                    catch (error) {
+                        res.writeHead(500, { 'Content-Type': 'text/plain' });
+                        res.end('Error serving image');
+                    }
+                }
                 else {
                     res.writeHead(404);
                     res.end('Not found');
@@ -422,6 +449,33 @@ export async function authenticateWeb(oauth2Client, credentialsPath) {
                     // Landing page - redirect to Google OAuth
                     res.writeHead(302, { 'Location': authUrl });
                     res.end();
+                }
+                else if (url.pathname.startsWith('/images/')) {
+                    // Serve static images
+                    const imagePath = path.join(__dirname, '..', 'public', url.pathname);
+                    try {
+                        if (fs.existsSync(imagePath)) {
+                            const imageData = fs.readFileSync(imagePath);
+                            const ext = path.extname(imagePath).toLowerCase();
+                            let contentType = 'application/octet-stream';
+                            if (ext === '.gif')
+                                contentType = 'image/gif';
+                            else if (ext === '.png')
+                                contentType = 'image/png';
+                            else if (ext === '.jpg' || ext === '.jpeg')
+                                contentType = 'image/jpeg';
+                            res.writeHead(200, { 'Content-Type': contentType });
+                            res.end(imageData);
+                        }
+                        else {
+                            res.writeHead(404, { 'Content-Type': 'text/plain' });
+                            res.end('Image not found');
+                        }
+                    }
+                    catch (error) {
+                        res.writeHead(500, { 'Content-Type': 'text/plain' });
+                        res.end('Error serving image');
+                    }
                 }
                 else {
                     res.writeHead(404, { 'Content-Type': 'text/plain' });

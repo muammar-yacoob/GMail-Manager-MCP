@@ -13,7 +13,7 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            background: #000;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -22,14 +22,34 @@
         }
         
         .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            padding: 40px;
+            background: rgba(15, 15, 15, 0.95);
+            border-radius: 16px;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            box-shadow: 
+                0 0 40px rgba(239, 68, 68, 0.15),
+                0 20px 40px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            padding: 32px;
             text-align: center;
             max-width: 500px;
             width: 90%;
-            animation: slideUp 0.6s ease-out;
+            animation: slideUp 0.6s ease-out, glowPulse 3s ease-in-out infinite;
+            backdrop-filter: blur(10px);
+        }
+        
+        @keyframes glowPulse {
+            0%, 100% {
+                box-shadow: 
+                    0 0 40px rgba(239, 68, 68, 0.15),
+                    0 20px 40px rgba(0, 0, 0, 0.5),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            }
+            50% {
+                box-shadow: 
+                    0 0 60px rgba(239, 68, 68, 0.3),
+                    0 20px 40px rgba(0, 0, 0, 0.5),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            }
         }
         
         @keyframes slideUp {
@@ -44,91 +64,134 @@
         }
         
         .error-icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
-            border-radius: 50%;
+            margin: 0 auto 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 20px;
         }
         
-        .error-icon::before {
-            content: "⚠";
-            color: white;
-            font-size: 40px;
-            font-weight: bold;
+        .error-icon img {
+            max-height: 300px;
+            max-width: 100%;
+            border-radius: 15px;
+            object-fit: contain;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .error-icon img:hover {
+            transform: scale(1.05);
         }
         
         h1 {
-            color: #2c3e50;
+            color: #f1f5f9;
             margin-bottom: 15px;
-            font-size: 28px;
+            font-size: 24px;
             font-weight: 600;
         }
         
         .message {
-            color: #7f8c8d;
-            font-size: 16px;
-            line-height: 1.6;
+            color: #94a3b8;
+            font-size: 14px;
+            line-height: 1.5;
             margin-bottom: 30px;
         }
         
         .btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
             border: none;
+            color: white;
             padding: 12px 24px;
             border-radius: 8px;
-            font-size: 16px;
+            font-size: 14px;
+            font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s;
-            margin: 5px;
+            transition: all 0.2s ease;
+            margin: 8px;
             text-decoration: none;
             display: inline-block;
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
         }
         
         .btn:hover {
             transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
         }
         
-        .gif-container {
-            margin: 20px 0;
+        .btn:active {
+            transform: translateY(0);
         }
         
-        #cleaning-gif {
-            max-width: 120px;
-            border-radius: 10px;
-            opacity: 0.8;
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="error-icon"></div>
-        <h1>Authentication Failed</h1>
-        <div class="gif-container">
-            <img id="cleaning-gif" src="/images/cleaning-images/cleaning.gif" alt="Cleaning animation">
+        <div class="error-icon">
+            <img id="error-gif" src="/images/cleaning-images/cleaning.gif" alt="Cleaning animation">
         </div>
-        <p class="message">
+        <h1>Authentication Failed</h1>
+        <p class="message" id="message-text">
             Authentication failed or was cancelled. This might happen if you denied permissions or if there was an unexpected error during the OAuth process.
         </p>
-        <div>
+        <div style="text-align: center;">
             <a href="https://github.com/muammar-yacoob/GMail-Manager-MCP#readme" class="btn">📖 Setup Instructions</a>
             <a href="https://spark-games.co.uk" class="btn">🚀 More Cool Tools</a>
         </div>
     </div>
     
     <script>
-        // Random GIF selection
+        // Check URL for error type and customize message
         window.addEventListener('load', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const error = urlParams.get('error');
+            const messageElement = document.getElementById('message-text');
+            
+            // Customize message based on error type
+            if (error === 'access_denied') {
+                messageElement.textContent = "You cancelled the authentication process. Click 'Setup Instructions' below if you'd like to try again.";
+            } else if (error) {
+                messageElement.textContent = `Authentication error: ${error}. Please try again or check the setup instructions.`;
+            }
+            // Otherwise keep the default message
+            
+            // GIF management
             const gifs = ['cleaning.gif', 'cleaning2.gif', 'cleaning3.gif', 'cleaning4.gif', 'cleaning5.gif'];
-            const randomGif = gifs[Math.floor(Math.random() * gifs.length)];
-            const gifElement = document.getElementById('cleaning-gif');
-            if (gifElement) {
-                gifElement.src = `/images/cleaning-images/${randomGif}`;
-                gifElement.onerror = function() { this.style.display = 'none'; };
+            const errorGifElement = document.getElementById('error-gif');
+            
+            function loadRandomGif() {
+                const randomGif = gifs[Math.floor(Math.random() * gifs.length)];
+                if (errorGifElement) {
+                    // Add loading effect
+                    errorGifElement.style.opacity = '0.5';
+                    errorGifElement.src = `/images/cleaning-images/${randomGif}`;
+                    
+                    errorGifElement.onload = function() {
+                        this.style.opacity = '1';
+                    };
+                    
+                    errorGifElement.onerror = function() { 
+                        this.style.display = 'none'; 
+                    };
+                }
+            }
+            
+            // Load initial random GIF
+            loadRandomGif();
+            
+            // Click anywhere to load new random GIF
+            document.addEventListener('click', function(e) {
+                // Don't reload GIF if clicking on buttons
+                if (!e.target.classList.contains('btn') && !e.target.closest('.btn')) {
+                    loadRandomGif();
+                }
+            });
+            
+            // Also allow clicking directly on the image
+            if (errorGifElement) {
+                errorGifElement.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    loadRandomGif();
+                });
             }
         });
     </script>

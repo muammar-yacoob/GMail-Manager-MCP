@@ -13,7 +13,9 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            background: linear-gradient(45deg, #0a1f0d, #1a3620, #0f2c14, #0a1f0d);
+            background-size: 400% 400%;
+            animation: gradientShift 4s ease infinite;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -22,15 +24,32 @@
             padding: 20px;
         }
         
+        @keyframes gradientShift {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+        
         .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            padding: 40px;
+            background: rgba(15, 15, 15, 0.95);
+            border-radius: 16px;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            box-shadow: 
+                0 0 40px rgba(34, 197, 94, 0.15),
+                0 20px 40px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            padding: 32px;
             text-align: center;
             max-width: 700px;
             width: 100%;
             animation: slideUp 0.6s ease-out;
+            backdrop-filter: blur(10px);
         }
         
         @keyframes slideUp {
@@ -45,105 +64,127 @@
         }
         
         .success-icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #4CAF50, #45a049);
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 20px;
+            margin: 0 auto 24px;
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
+            animation: pulse 2s ease-in-out infinite;
         }
         
         .success-icon::before {
             content: "✓";
             color: white;
-            font-size: 40px;
+            font-size: 28px;
             font-weight: bold;
+            animation: checkmark 0.6s ease-in-out;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 0 30px rgba(34, 197, 94, 0.6);
+            }
+        }
+        
+        @keyframes checkmark {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
         
         h1 {
-            color: #2c3e50;
-            margin-bottom: 15px;
-            font-size: 28px;
+            color: #f1f5f9;
+            margin-bottom: 8px;
+            font-size: 24px;
             font-weight: 600;
         }
         
         .message {
-            color: #7f8c8d;
-            font-size: 16px;
-            line-height: 1.6;
-            margin-bottom: 30px;
-        }
-        
-        .gif-container {
-            margin: 20px 0;
-        }
-        
-        #cleaning-gif {
-            max-width: 150px;
-            border-radius: 10px;
+            color: #94a3b8;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 32px;
         }
         
         .accordion {
-            margin: 30px 0;
+            margin: 24px 0;
             text-align: left;
         }
         
         .accordion-item {
-            border: 1px solid #e9ecef;
-            border-radius: 12px;
-            margin-bottom: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 8px;
+            margin-bottom: 8px;
             overflow: hidden;
             transition: all 0.3s ease;
+            background: rgba(30, 30, 30, 0.5);
         }
         
         .accordion-item:hover {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-color: rgba(34, 197, 94, 0.3);
         }
         
         .accordion-header {
-            background: #f8f9fa;
-            padding: 18px 20px;
+            background: transparent;
+            padding: 16px 20px;
             cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
             font-weight: 600;
-            color: #2c3e50;
+            color: #e2e8f0;
             transition: all 0.3s ease;
             border: none;
             width: 100%;
             text-align: left;
+            font-size: 14px;
         }
         
         .accordion-header:hover {
-            background: #e9ecef;
+            color: #22c55e;
         }
         
         .accordion-header.active {
-            background: #007bff;
-            color: white;
+            color: #22c55e;
+            background: rgba(34, 197, 94, 0.1);
         }
         
         .accordion-icon {
             transition: transform 0.3s ease;
-            font-size: 14px;
+            font-size: 12px;
+            color: #94a3b8;
         }
         
         .accordion-content {
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.3s ease;
-            background: white;
+            background: transparent;
         }
         
         .accordion-content.active {
-            max-height: 400px;
+            max-height: 300px;
         }
         
         .accordion-body {
-            padding: 20px;
+            padding: 0 20px 16px 20px;
         }
         
         .command-list {
@@ -153,44 +194,48 @@
         }
         
         .command-item {
-            margin: 8px 0;
-            padding: 12px 16px;
-            background: #f8f9fa;
-            border-radius: 8px;
+            margin: 6px 0;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
             cursor: pointer;
-            transition: all 0.3s ease;
-            color: #495057;
-            font-size: 14px;
+            transition: all 0.2s ease;
+            color: #64748b;
+            font-size: 13px;
             line-height: 1.4;
-            border-left: 4px solid transparent;
         }
         
         .command-item:hover {
-            background: #007bff;
-            color: white;
+            color: #22c55e;
             transform: translateX(4px);
-            border-left-color: #0056b3;
-            box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
         }
         
-        .command-item:active {
-            transform: translateX(2px);
+        .command-item:last-child {
+            border-bottom: none;
         }
         
         .btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
             border: none;
-            padding: 14px 28px;
+            color: white;
+            padding: 12px 24px;
             border-radius: 8px;
-            font-size: 16px;
+            font-size: 14px;
+            font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s;
-            margin-top: 20px;
+            transition: all 0.2s ease;
+            margin: 8px;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
         }
         
         .btn:hover {
             transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
         }
         
         .copy-notification {
@@ -221,29 +266,24 @@
 <body>
     <div class="container">
         <div class="success-icon"></div>
-        <h1>🎉 Authentication Successful!</h1>
-        <div class="gif-container">
-            <img id="cleaning-gif" src="/images/cleaning-images/cleaning.gif" alt="Cleaning animation">
-        </div>
+        <h1>Authentication Successful</h1>
         <p class="message">
-            Your Gmail Manager is now connected! Use these natural language commands in Claude Desktop:
+            Your Gmail Manager is ready! Try these commands:
         </p>
         
         <div class="accordion">
             <div class="accordion-item">
                 <button class="accordion-header" onclick="toggleAccordion(this)">
-                    <span>🧹 Storage Cleanup Commands</span>
+                    <span>🧹 Storage Cleanup</span>
                     <span class="accordion-icon">▼</span>
                 </button>
                 <div class="accordion-content">
                     <div class="accordion-body">
                         <ul class="command-list">
-                            <li class="command-item" onclick="copyCommand(this)">Delete all emails from noreply addresses older than 6 months</li>
-                            <li class="command-item" onclick="copyCommand(this)">Find and delete all promotional emails from shopping sites</li>
-                            <li class="command-item" onclick="copyCommand(this)">Remove all LinkedIn notification emails from the past year</li>
-                            <li class="command-item" onclick="copyCommand(this)">Delete all automated emails from GitHub, Slack, and Jira</li>
-                            <li class="command-item" onclick="copyCommand(this)">Clean up all newsletter emails I haven't opened in 3 months</li>
-                            <li class="command-item" onclick="copyCommand(this)">Remove all calendar invites and meeting reminders older than 30 days</li>
+                            <li class="command-item" onclick="copyCommand(this)">Delete all promotional emails from the last 30 days</li>
+                            <li class="command-item" onclick="copyCommand(this)">Find and clean up all newsletter emails</li>
+                            <li class="command-item" onclick="copyCommand(this)">Remove all automated notifications older than 1 month</li>
+                            <li class="command-item" onclick="copyCommand(this)">Delete all calendar invites older than 30 days</li>
                         </ul>
                     </div>
                 </div>
@@ -257,10 +297,10 @@
                 <div class="accordion-content">
                     <div class="accordion-body">
                         <ul class="command-list">
-                            <li class="command-item" onclick="copyCommand(this)">Label all emails from banks and financial institutions as 'Finance'</li>
-                            <li class="command-item" onclick="copyCommand(this)">Create 'Archive-2024' label and move all old work emails there</li>
-                            <li class="command-item" onclick="copyCommand(this)">Find all subscription confirmation emails and label them 'Subscriptions'</li>
-                            <li class="command-item" onclick="copyCommand(this)">Group all travel booking confirmations under 'Travel' label</li>
+                            <li class="command-item" onclick="copyCommand(this)">Label all financial emails as 'Finance'</li>
+                            <li class="command-item" onclick="copyCommand(this)">Create 'Archive-2024' label and move old work emails</li>
+                            <li class="command-item" onclick="copyCommand(this)">Group all travel confirmations under 'Travel'</li>
+                            <li class="command-item" onclick="copyCommand(this)">Label subscription emails as 'Subscriptions'</li>
                         </ul>
                     </div>
                 </div>
@@ -274,33 +314,25 @@
                 <div class="accordion-content">
                     <div class="accordion-body">
                         <ul class="command-list">
-                            <li class="command-item" onclick="copyCommand(this)">Show me my top 10 email senders by volume this year</li>
-                            <li class="command-item" onclick="copyCommand(this)">Find all unread emails older than 1 month</li>
-                            <li class="command-item" onclick="copyCommand(this)">List all emails taking up the most storage space</li>
-                            <li class="command-item" onclick="copyCommand(this)">Analyze my email patterns and suggest cleanup strategies</li>
+                            <li class="command-item" onclick="copyCommand(this)">Show me my largest emails taking up storage</li>
+                            <li class="command-item" onclick="copyCommand(this)">Find all unread emails older than 2 weeks</li>
+                            <li class="command-item" onclick="copyCommand(this)">List my top 10 email senders by volume</li>
+                            <li class="command-item" onclick="copyCommand(this)">Analyze email patterns and suggest cleanup</li>
                         </ul>
                     </div>
                 </div>
             </div>
         </div>
         
-        <button class="btn" onclick="window.close()">Close Window</button>
+        <div style="text-align: center; margin-top: 24px;">
+            <a href="https://github.com/muammar-yacoob/GMail-Manager-MCP#readme" class="btn">📖 Setup Instructions</a>
+            <a href="https://spark-games.co.uk" class="btn">🚀 More Cool Tools</a>
+        </div>
     </div>
 
     <div id="copyNotification" class="copy-notification">Command copied to clipboard!</div>
 
     <script>
-        // Random GIF selection
-        window.addEventListener('load', function() {
-            const gifs = ['cleaning.gif', 'cleaning2.gif', 'cleaning3.gif', 'cleaning4.gif', 'cleaning5.gif'];
-            const randomGif = gifs[Math.floor(Math.random() * gifs.length)];
-            const gifElement = document.getElementById('cleaning-gif');
-            if (gifElement) {
-                gifElement.src = `/images/cleaning-images/${randomGif}`;
-                gifElement.onerror = function() { this.style.display = 'none'; };
-            }
-        });
-
         function toggleAccordion(header) {
             const content = header.nextElementSibling;
             const icon = header.querySelector('.accordion-icon');
