@@ -486,6 +486,11 @@ export async function authenticateWeb(oauth2Client, credentialsPath) {
                         reject(new Error('No authorization code received'));
                     }
                 }
+                else if (url.pathname === '/') {
+                    // Landing page - redirect to Google OAuth
+                    res.writeHead(302, { 'Location': authUrl });
+                    res.end();
+                }
                 else {
                     res.writeHead(404, { 'Content-Type': 'text/plain' });
                     res.end('Not Found');
