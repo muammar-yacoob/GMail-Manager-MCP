@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.2](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.3.1...v1.3.2) (2025-08-31)
+
+
+### Bug Fixes
+
+* auth scope corrected ([96d8c20](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/96d8c205261962bd2f42c64abf4190dd5373b26e))
+* prettier auth pages ([756c57a](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/756c57a16f2189490b2886ab0c6ec8924a19c4af))
+* update OAuth scope to enable permanent email deletion ([6109e9a](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/6109e9ac879e20eba805a5bf47fe8eb2e66e4661))
+
 ## [1.3.1](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.3.0...v1.3.1) (2025-08-31)
 
 
