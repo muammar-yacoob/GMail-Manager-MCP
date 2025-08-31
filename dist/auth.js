@@ -5,18 +5,19 @@ import os from 'os';
 import http from 'http';
 import { URL } from 'url';
 import { fileURLToPath } from 'url';
+import { exec } from 'child_process';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 function getAuthSuccessHTML() {
-    const htmlPath = path.join(process.cwd(), 'public', 'auth-success.html');
+    const htmlPath = path.join(__dirname, '..', 'public', 'auth-success.html');
     return fs.readFileSync(htmlPath, 'utf8');
 }
 function getAuthFailedHTML() {
-    const htmlPath = path.join(process.cwd(), 'public', 'auth-failed.html');
+    const htmlPath = path.join(__dirname, '..', 'public', 'auth-failed.html');
     return fs.readFileSync(htmlPath, 'utf8');
 }
 function getAuthErrorHTML() {
-    const htmlPath = path.join(process.cwd(), 'public', 'auth-failed.html');
+    const htmlPath = path.join(__dirname, '..', 'public', 'auth-failed.html');
     return fs.readFileSync(htmlPath, 'utf8');
 }
 const CONFIG_DIR = path.join(os.homedir(), '.gmail-mcp');
@@ -132,8 +133,11 @@ async function authenticateUser(oauth2Client) {
             }
             catch (error) {
                 console.error('Error in OAuth callback:', error);
-                res.writeHead(500, { 'Content-Type': 'text/html' });
-                res.end(getAuthErrorHTML());
+                // Only send error response if headers haven't been sent yet
+                if (!res.headersSent) {
+                    res.writeHead(500, { 'Content-Type': 'text/html' });
+                    res.end(getAuthErrorHTML());
+                }
                 server.close(() => {
                     reject(error);
                 });
@@ -165,7 +169,6 @@ async function authenticateUser(oauth2Client) {
             console.error(`${authUrl}\n`);
             console.error(`Waiting for authorization...`);
             // Try to open the URL automatically
-            const { exec } = require('child_process');
             const platform = process.platform;
             let command = '';
             if (platform === 'darwin') {
@@ -426,8 +429,11 @@ export async function authenticateWeb(oauth2Client, credentialsPath) {
                 }
             }
             catch (error) {
-                res.writeHead(500, { 'Content-Type': 'text/html' });
-                res.end(`<h1>Authentication Error</h1><p>${error instanceof Error ? error.message : 'Unknown error'}</p>`);
+                // Only send error response if headers haven't been sent yet
+                if (!res.headersSent) {
+                    res.writeHead(500, { 'Content-Type': 'text/html' });
+                    res.end(`<h1>Authentication Error</h1><p>${error instanceof Error ? error.message : 'Unknown error'}</p>`);
+                }
                 server.close();
                 reject(error);
             }
@@ -437,7 +443,6 @@ export async function authenticateWeb(oauth2Client, credentialsPath) {
             console.error(`\nIf the browser doesn't open automatically, please visit:`);
             console.error(`\n${authUrl}\n`);
             // Open browser (platform-agnostic)
-            const { exec } = require('child_process');
             const platform = os.platform();
             // Check if we're in WSL
             const isWSL = fs.existsSync('/proc/version') &&
