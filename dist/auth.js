@@ -2,15 +2,24 @@ import { OAuth2Client } from 'google-auth-library';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import readline from 'readline';
 import http from 'http';
 import { URL } from 'url';
 import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-// Platform-agnostic config directory
+function getAuthSuccessHTML() {
+    const htmlPath = path.join(process.cwd(), 'public', 'auth-success.html');
+    return fs.readFileSync(htmlPath, 'utf8');
+}
+function getAuthFailedHTML() {
+    const htmlPath = path.join(process.cwd(), 'public', 'auth-failed.html');
+    return fs.readFileSync(htmlPath, 'utf8');
+}
+function getAuthErrorHTML() {
+    const htmlPath = path.join(process.cwd(), 'public', 'auth-error.html');
+    return fs.readFileSync(htmlPath, 'utf8');
+}
 const CONFIG_DIR = path.join(os.homedir(), '.gmail-mcp');
-// Platform-agnostic path resolution function
 function findFileInPaths(filename, possiblePaths) {
     for (const basePath of possiblePaths) {
         if (!basePath)
@@ -40,6 +49,238 @@ function getPossibleBasePaths() {
     }
     // Remove duplicates and non-existent paths
     return [...new Set(paths)].filter(p => p && fs.existsSync(p));
+}
+// Find OAuth keys file
+function findOAuthKeys() {
+    const possiblePaths = getPossibleBasePaths();
+    return findFileInPaths('gcp-oauth.keys.json', possiblePaths);
+}
+// Find credentials file
+function findCredentials() {
+    if (process.env.GMAIL_CREDENTIALS_PATH) {
+        return fs.existsSync(process.env.GMAIL_CREDENTIALS_PATH) ? process.env.GMAIL_CREDENTIALS_PATH : null;
+    }
+    const defaultPath = path.join(CONFIG_DIR, 'credentials.json');
+    return fs.existsSync(defaultPath) ? defaultPath : null;
+}
+// Setup authentication
+export async function setupAuth() {
+    console.error('Setting up Gmail authentication...');
+    const oauthKeysPath = findOAuthKeys();
+    if (!oauthKeysPath) {
+        console.error('\nError: gcp-oauth.keys.json not found!');
+        console.error('Please ensure the OAuth keys file is in one of these locations:');
+        getPossibleBasePaths().forEach(p => console.error(`  - ${p}/gcp-oauth.keys.json`));
+        console.error('\nOr set the GMAIL_OAUTH_PATH environment variable to point to the file.');
+        throw new Error('OAuth keys file not found');
+    }
+    try {
+        const credentials = JSON.parse(fs.readFileSync(oauthKeysPath, 'utf8'));
+        if (!credentials.web && !credentials.installed) {
+            throw new Error('Invalid OAuth credentials file format');
+        }
+        const clientConfig = credentials.web || credentials.installed;
+        const oauth2Client = new OAuth2Client(clientConfig.client_id, clientConfig.client_secret, clientConfig.redirect_uris[0]);
+        return authenticateUser(oauth2Client);
+    }
+    catch (error) {
+        console.error('Error reading OAuth keys:', error);
+        throw error;
+    }
+}
+// Authenticate user with browser flow
+async function authenticateUser(oauth2Client) {
+    const scopes = ['https://www.googleapis.com/auth/gmail.modify', 'https://www.googleapis.com/auth/gmail.settings.basic'];
+    return new Promise((resolve, reject) => {
+        const server = http.createServer(async (req, res) => {
+            try {
+                const url = new URL(req.url, `http://${req.headers.host}`);
+                if (url.pathname === '/') {
+                    if (url.searchParams.has('code')) {
+                        const code = url.searchParams.get('code');
+                        const { tokens } = await oauth2Client.getToken(code);
+                        oauth2Client.setCredentials(tokens);
+                        // Save credentials
+                        if (!fs.existsSync(CONFIG_DIR)) {
+                            fs.mkdirSync(CONFIG_DIR, { recursive: true });
+                        }
+                        const credentialsPath = process.env.GMAIL_CREDENTIALS_PATH || path.join(CONFIG_DIR, 'credentials.json');
+                        fs.writeFileSync(credentialsPath, JSON.stringify(tokens, null, 2));
+                        console.error(`Credentials saved to: ${credentialsPath}`);
+                        res.writeHead(200, { 'Content-Type': 'text/html' });
+                        res.end(getAuthSuccessHTML());
+                        server.close(() => {
+                            resolve(oauth2Client);
+                        });
+                    }
+                    else if (url.searchParams.has('error')) {
+                        res.writeHead(200, { 'Content-Type': 'text/html' });
+                        res.end(getAuthFailedHTML());
+                        server.close(() => {
+                            reject(new Error('Authentication failed: ' + url.searchParams.get('error')));
+                        });
+                    }
+                    else {
+                        res.writeHead(400, { 'Content-Type': 'text/html' });
+                        res.end(getAuthErrorHTML());
+                    }
+                }
+                else {
+                    res.writeHead(404);
+                    res.end('Not found');
+                }
+            }
+            catch (error) {
+                console.error('Error in OAuth callback:', error);
+                res.writeHead(500, { 'Content-Type': 'text/html' });
+                res.end(getAuthErrorHTML());
+                server.close(() => {
+                    reject(error);
+                });
+            }
+        });
+        server.listen(0, () => {
+            const address = server.address();
+            if (!address || typeof address === 'string') {
+                reject(new Error('Failed to start OAuth server'));
+                return;
+            }
+            const port = address.port;
+            const redirectUri = `http://localhost:${port}`;
+            // Update the OAuth client with the dynamic redirect URI
+            const clientConfig = oauth2Client._clientId ? {
+                client_id: oauth2Client._clientId,
+                client_secret: oauth2Client._clientSecret,
+                redirect_uris: [redirectUri]
+            } : null;
+            if (clientConfig) {
+                oauth2Client = new OAuth2Client(clientConfig.client_id, clientConfig.client_secret, redirectUri);
+            }
+            const authUrl = oauth2Client.generateAuthUrl({
+                access_type: 'offline',
+                scope: scopes,
+                prompt: 'consent'
+            });
+            console.error(`\nPlease visit this URL to authorize the application:`);
+            console.error(`${authUrl}\n`);
+            console.error(`Waiting for authorization...`);
+            // Try to open the URL automatically
+            const { exec } = require('child_process');
+            const platform = process.platform;
+            let command = '';
+            if (platform === 'darwin') {
+                command = `open "${authUrl}"`;
+            }
+            else if (platform === 'win32') {
+                command = `start "" "${authUrl}"`;
+            }
+            else {
+                command = `xdg-open "${authUrl}"`;
+            }
+            exec(command, (error) => {
+                if (error) {
+                    console.error('Could not automatically open browser. Please manually visit the URL above.');
+                }
+            });
+        });
+        // Add timeout
+        const timeout = setTimeout(() => {
+            server.close();
+            reject(new Error('Authentication timeout (5 minutes)'));
+        }, 5 * 60 * 1000); // 5 minutes
+        server.on('close', () => {
+            clearTimeout(timeout);
+        });
+    });
+}
+// Load existing credentials
+export function loadCredentials() {
+    try {
+        const credentialsPath = findCredentials();
+        if (!credentialsPath) {
+            return null;
+        }
+        const oauthKeysPath = findOAuthKeys();
+        if (!oauthKeysPath) {
+            console.error('OAuth keys file not found, cannot load credentials');
+            return null;
+        }
+        const credentials = JSON.parse(fs.readFileSync(oauthKeysPath, 'utf8'));
+        const clientConfig = credentials.web || credentials.installed;
+        const oauth2Client = new OAuth2Client(clientConfig.client_id, clientConfig.client_secret, clientConfig.redirect_uris[0]);
+        const tokens = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
+        oauth2Client.setCredentials(tokens);
+        return oauth2Client;
+    }
+    catch (error) {
+        console.error('Error loading credentials:', error);
+        return null;
+    }
+}
+// Get authenticated client (load existing or setup new)
+export async function getAuthenticatedClient() {
+    const existingClient = loadCredentials();
+    if (existingClient) {
+        return existingClient;
+    }
+    return setupAuth();
+}
+// Debug authentication
+export async function debugAuth() {
+    console.error('=== Gmail MCP Authentication Debug ===\n');
+    // Check OAuth keys
+    const oauthKeysPath = findOAuthKeys();
+    console.error('OAuth Keys File:');
+    if (oauthKeysPath) {
+        console.error(`  ✓ Found: ${oauthKeysPath}`);
+        try {
+            const credentials = JSON.parse(fs.readFileSync(oauthKeysPath, 'utf8'));
+            const clientConfig = credentials.web || credentials.installed;
+            console.error(`  ✓ Client ID: ${clientConfig.client_id.substring(0, 10)}...`);
+            console.error(`  ✓ Redirect URIs: ${clientConfig.redirect_uris.length} configured`);
+        }
+        catch (error) {
+            console.error(`  ✗ Error reading file: ${error}`);
+        }
+    }
+    else {
+        console.error('  ✗ Not found in any of these locations:');
+        getPossibleBasePaths().forEach(p => console.error(`    - ${p}/gcp-oauth.keys.json`));
+    }
+    console.error('\nSaved Credentials:');
+    const credentialsPath = findCredentials();
+    if (credentialsPath) {
+        console.error(`  ✓ Found: ${credentialsPath}`);
+        try {
+            const tokens = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
+            console.error(`  ✓ Access token: ${tokens.access_token ? 'Present' : 'Missing'}`);
+            console.error(`  ✓ Refresh token: ${tokens.refresh_token ? 'Present' : 'Missing'}`);
+            console.error(`  ✓ Expiry: ${tokens.expiry_date ? new Date(tokens.expiry_date).toISOString() : 'Not set'}`);
+        }
+        catch (error) {
+            console.error(`  ✗ Error reading file: ${error}`);
+        }
+    }
+    else {
+        console.error('  ✗ Not found');
+    }
+    console.error('\nEnvironment Variables:');
+    console.error(`  GMAIL_OAUTH_PATH: ${process.env.GMAIL_OAUTH_PATH || 'Not set'}`);
+    console.error(`  GMAIL_CREDENTIALS_PATH: ${process.env.GMAIL_CREDENTIALS_PATH || 'Not set'}`);
+    console.error('\nTesting Authentication:');
+    try {
+        const client = await getAuthenticatedClient();
+        console.error('  ✓ Authentication successful!');
+        // Test API access
+        const { google } = await import('googleapis');
+        const gmail = google.gmail({ version: 'v1', auth: client });
+        const profile = await gmail.users.getProfile({ userId: 'me' });
+        console.error(`  ✓ Gmail API access successful for: ${profile.data.emailAddress}`);
+    }
+    catch (error) {
+        console.error(`  ✗ Authentication failed: ${error}`);
+    }
+    console.error('\n=== Debug Complete ===');
 }
 export async function getCredentials() {
     // Only use OAuth keys from the explicitly configured path or project root
@@ -98,19 +339,15 @@ export async function checkAuthStatus() {
     let credentialsValid = false;
     if (hasOAuthKeys && hasCredentials) {
         try {
-            const oauth2Client = await getCredentials();
-            if (oauth2Client) {
-                await oauth2Client.getAccessToken();
-                credentialsValid = true;
-            }
+            const client = await getCredentials();
+            credentialsValid = client !== null;
         }
-        catch (error) {
+        catch {
             credentialsValid = false;
         }
     }
     return { hasOAuthKeys, hasCredentials, credentialsValid };
 }
-// Get OAuth client, creating one if needed but without credentials
 export async function getOAuthClient() {
     // Only use OAuth keys from the explicitly configured path or project root
     const oauthPath = process.env.GMAIL_OAUTH_PATH ||
@@ -126,7 +363,6 @@ export async function getOAuthClient() {
     const redirectUri = keys.redirect_uris?.[0] || "urn:ietf:wg:oauth:2.0:oob";
     return new OAuth2Client(keys.client_id, keys.client_secret, redirectUri);
 }
-// Check if OAuth client has valid credentials
 export async function hasValidCredentials(oauth2Client) {
     try {
         const credentials = oauth2Client.credentials;
@@ -168,448 +404,13 @@ export async function authenticateWeb(oauth2Client, credentialsPath) {
                         // Save credentials
                         fs.writeFileSync(creds, JSON.stringify(tokens, null, 2));
                         res.writeHead(200, { 'Content-Type': 'text/html' });
-                        res.end(`
-                            <!DOCTYPE html>
-                            <html lang="en">
-                            <head>
-                                <meta charset="UTF-8">
-                                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                                <title>Gmail Manager - Authentication Successful</title>
-                                <style>
-                                    * {
-                                        margin: 0;
-                                        padding: 0;
-                                        box-sizing: border-box;
-                                    }
-                                    
-                                    body {
-                                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-                                        background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #f5576c);
-                                        background-size: 400% 400%;
-                                        animation: gradientBG 3s ease infinite;
-                                        min-height: 100vh;
-                                        display: flex;
-                                        align-items: center;
-                                        justify-content: center;
-                                        color: #333;
-                                    }
-                                    
-                                    @keyframes gradientBG {
-                                        0% { background-position: 0% 50%; }
-                                        50% { background-position: 100% 50%; }
-                                        100% { background-position: 0% 50%; }
-                                    }
-                                    
-                                    .container {
-                                        background: white;
-                                        border-radius: 20px;
-                                        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-                                        padding: 40px;
-                                        text-align: center;
-                                        max-width: 500px;
-                                        width: 90%;
-                                        animation: slideUp 0.6s ease-out;
-                                    }
-                                    
-                                    @keyframes slideUp {
-                                        from {
-                                            opacity: 0;
-                                            transform: translateY(30px);
-                                        }
-                                        to {
-                                            opacity: 1;
-                                            transform: translateY(0);
-                                        }
-                                    }
-                                    
-                                    .success-icon {
-                                        width: 80px;
-                                        height: 80px;
-                                        background: linear-gradient(135deg, #4CAF50, #45a049);
-                                        border-radius: 50%;
-                                        display: flex;
-                                        align-items: center;
-                                        justify-content: center;
-                                        margin: 0 auto 20px;
-                                        animation: pulse 2s infinite;
-                                    }
-                                    
-                                    @keyframes pulse {
-                                        0% { transform: scale(1); }
-                                        50% { transform: scale(1.05); }
-                                        100% { transform: scale(1); }
-                                    }
-                                    
-                                    .success-icon::before {
-                                        content: "✓";
-                                        color: white;
-                                        font-size: 40px;
-                                        font-weight: bold;
-                                    }
-                                    
-                                    h1 {
-                                        color: #2c3e50;
-                                        margin-bottom: 15px;
-                                        font-size: 28px;
-                                        font-weight: 600;
-                                    }
-                                    
-                                    .message {
-                                        color: #7f8c8d;
-                                        font-size: 16px;
-                                        line-height: 1.6;
-                                        margin-bottom: 30px;
-                                    }
-                                    
-                                    .features {
-                                        background: #f8f9fa;
-                                        border-radius: 12px;
-                                        padding: 20px;
-                                        margin: 20px 0;
-                                        text-align: left;
-                                    }
-                                    
-                                    .features h3 {
-                                        color: #2c3e50;
-                                        margin-bottom: 10px;
-                                        font-size: 18px;
-                                    }
-                                    
-                                    .features ul {
-                                        list-style: none;
-                                        color: #7f8c8d;
-                                    }
-                                    
-                                    .features li {
-                                        margin: 8px 0;
-                                        padding-left: 20px;
-                                        position: relative;
-                                    }
-                                    
-                                    .features li::before {
-                                        content: "•";
-                                        color: #4CAF50;
-                                        font-weight: bold;
-                                        position: absolute;
-                                        left: 0;
-                                    }
-                                    
-                                    .action-buttons {
-                                        text-align: center;
-                                        margin-top: 30px;
-                                    }
-                                    
-                                    .btn {
-                                        padding: 12px 24px;
-                                        border: none;
-                                        border-radius: 8px;
-                                        font-size: 16px;
-                                        font-weight: 500;
-                                        cursor: pointer;
-                                        transition: all 0.3s ease;
-                                        text-decoration: none;
-                                        display: inline-block;
-                                        text-align: center;
-                                    }
-                                    
-                                    .btn-primary {
-                                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                                        color: white;
-                                    }
-                                    
-                                    .btn-secondary {
-                                        background: #f8f9fa;
-                                        color: #6c757d;
-                                        border: 2px solid #e9ecef;
-                                    }
-                                    
-                                    .btn:hover {
-                                        transform: translateY(-2px);
-                                        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-                                    }
-                                    
-                                    .btn-primary:hover {
-                                        background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
-                                    }
-                                    
-                                    .btn-secondary:hover {
-                                        background: #e9ecef;
-                                        border-color: #dee2e6;
-                                    }
-                                    
-                                    .accordion {
-                                        margin: 20px 0;
-                                    }
-                                    
-                                    .accordion-item {
-                                        border: 1px solid #e9ecef;
-                                        border-radius: 8px;
-                                        margin-bottom: 10px;
-                                        overflow: hidden;
-                                    }
-                                    
-                                    .accordion-header {
-                                        background: #f8f9fa;
-                                        padding: 15px 20px;
-                                        cursor: pointer;
-                                        display: flex;
-                                        justify-content: space-between;
-                                        align-items: center;
-                                        font-weight: 600;
-                                        color: #2c3e50;
-                                        transition: all 0.3s ease;
-                                    }
-                                    
-                                    .accordion-header:hover {
-                                        background: #e9ecef;
-                                    }
-                                    
-                                    .accordion-icon {
-                                        transition: transform 0.3s ease;
-                                    }
-                                    
-                                    .accordion-content {
-                                        max-height: 0;
-                                        overflow: hidden;
-                                        transition: max-height 0.3s ease;
-                                        background: white;
-                                    }
-                                    
-                                    .accordion-content.active {
-                                        max-height: 400px;
-                                    }
-                                    
-                                    .accordion-body {
-                                        padding: 15px 20px;
-                                        color: #7f8c8d;
-                                        font-size: 14px;
-                                    }
-                                    
-                                    .example-list {
-                                        list-style: none;
-                                        margin: 0;
-                                        padding: 0;
-                                    }
-                                    
-                                    .example-list li {
-                                        margin: 8px 0;
-                                        padding: 8px 12px;
-                                        background: #f8f9fa;
-                                        border-radius: 6px;
-                                        font-style: italic;
-                                        border-left: 3px solid #4CAF50;
-                                    }
-                                </style>
-                            </head>
-                            <body>
-                                <div class="container">
-                                    <div class="success-icon"></div>
-                                    <h1>🎉 Authentication Successful!</h1>
-                                    <div style="text-align: center; margin: 20px 0;">
-                                        <img src="/images/cleaning-images/cleaning${Math.floor(Math.random() * 5) + 1}.gif" alt="Cleaning animation" style="max-width: 150px; border-radius: 10px;" onerror="this.style.display='none';">
-                                    </div>
-                                    <p class="message">
-                                        🔗 Gmail Manager is now connected to your Gmail account! 
-                                        Ready to clean up your inbox like a pro! ✨
-                                    </p>
-                                    
-                                    <div class="accordion">
-                                        <div class="accordion-item">
-                                            <div class="accordion-header" onclick="toggleAccordion(this)">
-                                                <span>🧹 Storage Cleanup Commands</span>
-                                                <span class="accordion-icon">▼</span>
-                                            </div>
-                                            <div class="accordion-content">
-                                                <div class="accordion-body">
-                                                    <ul class="example-list">
-                                                        <li>"Delete all emails from noreply addresses older than 6 months"</li>
-                                                        <li>"Find and delete all promotional emails from shopping sites"</li>
-                                                        <li>"Remove all LinkedIn notification emails from the past year"</li>
-                                                        <li>"Delete all automated emails from GitHub, Slack, and Jira"</li>
-                                                        <li>"Clean up all newsletter emails I haven't opened in 3 months"</li>
-                                                        <li>"Remove all calendar invites and meeting reminders older than 30 days"</li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="accordion-item">
-                                            <div class="accordion-header" onclick="toggleAccordion(this)">
-                                                <span>📊 Smart Organization</span>
-                                                <span class="accordion-icon">▼</span>
-                                            </div>
-                                            <div class="accordion-content">
-                                                <div class="accordion-body">
-                                                    <ul class="example-list">
-                                                        <li>"Label all emails from banks and financial institutions as 'Finance'"</li>
-                                                        <li>"Create 'Archive-2024' label and move all old work emails there"</li>
-                                                        <li>"Find all subscription confirmation emails and label them 'Subscriptions'"</li>
-                                                        <li>"Group all travel booking confirmations under 'Travel' label"</li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="accordion-item">
-                                            <div class="accordion-header" onclick="toggleAccordion(this)">
-                                                <span>🔍 Inbox Analysis</span>
-                                                <span class="accordion-icon">▼</span>
-                                            </div>
-                                            <div class="accordion-content">
-                                                <div class="accordion-body">
-                                                    <ul class="example-list">
-                                                        <li>"Show me my top 10 email senders by volume this year"</li>
-                                                        <li>"Find all unread emails older than 1 month"</li>
-                                                        <li>"List all emails taking up the most storage space"</li>
-                                                        <li>"Analyze my email patterns and suggest cleanup strategies"</li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="action-buttons">
-                                        <a href="https://spark-games.co.uk" class="btn btn-primary">
-                                            🚀 Explore More Tools
-                                        </a>
-                                    </div>
-                                </div>
-                                
-                                <script>
-                                    function toggleAccordion(header) {
-                                        const content = header.nextElementSibling;
-                                        const icon = header.querySelector('.accordion-icon');
-                                        
-                                        // Close all other accordions
-                                        document.querySelectorAll('.accordion-content').forEach(item => {
-                                            if (item !== content) {
-                                                item.classList.remove('active');
-                                                item.previousElementSibling.querySelector('.accordion-icon').style.transform = 'rotate(0deg)';
-                                            }
-                                        });
-                                        
-                                        // Toggle current accordion
-                                        content.classList.toggle('active');
-                                        const isActive = content.classList.contains('active');
-                                        icon.style.transform = isActive ? 'rotate(180deg)' : 'rotate(0deg)';
-                                    }
-                                </script>
-                            </body>
-                            </html>
-                        `);
+                        res.end(getAuthSuccessHTML());
                         server.close();
                         resolve();
                     }
                     else {
                         res.writeHead(400, { 'Content-Type': 'text/html' });
-                        res.end(`
-                            <!DOCTYPE html>
-                            <html lang="en">
-                            <head>
-                                <meta charset="UTF-8">
-                                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                                <title>Gmail Manager - Authentication Failed</title>
-                                <style>
-                                    * {
-                                        margin: 0;
-                                        padding: 0;
-                                        box-sizing: border-box;
-                                    }
-                                    
-                                    body {
-                                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-                                        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-                                        min-height: 100vh;
-                                        display: flex;
-                                        align-items: center;
-                                        justify-content: center;
-                                        color: #333;
-                                    }
-                                    
-                                    .container {
-                                        background: white;
-                                        border-radius: 20px;
-                                        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-                                        padding: 40px;
-                                        text-align: center;
-                                        max-width: 500px;
-                                        width: 90%;
-                                        animation: slideUp 0.6s ease-out;
-                                    }
-                                    
-                                    @keyframes slideUp {
-                                        from {
-                                            opacity: 0;
-                                            transform: translateY(30px);
-                                        }
-                                        to {
-                                            opacity: 1;
-                                            transform: translateY(0);
-                                        }
-                                    }
-                                    
-                                    .error-icon {
-                                        width: 80px;
-                                        height: 80px;
-                                        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-                                        border-radius: 50%;
-                                        display: flex;
-                                        align-items: center;
-                                        justify-content: center;
-                                        margin: 0 auto 20px;
-                                    }
-                                    
-                                    .error-icon::before {
-                                        content: "✕";
-                                        color: white;
-                                        font-size: 40px;
-                                        font-weight: bold;
-                                    }
-                                    
-                                    h1 {
-                                        color: #2c3e50;
-                                        margin-bottom: 15px;
-                                        font-size: 28px;
-                                        font-weight: 600;
-                                    }
-                                    
-                                    .message {
-                                        color: #7f8c8d;
-                                        font-size: 16px;
-                                        line-height: 1.6;
-                                        margin-bottom: 30px;
-                                    }
-                                    
-                                    .retry-button {
-                                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                                        color: white;
-                                        border: none;
-                                        padding: 12px 24px;
-                                        border-radius: 8px;
-                                        font-size: 16px;
-                                        cursor: pointer;
-                                        transition: transform 0.2s;
-                                        margin-top: 20px;
-                                    }
-                                    
-                                    .retry-button:hover {
-                                        transform: translateY(-2px);
-                                    }
-                                </style>
-                            </head>
-                            <body>
-                                <div class="container">
-                                    <div class="error-icon"></div>
-                                    <h1>Authentication Failed</h1>
-                                    <p class="message">
-                                        No authorization code was received from Google. 
-                                        This might happen if you cancelled the authentication process.
-                                    </p>
-                                    <button class="retry-button" onclick="window.close()">Close Window</button>
-                                </div>
-                            </body>
-                            </html>
-                        `);
+                        res.end(getAuthFailedHTML());
                         server.close();
                         reject(new Error('No authorization code received'));
                     }
@@ -632,11 +433,11 @@ export async function authenticateWeb(oauth2Client, credentialsPath) {
             }
         });
         server.listen(port, async () => {
-            console.error(`\nOpening authentication in your browser...`);
-            console.error(`\nIf the browser doesn't open automatically, please visit:`);
-            console.error(`\n${authUrl}\n`);
+            console.log(`\nOpening authentication in your browser...`);
+            console.log(`\nIf the browser doesn't open automatically, please visit:`);
+            console.log(`\n${authUrl}\n`);
             // Open browser (platform-agnostic)
-            const { exec } = await import('child_process');
+            const { exec } = require('child_process');
             const platform = os.platform();
             // Check if we're in WSL
             const isWSL = fs.existsSync('/proc/version') &&
@@ -648,7 +449,7 @@ export async function authenticateWeb(oauth2Client, credentialsPath) {
                         // Try PowerShell as fallback
                         exec(`powershell.exe -Command "Start-Process '${authUrl}'"`, (error2) => {
                             if (error2) {
-                                console.error('Could not open browser automatically. Please open the URL manually.');
+                                console.log('Could not open browser automatically. Please open the URL manually.');
                             }
                         });
                     }
@@ -657,14 +458,14 @@ export async function authenticateWeb(oauth2Client, credentialsPath) {
             else if (platform === 'darwin') {
                 exec(`open "${authUrl}"`, (error) => {
                     if (error) {
-                        console.error('Could not open browser automatically. Please open the URL manually.');
+                        console.log('Could not open browser automatically. Please open the URL manually.');
                     }
                 });
             }
             else if (platform === 'win32') {
                 exec(`cmd.exe /c start "" "${authUrl}"`, (error) => {
                     if (error) {
-                        console.error('Could not open browser automatically. Please open the URL manually.');
+                        console.log('Could not open browser automatically. Please open the URL manually.');
                     }
                 });
             }
@@ -675,7 +476,7 @@ export async function authenticateWeb(oauth2Client, credentialsPath) {
                         // Try alternative methods
                         exec(`sensible-browser "${authUrl}"`, (error2) => {
                             if (error2) {
-                                console.error('Could not open browser automatically. Please open the URL manually.');
+                                console.log('Could not open browser automatically. Please open the URL manually.');
                             }
                         });
                     }
@@ -687,40 +488,6 @@ export async function authenticateWeb(oauth2Client, credentialsPath) {
                 // Port 3000 is in use
             }
             reject(error);
-        });
-    });
-}
-export async function authenticate(oauth2Client, credentialsPath) {
-    const creds = credentialsPath || path.join(CONFIG_DIR, 'credentials.json');
-    const authUrl = oauth2Client.generateAuthUrl({
-        access_type: 'offline',
-        scope: ['https://www.googleapis.com/auth/gmail.modify', 'https://www.googleapis.com/auth/gmail.settings.basic']
-    });
-    // Terminal authentication flow
-    const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout
-    });
-    return new Promise((resolve, reject) => {
-        rl.question('Authorization code: ', async (code) => {
-            try {
-                rl.close();
-                const { tokens } = await oauth2Client.getToken(code);
-                oauth2Client.setCredentials(tokens);
-                // Ensure the directory exists
-                const credsDir = path.dirname(creds);
-                if (!fs.existsSync(credsDir)) {
-                    fs.mkdirSync(credsDir, { recursive: true });
-                }
-                // Save credentials
-                fs.writeFileSync(creds, JSON.stringify(tokens, null, 2));
-                // Authentication successful
-                resolve();
-            }
-            catch (error) {
-                rl.close();
-                reject(error);
-            }
         });
     });
 }
