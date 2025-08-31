@@ -13,9 +13,9 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(45deg, #0a1f0d, #1a3620, #0f2c14, #0a1f0d);
+            background: linear-gradient(45deg, #22c55e, #10b981, #059669, #16a34a, #22c55e, #34d399, #6ee7b7);
             background-size: 400% 400%;
-            animation: gradientShift 4s ease infinite;
+            animation: gradientShift 3s ease infinite;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -146,15 +146,21 @@
             padding: 16px 20px;
             cursor: pointer;
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
             font-weight: 600;
             color: #e2e8f0;
             transition: all 0.3s ease;
             border: none;
             width: 100%;
-            text-align: left;
+            text-align: center;
             font-size: 14px;
+            position: relative;
+        }
+        
+        .accordion-header .accordion-icon {
+            position: absolute;
+            right: 20px;
         }
         
         .accordion-header:hover {
@@ -200,13 +206,14 @@
             cursor: pointer;
             transition: all 0.2s ease;
             color: #64748b;
-            font-size: 13px;
+            font-size: 14px;
             line-height: 1.4;
+            text-align: center;
         }
         
         .command-item:hover {
             color: #22c55e;
-            transform: translateX(4px);
+            transform: scale(1.02);
         }
         
         .command-item:last-child {
@@ -230,12 +237,12 @@
         }
         
         .btn:hover {
-            transform: translateY(-2px);
+            transform: scale(1.05);
             box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
         }
         
         .btn:active {
-            transform: translateY(0);
+            transform: scale(0.98);
         }
         
         .copy-notification {
@@ -266,9 +273,9 @@
 <body>
     <div class="container">
         <div class="success-icon"></div>
-        <h1>Authentication Successful</h1>
+        <h1>🎉 Success! You're All Set! 🚀</h1>
         <p class="message">
-            Your Gmail Manager is ready! Try these commands:
+            Your Gmail Manager is now connected and ready to clean house! Try these powerful commands:
         </p>
         
         <div class="accordion">

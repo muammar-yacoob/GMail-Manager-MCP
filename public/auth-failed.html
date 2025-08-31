@@ -157,9 +157,16 @@
             // GIF management
             const gifs = ['cleaning.gif', 'cleaning2.gif', 'cleaning3.gif', 'cleaning4.gif', 'cleaning5.gif'];
             const errorGifElement = document.getElementById('error-gif');
+            let currentGif = '';
             
             function loadRandomGif() {
-                const randomGif = gifs[Math.floor(Math.random() * gifs.length)];
+                let randomGif;
+                do {
+                    randomGif = gifs[Math.floor(Math.random() * gifs.length)];
+                } while (randomGif === currentGif && gifs.length > 1);
+                
+                currentGif = randomGif;
+                
                 if (errorGifElement) {
                     // Add loading effect
                     errorGifElement.style.opacity = '0.5';
