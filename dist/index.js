@@ -1,14 +1,10 @@
 #!/usr/bin/env node
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
-import { CallToolRequestSchema, ListToolsRequestSchema, InitializeRequestSchema } from "@modelcontextprotocol/sdk/types.js";
-import { authenticateWeb, getCredentials } from './auth.js';
-import { GmailService } from './gmail-service.js';
-import { getToolDefinitions, handleToolCall } from './tools.js';
-import http from 'http';
-import { URL } from 'url';
-import { fileURLToPath } from 'url';
+import { CallToolRequestSchema, ListToolsRequestSchema, InitializeRequestSchema, } from "@modelcontextprotocol/sdk/types.js";
+import { getCredentials, authenticateWeb } from "./auth.js";
+import { GmailService } from "./gmail-service.js";
+import { getToolDefinitions, handleToolCall } from "./tools.js";
 async function main() {
     let oauth2Client = null;
     let credentialsError = null;
@@ -17,18 +13,11 @@ async function main() {
     }
     catch (error) {
         credentialsError = error instanceof Error ? error : new Error(String(error));
-        // Don't output any messages during normal startup - they break the MCP protocol
     }
-    if (process.argv[2] === 'auth') {
-        console.log('🔐 Gmail Manager - One-time Authentication Setup');
-        console.log('='.repeat(50));
+    // Handle command line arguments
+    if (process.argv.includes('auth')) {
         if (!oauth2Client) {
-            console.error('❌ Error: Cannot authenticate without OAuth credentials.');
-            console.error(`   ${credentialsError?.message || 'OAuth credentials not available'}`);
-            console.log('\n💡 Next steps:');
-            console.log('   1. Download gcp-oauth.keys.json from Google Cloud Console');
-            console.log('   2. Place it in your project directory or set GMAIL_OAUTH_PATH');
-            console.log('   3. Run authentication again');
+            console.error('❌ OAuth credentials not configured. Please set up gcp-oauth.keys.json first.');
             process.exit(1);
         }
         console.log('🌐 Starting web-based Gmail authentication...');
@@ -72,20 +61,71 @@ async function main() {
         // Handle authentication tool specially
         if (req.params.name === 'authenticate_gmail') {
             if (!oauth2Client) {
-                throw new Error(`🔐 Gmail OAuth credentials not configured. Setup required:
+                throw new Error(`🔐 **Gmail OAuth Setup Required**
 
-1. Visit Google Cloud Console (https://console.cloud.google.com/)
-2. Enable Gmail API
-3. Create OAuth 2.0 Desktop credentials
-4. Download as 'gcp-oauth.keys.json'
-5. Place file at: ${process.env.GMAIL_OAUTH_PATH || 'project directory'}
-6. Restart Claude Desktop after setup
+📋 **Please complete the following steps:**
 
-Current OAuth path: ${process.env.GMAIL_OAUTH_PATH || 'not set'}`);
+1️⃣ **Create Google Cloud Project**
+   • Visit: https://console.cloud.google.com/projectcreate
+
+2️⃣ **Enable Gmail API**
+   • Visit: https://console.cloud.google.com/apis/api/gmail.googleapis.com/metrics
+
+3️⃣ **Create OAuth Credentials**
+   • Visit: https://console.cloud.google.com/auth/clients
+   • Choose "Desktop app" type
+   • Download as \`gcp-oauth.keys.json\`
+
+4️⃣ **Add Required Scopes**
+   • Visit: https://console.cloud.google.com/auth/scopes
+   • Add: \`https://www.googleapis.com/auth/gmail.modify\`
+   • Add: \`https://www.googleapis.com/auth/gmail.settings.basic\`
+
+5️⃣ **Add Test User**
+   • Visit: https://console.cloud.google.com/auth/audience
+   • Add your Google email as test user
+
+6️⃣ **Restart Claude Desktop**
+
+📍 **Current OAuth path:** ${process.env.GMAIL_OAUTH_PATH || 'not set'}`);
             }
             try {
                 await authenticateWeb(oauth2Client);
-                return { content: [{ type: "text", text: "✅ Authentication successful! Gmail Manager is now connected to your Gmail account. You can now use all Gmail tools." }] };
+                return {
+                    content: [{
+                            type: "text",
+                            text: `🎉 **Authentication Successful!** 🎉
+
+✅ **Gmail Manager is now connected to your Gmail account!**
+
+🚀 **You can now use all Gmail tools:**
+
+🔍 **Search & Filter**
+• Find emails by sender, subject, date, or any Gmail query
+• Use natural language to search your inbox
+
+🗑️ **Bulk Operations**
+• Delete multiple emails at once
+• Clean up newsletters, spam, and old emails
+
+🏷️ **Smart Organization**
+• Create and apply labels automatically
+• Organize your inbox with smart categorization
+
+📊 **Inbox Analytics**
+• Get insights about your email patterns
+• Analyze storage usage and email volume
+
+🧹 **Smart Cleanup**
+• Remove unwanted emails efficiently
+• Maintain inbox zero with automated cleanup
+
+**Ready to clean your inbox? Try asking:**
+• "Delete all promotional emails from the past month"
+• "Find and label all bank emails as 'Finance'"
+• "Clean up all unread newsletters older than 3 months"`
+                        }]
+                };
             }
             catch (error) {
                 throw new Error(`Authentication failed: ${error instanceof Error ? error.message : String(error)}`);
@@ -96,186 +136,61 @@ Current OAuth path: ${process.env.GMAIL_OAUTH_PATH || 'not set'}`);
             // Provide clear instructions for authentication with web option
             if (oauth2Client && !credentialsError?.message?.includes('OAuth credentials not found')) {
                 // We have OAuth keys but no valid credentials
-                throw new Error(`🔐 Gmail authentication required. Choose one of these options:
+                throw new Error(`🔐 **Gmail Authentication Required**
 
-**Option 1 - Web Authentication (Recommended):**
-Use the 'authenticate_gmail' tool to authenticate via web browser
+✅ **OAuth keys found!** Now you need to authenticate.
 
-**Option 2 - Terminal Authentication:**
+🎯 **Choose one of these options:**
+
+**Option 1 - Web Authentication (Recommended) 🌐**
+• Use the \`authenticate_gmail\` tool
+• Your browser will open automatically
+• Complete the Google OAuth flow
+• Return to Claude Desktop when done
+
+**Option 2 - Terminal Authentication 💻**
 1. Open a terminal in your project directory
-2. Run: npm run auth
+2. Run: \`npm run auth\`
 3. Follow the browser authentication flow
 4. Restart Claude Desktop after authentication
 
-OAuth keys found at: ${process.env.GMAIL_OAUTH_PATH || 'project directory'}
-Credentials will be saved to: ${process.env.GMAIL_CREDENTIALS_PATH || '~/.gmail-mcp/credentials.json'}`);
+📍 **OAuth keys found at:** ${process.env.GMAIL_OAUTH_PATH || 'project directory'}
+💾 **Credentials will be saved to:** ${process.env.GMAIL_CREDENTIALS_PATH || '~/.gmail-mcp/credentials.json'}`);
             }
             else {
                 // No OAuth keys found
-                throw new Error(`🔐 Gmail OAuth credentials not configured. Setup required:
+                throw new Error(`🔐 **Gmail OAuth Setup Required**
 
-1. Visit Google Cloud Console (https://console.cloud.google.com/)
-2. Enable Gmail API
-3. Create OAuth 2.0 Desktop credentials
-4. Download as 'gcp-oauth.keys.json'
-5. Place file at: ${process.env.GMAIL_OAUTH_PATH || 'project directory'}
-6. Restart Claude Desktop after setup
+📋 **Please complete the following steps:**
 
-Current OAuth path: ${process.env.GMAIL_OAUTH_PATH || 'not set'}`);
+1️⃣ **Create Google Cloud Project**
+   • Visit: https://console.cloud.google.com/projectcreate
+
+2️⃣ **Enable Gmail API**
+   • Visit: https://console.cloud.google.com/apis/api/gmail.googleapis.com/metrics
+
+3️⃣ **Create OAuth Credentials**
+   • Visit: https://console.cloud.google.com/auth/clients
+   • Choose "Desktop app" type
+   • Download as \`gcp-oauth.keys.json\`
+
+4️⃣ **Add Required Scopes**
+   • Visit: https://console.cloud.google.com/auth/scopes
+   • Add: \`https://www.googleapis.com/auth/gmail.modify\`
+   • Add: \`https://www.googleapis.com/auth/gmail.settings.basic\`
+
+5️⃣ **Add Test User**
+   • Visit: https://console.cloud.google.com/auth/audience
+   • Add your Google email as test user
+
+6️⃣ **Restart Claude Desktop**
+
+📍 **Current OAuth path:** ${process.env.GMAIL_OAUTH_PATH || 'not set'}`);
             }
         }
         return await handleToolCall(gmailService, req.params.name, req.params.arguments);
     });
-    // Check if we should run in HTTP mode (for Smithery deployments) or stdio mode (for local use)
-    const useHttp = process.env.PORT || process.env.USE_HTTP;
-    if (useHttp) {
-        // HTTP mode for Smithery container deployments
-        const port = parseInt(process.env.PORT || '3000');
-        let transport = null;
-        const httpServer = http.createServer(async (req, res) => {
-            const url = new URL(req.url || '/', `http://${req.headers.host}`);
-            if (url.pathname !== '/mcp') {
-                res.writeHead(404).end('Not found');
-                return;
-            }
-            if (req.method === 'GET') {
-                // Handle SSE connection establishment
-                try {
-                    transport = new SSEServerTransport('/mcp', res);
-                    await server.connect(transport);
-                }
-                catch (error) {
-                    res.writeHead(500).end('Failed to establish SSE connection');
-                }
-            }
-            else if (req.method === 'POST') {
-                // Handle incoming JSON-RPC messages
-                if (transport && 'handleMessage' in transport) {
-                    try {
-                        await transport.handleMessage(req, res);
-                    }
-                    catch (error) {
-                        res.writeHead(400).end('Failed to handle message');
-                    }
-                }
-                else {
-                    res.writeHead(500).end('SSE connection not established');
-                }
-            }
-            else if (req.method === 'DELETE') {
-                // Handle connection cleanup (optional)
-                res.writeHead(200).end('OK');
-            }
-            else {
-                res.writeHead(405).end('Method not allowed');
-            }
-        });
-        httpServer.listen(port, () => {
-            // Only log in development mode for debugging
-            if (process.env.NODE_ENV !== 'production') {
-                console.log(`HTTP server listening on port ${port}`);
-            }
-        });
-    }
-    else {
-        // Stdio mode for local development and npm package usage
-        const transport = new StdioServerTransport();
-        await server.connect(transport);
-    }
-    // No startup messages - they break the MCP protocol
+    const transport = new StdioServerTransport();
+    await server.connect(transport);
 }
-// Smithery stateful server export
-export default async function ({ sessionId, config }) {
-    // Set environment variables from config if provided
-    if (config?.gcpOauthKeysPath) {
-        process.env.GMAIL_OAUTH_PATH = config.gcpOauthKeysPath;
-    }
-    if (config?.credentialsPath) {
-        process.env.GMAIL_CREDENTIALS_PATH = config.credentialsPath;
-    }
-    // Create and return server instance
-    let oauth2Client = null;
-    let credentialsError = null;
-    try {
-        oauth2Client = await getCredentials();
-    }
-    catch (error) {
-        credentialsError = error instanceof Error ? error : new Error(String(error));
-    }
-    const server = new Server({
-        name: "gmail-manager",
-        version: "1.1.5",
-        capabilities: {
-            tools: {}
-        }
-    });
-    let gmailService = oauth2Client ? new GmailService(oauth2Client) : null;
-    // Handle initialization properly
-    server.setRequestHandler(InitializeRequestSchema, async (request) => {
-        return {
-            protocolVersion: "2025-06-18",
-            capabilities: {
-                tools: {}
-            },
-            serverInfo: {
-                name: "gmail-manager",
-                version: "1.1.5"
-            }
-        };
-    });
-    server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: getToolDefinitions() }));
-    server.setRequestHandler(CallToolRequestSchema, async (req) => {
-        // Handle authentication tool specially
-        if (req.params.name === 'authenticate_gmail') {
-            if (!oauth2Client) {
-                throw new Error(`🔐 Gmail OAuth credentials not configured. Setup required:
-
-1. Visit Google Cloud Console (https://console.cloud.google.com/)
-2. Enable Gmail API
-3. Create OAuth 2.0 Desktop credentials
-4. Download as 'gcp-oauth.keys.json'
-5. Provide the file path in Smithery config
-
-Current OAuth path: ${process.env.GMAIL_OAUTH_PATH || 'not set'}`);
-            }
-            try {
-                await authenticateWeb(oauth2Client);
-                // Recreate gmail service after authentication
-                gmailService = new GmailService(oauth2Client);
-                return { content: [{ type: "text", text: "✅ Authentication successful! Gmail Manager is now connected to your Gmail account. You can now use all Gmail tools." }] };
-            }
-            catch (error) {
-                throw new Error(`Authentication failed: ${error instanceof Error ? error.message : String(error)}`);
-            }
-        }
-        if (!gmailService) {
-            const errorMsg = credentialsError?.message || 'OAuth credentials not found';
-            throw new Error(`🔐 Authentication required. ${errorMsg}\n\n💡 Use the 'authenticate_gmail' tool or ensure your gcp-oauth.keys.json file is provided in config.`);
-        }
-        return await handleToolCall(gmailService, req.params.name, req.params.arguments);
-    });
-    return server;
-}
-// Also support direct execution for local development
-// When the script is run directly with node, start the server
-// Check if running as main module (compatible with both ES modules and CommonJS)
-// Don't auto-start if we're in Smithery mode (USE_HTTP is set by Smithery)
-// Also don't auto-start if this is being imported as a module
-let isMainModule = false;
-try {
-    // ES module detection - import.meta.url is available
-    if (import.meta.url) {
-        const __filename = fileURLToPath(import.meta.url);
-        isMainModule = Boolean(process.argv[1] && (process.argv[1] === __filename || process.argv[1].endsWith('index.js')));
-    }
-}
-catch (e) {
-    // CommonJS fallback - just check if process.argv[1] ends with known entry points
-    isMainModule = Boolean(process.argv[1] && (process.argv[1].endsWith('index.js') || process.argv[1].endsWith('index.cjs')));
-}
-if (isMainModule && !process.env.USE_HTTP) {
-    main().catch(e => {
-        console.error('Server error:', e);
-        process.exit(1);
-    });
-}
+main().catch(console.error);

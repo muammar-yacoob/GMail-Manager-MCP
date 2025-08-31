@@ -50,8 +50,7 @@ Perfect for **inbox zero enthusiasts** and anyone drowning in email overload! �
 ### 1. Get Gmail Credentials 🗝️
 1. [Create New Project](https://console.cloud.google.com/projectcreate).
 2. [Enable Gmail API](https://console.cloud.google.com/apis/api/gmail.googleapis.com/metrics).
-3. Create [OAuth 2.0 Desktop credentials](https://console.cloud.google.com/auth/clients) and download as `gcp-oauth.keys.json`.
-   - **Important**: Add `http://localhost:3000/oauth/callback` to the **Authorized redirect URIs**
+3. Create [OAuth client ID](https://console.cloud.google.com/auth/clients) of the type Desktop app. Download as `gcp-oauth.keys.json`.
 4. Navigate to [Data access](https://console.cloud.google.com/auth/scopes) and click **Add or remove scopes**.
 5. In **Manually add scopes**, add both scopes:
    - `https://www.googleapis.com/auth/gmail.modify`
@@ -65,20 +64,26 @@ These scopes allow the Gmail Manager MCP to read, send, delete, and modify your 
 {
   "mcpServers": {
     "gmail-manager": {
-      "command": "npx", "args": ["-y", "@spark-apps/gmail-manager-mcp@latest"],
-      "env": {"GMAIL_OAUTH_PATH": "path/to/gcp-oauth.keys.json"}
+      "command": "node", "args": ["path/to/gmail-mcp-server/dist/index.js"],
+      "env": {
+        "GMAIL_OAUTH_PATH": "path/to/gcp-oauth.keys.json",
+        "GMAIL_CREDENTIALS_PATH": "path/to/gmail-mcp-server/credentials.json"
+      }
     }
   }
 }
 ```
 
-**Or use local installation:**
+**Example with absolute paths:**
 ```json
 {
   "mcpServers": {
     "gmail-manager": {
-      "command": "node", "args": ["path/to/gmail-mcp-server/dist/index.js"],
-      "env": {"GMAIL_OAUTH_PATH": "path/to/gcp-oauth.keys.json"}
+      "command": "node", "args": ["D:/MCPs/Gmail-MCP-Server/dist/index.js"],
+      "env": {
+        "GMAIL_OAUTH_PATH": "D:/MCPs/Gmail-MCP-Server/gcp-oauth.keys.json",
+        "GMAIL_CREDENTIALS_PATH": "D:/MCPs/Gmail-MCP-Server/credentials.json"
+      }
     }
   }
 }

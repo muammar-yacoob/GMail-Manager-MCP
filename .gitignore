@@ -10,3 +10,5 @@ coverage/
 PUBLISH.md
 learn/
 .smithery/
+tests/
+credentials.json

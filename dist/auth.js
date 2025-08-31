@@ -5,23 +5,62 @@ import os from 'os';
 import readline from 'readline';
 import http from 'http';
 import { URL } from 'url';
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+// Platform-agnostic config directory
 const CONFIG_DIR = path.join(os.homedir(), '.gmail-mcp');
+// Platform-agnostic path resolution function
+function findFileInPaths(filename, possiblePaths) {
+    for (const basePath of possiblePaths) {
+        if (!basePath)
+            continue;
+        const filePath = path.join(basePath, filename);
+        if (fs.existsSync(filePath)) {
+            return filePath;
+        }
+    }
+    return null;
+}
+// Get all possible base paths for file resolution
+function getPossibleBasePaths() {
+    const paths = [
+        process.cwd(),
+        path.dirname(__filename), // dist/
+        path.dirname(path.dirname(__filename)), // project root (from dist/)
+        path.dirname(path.dirname(path.dirname(__filename))), // parent of project root
+        CONFIG_DIR
+    ];
+    // Add environment variable paths
+    if (process.env.GMAIL_OAUTH_PATH) {
+        paths.unshift(path.dirname(process.env.GMAIL_OAUTH_PATH));
+    }
+    if (process.env.GMAIL_CREDENTIALS_PATH) {
+        paths.unshift(path.dirname(process.env.GMAIL_CREDENTIALS_PATH));
+    }
+    // Remove duplicates and non-existent paths
+    return [...new Set(paths)].filter(p => p && fs.existsSync(p));
+}
 export async function getCredentials() {
-    const localOAuthPath = path.join(process.cwd(), 'gcp-oauth.keys.json');
+    const possibleBasePaths = getPossibleBasePaths();
+    // Find OAuth keys file
     const oauthPath = process.env.GMAIL_OAUTH_PATH ||
-        (fs.existsSync(localOAuthPath) ? localOAuthPath : path.join(CONFIG_DIR, 'gcp-oauth.keys.json'));
-    const credentialsPath = process.env.GMAIL_CREDENTIALS_PATH || path.join(CONFIG_DIR, 'credentials.json');
-    // Create config directory only if we need it (not using local file)
-    if (!process.env.GMAIL_OAUTH_PATH && !fs.existsSync(localOAuthPath) && !fs.existsSync(CONFIG_DIR)) {
+        findFileInPaths('gcp-oauth.keys.json', possibleBasePaths);
+    if (!oauthPath || !fs.existsSync(oauthPath)) {
+        throw new Error(`OAuth keys file not found. Checked paths: ${possibleBasePaths.join(', ')}. Please place gcp-oauth.keys.json in project root or set GMAIL_OAUTH_PATH environment variable.`);
+    }
+    // Find credentials file
+    const credentialsPath = process.env.GMAIL_CREDENTIALS_PATH ||
+        findFileInPaths('credentials.json', possibleBasePaths) ||
+        path.join(CONFIG_DIR, 'credentials.json');
+    // Create config directory if needed
+    if (!process.env.GMAIL_OAUTH_PATH && !fs.existsSync(path.join(process.cwd(), 'gcp-oauth.keys.json')) && !fs.existsSync(CONFIG_DIR)) {
         try {
             fs.mkdirSync(CONFIG_DIR, { recursive: true });
         }
         catch (error) {
             // Ignore mkdir errors in read-only environments
         }
-    }
-    if (!fs.existsSync(oauthPath)) {
-        throw new Error(`OAuth keys file not found. Checked: ${oauthPath}. Please place gcp-oauth.keys.json in project root or ${CONFIG_DIR}`);
     }
     const keysContent = JSON.parse(fs.readFileSync(oauthPath, 'utf8'));
     const keys = keysContent.installed || keysContent.web;
@@ -46,12 +85,16 @@ export async function getCredentials() {
     return oauth2Client;
 }
 export async function checkAuthStatus() {
-    const localOAuthPath = path.join(process.cwd(), 'gcp-oauth.keys.json');
+    const possibleBasePaths = getPossibleBasePaths();
+    // Find OAuth keys file
     const oauthPath = process.env.GMAIL_OAUTH_PATH ||
-        (fs.existsSync(localOAuthPath) ? localOAuthPath : path.join(CONFIG_DIR, 'gcp-oauth.keys.json'));
-    const credentialsPath = process.env.GMAIL_CREDENTIALS_PATH || path.join(CONFIG_DIR, 'credentials.json');
-    const hasOAuthKeys = fs.existsSync(oauthPath);
-    const hasCredentials = fs.existsSync(credentialsPath);
+        findFileInPaths('gcp-oauth.keys.json', possibleBasePaths);
+    // Find credentials file
+    const credentialsPath = process.env.GMAIL_CREDENTIALS_PATH ||
+        findFileInPaths('credentials.json', possibleBasePaths) ||
+        path.join(CONFIG_DIR, 'credentials.json');
+    const hasOAuthKeys = oauthPath ? fs.existsSync(oauthPath) : false;
+    const hasCredentials = credentialsPath ? fs.existsSync(credentialsPath) : false;
     let credentialsValid = false;
     if (hasOAuthKeys && hasCredentials) {
         try {
@@ -78,184 +121,388 @@ export async function authenticateWeb(oauth2Client, credentialsPath) {
             scope: ['https://www.googleapis.com/auth/gmail.modify', 'https://www.googleapis.com/auth/gmail.settings.basic']
         });
         server = http.createServer(async (req, res) => {
-            const url = new URL(req.url || '', `http://localhost:${port}`);
-            if (url.pathname === '/oauth/callback') {
-                const code = url.searchParams.get('code');
-                const error = url.searchParams.get('error');
-                if (error) {
-                    res.writeHead(400, { 'Content-Type': 'text/html; charset=utf-8' });
-                    res.end(`
-                        <html>
+            try {
+                const url = new URL(req.url, `http://localhost:${port}`);
+                if (url.pathname === '/oauth/callback') {
+                    const code = url.searchParams.get('code');
+                    if (code) {
+                        const { tokens } = await webOAuth2Client.getToken(code);
+                        oauth2Client.setCredentials(tokens);
+                        // Ensure the directory exists
+                        const credsDir = path.dirname(creds);
+                        if (!fs.existsSync(credsDir)) {
+                            fs.mkdirSync(credsDir, { recursive: true });
+                        }
+                        // Save credentials
+                        fs.writeFileSync(creds, JSON.stringify(tokens, null, 2));
+                        res.writeHead(200, { 'Content-Type': 'text/html' });
+                        res.end(`
+                            <!DOCTYPE html>
+                            <html lang="en">
                             <head>
                                 <meta charset="UTF-8">
-                                <title>Gmail Authentication Failed</title>
+                                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                <title>Gmail Manager - Authentication Successful</title>
+                                <style>
+                                    * {
+                                        margin: 0;
+                                        padding: 0;
+                                        box-sizing: border-box;
+                                    }
+                                    
+                                    body {
+                                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                        min-height: 100vh;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        color: #333;
+                                    }
+                                    
+                                    .container {
+                                        background: white;
+                                        border-radius: 20px;
+                                        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+                                        padding: 40px;
+                                        text-align: center;
+                                        max-width: 500px;
+                                        width: 90%;
+                                        animation: slideUp 0.6s ease-out;
+                                    }
+                                    
+                                    @keyframes slideUp {
+                                        from {
+                                            opacity: 0;
+                                            transform: translateY(30px);
+                                        }
+                                        to {
+                                            opacity: 1;
+                                            transform: translateY(0);
+                                        }
+                                    }
+                                    
+                                    .success-icon {
+                                        width: 80px;
+                                        height: 80px;
+                                        background: linear-gradient(135deg, #4CAF50, #45a049);
+                                        border-radius: 50%;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        margin: 0 auto 20px;
+                                        animation: pulse 2s infinite;
+                                    }
+                                    
+                                    @keyframes pulse {
+                                        0% { transform: scale(1); }
+                                        50% { transform: scale(1.05); }
+                                        100% { transform: scale(1); }
+                                    }
+                                    
+                                    .success-icon::before {
+                                        content: "✓";
+                                        color: white;
+                                        font-size: 40px;
+                                        font-weight: bold;
+                                    }
+                                    
+                                    h1 {
+                                        color: #2c3e50;
+                                        margin-bottom: 15px;
+                                        font-size: 28px;
+                                        font-weight: 600;
+                                    }
+                                    
+                                    .message {
+                                        color: #7f8c8d;
+                                        font-size: 16px;
+                                        line-height: 1.6;
+                                        margin-bottom: 30px;
+                                    }
+                                    
+                                    .features {
+                                        background: #f8f9fa;
+                                        border-radius: 12px;
+                                        padding: 20px;
+                                        margin: 20px 0;
+                                        text-align: left;
+                                    }
+                                    
+                                    .features h3 {
+                                        color: #2c3e50;
+                                        margin-bottom: 10px;
+                                        font-size: 18px;
+                                    }
+                                    
+                                    .features ul {
+                                        list-style: none;
+                                        color: #7f8c8d;
+                                    }
+                                    
+                                    .features li {
+                                        margin: 8px 0;
+                                        padding-left: 20px;
+                                        position: relative;
+                                    }
+                                    
+                                    .features li::before {
+                                        content: "•";
+                                        color: #4CAF50;
+                                        font-weight: bold;
+                                        position: absolute;
+                                        left: 0;
+                                    }
+                                    
+                                    .close-notice {
+                                        background: #e8f5e8;
+                                        border: 1px solid #4CAF50;
+                                        border-radius: 8px;
+                                        padding: 15px;
+                                        color: #2e7d32;
+                                        font-size: 14px;
+                                        margin-top: 20px;
+                                    }
+                                    
+                                    .countdown {
+                                        font-weight: bold;
+                                        color: #4CAF50;
+                                    }
+                                </style>
                             </head>
-                            <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-                                <h1 style="color: #e74c3c;">❌ Authentication Failed</h1>
-                                <p>Error: ${error}</p>
-                                <p>You can close this window and try again.</p>
+                            <body>
+                                <div class="container">
+                                    <div class="success-icon"></div>
+                                    <h1>🎉 Authentication Successful!</h1>
+                                    <p class="message">
+                                        Gmail Manager is now connected to your Gmail account. 
+                                        You can close this window and return to Claude Desktop.
+                                    </p>
+                                    
+                                    <div class="features">
+                                        <h3>🚀 What you can do now:</h3>
+                                        <ul>
+                                            <li>Search and filter emails with natural language</li>
+                                            <li>Bulk delete unwanted emails</li>
+                                            <li>Organize inbox with smart labels</li>
+                                            <li>Clean up newsletters and spam</li>
+                                            <li>Analyze your email patterns</li>
+                                        </ul>
+                                    </div>
+                                    
+                                    <div class="close-notice">
+                                        <span class="countdown" id="countdown">2</span> seconds until this window closes automatically
+                                    </div>
+                                </div>
+                                
+                                <script>
+                                    let countdown = 2;
+                                    const countdownElement = document.getElementById('countdown');
+                                    
+                                    const timer = setInterval(() => {
+                                        countdown--;
+                                        countdownElement.textContent = countdown;
+                                        
+                                        if (countdown <= 0) {
+                                            clearInterval(timer);
+                                            window.close();
+                                        }
+                                    }, 1000);
+                                </script>
                             </body>
-                        </html>
-                    `);
-                    server.close();
-                    reject(new Error(`Authentication failed: ${error}`));
-                    return;
-                }
-                if (!code) {
-                    res.writeHead(400, { 'Content-Type': 'text/html; charset=utf-8' });
-                    res.end(`
-                        <html>
-                            <head>
-                                <meta charset="UTF-8">
-                                <title>Gmail Authentication Error</title>
-                            </head>
-                            <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-                                <h1 style="color: #e74c3c;">❌ No Authorization Code</h1>
-                                <p>No authorization code received. Please try again.</p>
-                            </body>
-                        </html>
-                    `);
-                    server.close();
-                    reject(new Error('No authorization code received'));
-                    return;
-                }
-                try {
-                    const { tokens } = await webOAuth2Client.getToken(code);
-                    oauth2Client.setCredentials(tokens);
-                    // Save credentials
-                    if (!fs.existsSync(path.dirname(creds))) {
-                        fs.mkdirSync(path.dirname(creds), { recursive: true });
+                            </html>
+                        `);
+                        server.close();
+                        resolve();
                     }
-                    fs.writeFileSync(creds, JSON.stringify(tokens));
-                    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-                    res.end(`
-                        <html>
+                    else {
+                        res.writeHead(400, { 'Content-Type': 'text/html' });
+                        res.end(`
+                            <!DOCTYPE html>
+                            <html lang="en">
                             <head>
                                 <meta charset="UTF-8">
-                                <title>Gmail Authentication Successful</title>
+                                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                <title>Gmail Manager - Authentication Failed</title>
+                                <style>
+                                    * {
+                                        margin: 0;
+                                        padding: 0;
+                                        box-sizing: border-box;
+                                    }
+                                    
+                                    body {
+                                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                                        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+                                        min-height: 100vh;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        color: #333;
+                                    }
+                                    
+                                    .container {
+                                        background: white;
+                                        border-radius: 20px;
+                                        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+                                        padding: 40px;
+                                        text-align: center;
+                                        max-width: 500px;
+                                        width: 90%;
+                                        animation: slideUp 0.6s ease-out;
+                                    }
+                                    
+                                    @keyframes slideUp {
+                                        from {
+                                            opacity: 0;
+                                            transform: translateY(30px);
+                                        }
+                                        to {
+                                            opacity: 1;
+                                            transform: translateY(0);
+                                        }
+                                    }
+                                    
+                                    .error-icon {
+                                        width: 80px;
+                                        height: 80px;
+                                        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+                                        border-radius: 50%;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        margin: 0 auto 20px;
+                                    }
+                                    
+                                    .error-icon::before {
+                                        content: "✕";
+                                        color: white;
+                                        font-size: 40px;
+                                        font-weight: bold;
+                                    }
+                                    
+                                    h1 {
+                                        color: #2c3e50;
+                                        margin-bottom: 15px;
+                                        font-size: 28px;
+                                        font-weight: 600;
+                                    }
+                                    
+                                    .message {
+                                        color: #7f8c8d;
+                                        font-size: 16px;
+                                        line-height: 1.6;
+                                        margin-bottom: 30px;
+                                    }
+                                    
+                                    .retry-button {
+                                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                        color: white;
+                                        border: none;
+                                        padding: 12px 24px;
+                                        border-radius: 8px;
+                                        font-size: 16px;
+                                        cursor: pointer;
+                                        transition: transform 0.2s;
+                                        margin-top: 20px;
+                                    }
+                                    
+                                    .retry-button:hover {
+                                        transform: translateY(-2px);
+                                    }
+                                </style>
                             </head>
-                            <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-                                <h1 style="color: #27ae60;">✅ Authentication Successful!</h1>
-                                <p>Gmail Manager is now connected to your Gmail account.</p>
-                                <p><strong>You can close this window and return to Claude Desktop.</strong></p>
-                                <p style="font-size: 14px; color: #7f8c8d; margin-top: 30px;">
-                                    Your credentials have been securely saved locally.
-                                </p>
+                            <body>
+                                <div class="container">
+                                    <div class="error-icon"></div>
+                                    <h1>❌ Authentication Failed</h1>
+                                    <p class="message">
+                                        No authorization code was received from Google. 
+                                        This might happen if you cancelled the authentication process.
+                                    </p>
+                                    <button class="retry-button" onclick="window.close()">Close Window</button>
+                                </div>
                             </body>
-                        </html>
-                    `);
-                    server.close();
-                    resolve();
+                            </html>
+                        `);
+                        server.close();
+                        reject(new Error('No authorization code received'));
+                    }
                 }
-                catch (tokenError) {
-                    res.writeHead(500, { 'Content-Type': 'text/html; charset=utf-8' });
-                    res.end(`
-                        <html>
-                            <head>
-                                <meta charset="UTF-8">
-                                <title>Gmail Authentication Error</title>
-                            </head>
-                            <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-                                <h1 style="color: #e74c3c;">❌ Token Exchange Failed</h1>
-                                <p>Failed to exchange authorization code for tokens.</p>
-                                <p>Please try again or contact support.</p>
-                            </body>
-                        </html>
-                    `);
-                    server.close();
-                    reject(new Error(`Failed to exchange authorization code: ${tokenError instanceof Error ? tokenError.message : String(tokenError)}`));
+                else {
+                    res.writeHead(404, { 'Content-Type': 'text/plain' });
+                    res.end('Not Found');
                 }
             }
-            else {
-                // Redirect to Google OAuth
-                res.writeHead(302, { Location: authUrl });
-                res.end();
+            catch (error) {
+                res.writeHead(500, { 'Content-Type': 'text/html' });
+                res.end(`<h1>Authentication Error</h1><p>${error instanceof Error ? error.message : 'Unknown error'}</p>`);
+                server.close();
+                reject(error);
             }
         });
-        server.listen(port, () => {
-            // Only log when running in terminal mode (not MCP mode)
-            // MCP mode is detected by the absence of TTY
-            const isMcpMode = !process.stdout.isTTY;
-            if (!isMcpMode) {
-                console.log('🌐 Opening browser for Gmail authentication...');
-                console.log(`📋 Visit: http://localhost:${port}`);
-                console.log('');
+        server.listen(port, async () => {
+            console.log(`🌐 Opening browser for Gmail authentication...`);
+            console.log(`🔗 Auth URL: ${authUrl}`);
+            // Open browser (platform-agnostic)
+            const { exec } = await import('child_process');
+            const platform = os.platform();
+            let command;
+            if (platform === 'darwin') {
+                command = 'open';
             }
-            // Try to open browser automatically
-            import('open').then(({ default: open }) => {
-                open(`http://localhost:${port}`).catch(() => {
-                    if (!isMcpMode) {
-                        console.log('⚠️  Could not auto-open browser. Please manually visit the URL above.');
-                    }
-                });
-            }).catch(() => {
-                if (!isMcpMode) {
-                    console.log('⚠️  Could not auto-open browser. Please manually visit the URL above.');
+            else if (platform === 'win32') {
+                command = 'start';
+            }
+            else {
+                command = 'xdg-open';
+            }
+            exec(`${command} "${authUrl}"`, (error) => {
+                if (error) {
+                    console.log(`⚠️  Could not open browser automatically. Please visit: ${authUrl}`);
                 }
             });
         });
-        // Timeout after 5 minutes
-        setTimeout(() => {
-            if (server.listening) {
-                server.close();
-                reject(new Error('Authentication timeout. Please try again.'));
+        server.on('error', (error) => {
+            if (error.code === 'EADDRINUSE') {
+                console.log('⚠️  Port 3000 is in use. Please close any applications using this port and try again.');
             }
-        }, 5 * 60 * 1000);
+            reject(error);
+        });
     });
 }
 export async function authenticate(oauth2Client, credentialsPath) {
     const creds = credentialsPath || path.join(CONFIG_DIR, 'credentials.json');
-    // Check if we're in an interactive environment
-    const isInteractive = process.stdin.isTTY && process.stdout.isTTY;
-    if (!isInteractive) {
-        throw new Error('Authentication requires an interactive terminal. Please run this command directly in a terminal, not through MCP.');
-    }
     const authUrl = oauth2Client.generateAuthUrl({
         access_type: 'offline',
         scope: ['https://www.googleapis.com/auth/gmail.modify', 'https://www.googleapis.com/auth/gmail.settings.basic']
     });
-    console.log('🌐 Opening browser for Gmail authentication...');
-    console.log('📋 Please grant the requested permissions');
-    console.log('🔗 Visit this URL:', authUrl);
-    console.log('');
-    console.log('📝 After granting permission:');
-    console.log('   1. You will see "Please copy this code..." or similar');
-    console.log('   2. Copy the authorization code');
-    console.log('   3. Paste it when prompted below');
-    console.log('');
-    // Try to open browser (only in non-containerized environments)
-    try {
-        const { default: open } = await import('open');
-        await open(authUrl);
-        console.log('✅ Browser opened automatically');
-    }
-    catch (error) {
-        console.log('⚠️  Could not auto-open browser. Please manually visit the URL above.');
-    }
-    // For desktop OAuth, we need to get the authorization code from the user
+    console.log('🔗 Please visit this URL to authorize the application:');
+    console.log(authUrl);
+    console.log('\n📋 Enter the authorization code:');
     const rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout
     });
     return new Promise((resolve, reject) => {
-        rl.question('📋 Enter the authorization code: ', async (code) => {
-            rl.close();
-            if (!code || code.trim() === '') {
-                return reject(new Error('No authorization code provided'));
-            }
+        rl.question('Authorization code: ', async (code) => {
             try {
-                const { tokens } = await oauth2Client.getToken(code.trim());
+                rl.close();
+                const { tokens } = await oauth2Client.getToken(code);
                 oauth2Client.setCredentials(tokens);
-                // Save credentials
-                if (!fs.existsSync(path.dirname(creds))) {
-                    fs.mkdirSync(path.dirname(creds), { recursive: true });
+                // Ensure the directory exists
+                const credsDir = path.dirname(creds);
+                if (!fs.existsSync(credsDir)) {
+                    fs.mkdirSync(credsDir, { recursive: true });
                 }
-                fs.writeFileSync(creds, JSON.stringify(tokens));
+                // Save credentials
+                fs.writeFileSync(creds, JSON.stringify(tokens, null, 2));
                 console.log('✅ Authentication successful! Credentials saved.');
                 resolve();
             }
-            catch (tokenError) {
-                reject(new Error(`Failed to exchange authorization code: ${tokenError instanceof Error ? tokenError.message : String(tokenError)}`));
+            catch (error) {
+                rl.close();
+                reject(error);
             }
         });
     });
