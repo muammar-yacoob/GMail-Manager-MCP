@@ -339,14 +339,14 @@ export async function authenticateWeb(oauth2Client: OAuth2Client, credentialsPat
                             <body>
                                 <div class="container">
                                     <div class="success-icon"></div>
-                                    <h1>🎉 Authentication Successful!</h1>
+                                    <h1>Authentication Successful!</h1>
                                     <p class="message">
                                         Gmail Manager is now connected to your Gmail account. 
                                         You can close this window and return to Claude Desktop.
                                     </p>
                                     
                                     <div class="features">
-                                        <h3>🚀 What you can do now:</h3>
+                                        <h3>What you can do now:</h3>
                                         <ul>
                                             <li>Search and filter emails with natural language</li>
                                             <li>Bulk delete unwanted emails</li>
@@ -481,7 +481,7 @@ export async function authenticateWeb(oauth2Client: OAuth2Client, credentialsPat
                             <body>
                                 <div class="container">
                                     <div class="error-icon"></div>
-                                    <h1>❌ Authentication Failed</h1>
+                                    <h1>Authentication Failed</h1>
                                     <p class="message">
                                         No authorization code was received from Google. 
                                         This might happen if you cancelled the authentication process.
@@ -507,7 +507,7 @@ export async function authenticateWeb(oauth2Client: OAuth2Client, credentialsPat
         });
         
         server.listen(port, async () => {
-            console.log(`\n🔐 Opening authentication in your browser...`);
+            console.log(`\nOpening authentication in your browser...`);
             console.log(`\nIf the browser doesn't open automatically, please visit:`);
             console.log(`\n${authUrl}\n`);
             
