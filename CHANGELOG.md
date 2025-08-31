@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.1](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.3.0...v1.3.1) (2025-08-31)
+
+
+### Bug Fixes
+
+* Clean up project and simplify auth HTML pages ([c56ee10](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/c56ee10ba80e9d411d63805d5c92f7447cda5835))
+* ES module syntax and stdout protocol errors ([d19d79e](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/d19d79e30e16f1e009651aa739340a9b18936d5d))
+* Fix corrupted auth.ts file and restore missing functions ([84a97ed](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/84a97ed98630ac2c45a009a47cec0447d5718566))
+* pretty auth pages ([4ec0877](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/4ec087734569af6c9608ec83d4bf34531a9f2357))
+* prevent ERR_HTTP_HEADERS_SENT in OAuth callback ([8ff86f4](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/8ff86f44f95024ca292968a5a627111fe15f7672))
+* resolve HTML file paths relative to project directory ([585d6dc](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/585d6dc65bbdacee31790321dfdb486a3c2512ae))
+
 # [1.3.0](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.2.0...v1.3.0) (2025-08-31)
 
 
