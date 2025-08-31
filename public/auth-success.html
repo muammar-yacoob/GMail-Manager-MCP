@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gmail Manager - Authentication Success</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            text-align: center;
+            max-width: 700px;
+            width: 100%;
+            animation: slideUp 0.6s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        
+        .success-icon::before {
+            content: "✓";
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        
+        .message {
+            color: #7f8c8d;
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        
+        .gif-container {
+            margin: 20px 0;
+        }
+        
+        #cleaning-gif {
+            max-width: 150px;
+            border-radius: 10px;
+        }
+        
+        .accordion {
+            margin: 30px 0;
+            text-align: left;
+        }
+        
+        .accordion-item {
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .accordion-item:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .accordion-header {
+            background: #f8f9fa;
+            padding: 18px 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            color: #2c3e50;
+            transition: all 0.3s ease;
+            border: none;
+            width: 100%;
+            text-align: left;
+        }
+        
+        .accordion-header:hover {
+            background: #e9ecef;
+        }
+        
+        .accordion-header.active {
+            background: #007bff;
+            color: white;
+        }
+        
+        .accordion-icon {
+            transition: transform 0.3s ease;
+            font-size: 14px;
+        }
+        
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: white;
+        }
+        
+        .accordion-content.active {
+            max-height: 400px;
+        }
+        
+        .accordion-body {
+            padding: 20px;
+        }
+        
+        .command-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .command-item {
+            margin: 8px 0;
+            padding: 12px 16px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #495057;
+            font-size: 14px;
+            line-height: 1.4;
+            border-left: 4px solid transparent;
+        }
+        
+        .command-item:hover {
+            background: #007bff;
+            color: white;
+            transform: translateX(4px);
+            border-left-color: #0056b3;
+            box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+        }
+        
+        .command-item:active {
+            transform: translateX(2px);
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 20px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .copy-notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: #28a745;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(40, 167, 69, 0.3);
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        .copy-notification.show {
+            transform: translate(-50%, -50%) scale(1);
+        }
+        
+        .copy-notification::before {
+            content: "✓";
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-icon"></div>
+        <h1>🎉 Authentication Successful!</h1>
+        <div class="gif-container">
+            <img id="cleaning-gif" src="/images/cleaning-images/cleaning.gif" alt="Cleaning animation">
+        </div>
+        <p class="message">
+            Your Gmail Manager is now connected! Use these natural language commands in Claude Desktop:
+        </p>
+        
+        <div class="accordion">
+            <div class="accordion-item">
+                <button class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>🧹 Storage Cleanup Commands</span>
+                    <span class="accordion-icon">▼</span>
+                </button>
+                <div class="accordion-content">
+                    <div class="accordion-body">
+                        <ul class="command-list">
+                            <li class="command-item" onclick="copyCommand(this)">Delete all emails from noreply addresses older than 6 months</li>
+                            <li class="command-item" onclick="copyCommand(this)">Find and delete all promotional emails from shopping sites</li>
+                            <li class="command-item" onclick="copyCommand(this)">Remove all LinkedIn notification emails from the past year</li>
+                            <li class="command-item" onclick="copyCommand(this)">Delete all automated emails from GitHub, Slack, and Jira</li>
+                            <li class="command-item" onclick="copyCommand(this)">Clean up all newsletter emails I haven't opened in 3 months</li>
+                            <li class="command-item" onclick="copyCommand(this)">Remove all calendar invites and meeting reminders older than 30 days</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="accordion-item">
+                <button class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>📊 Smart Organization</span>
+                    <span class="accordion-icon">▼</span>
+                </button>
+                <div class="accordion-content">
+                    <div class="accordion-body">
+                        <ul class="command-list">
+                            <li class="command-item" onclick="copyCommand(this)">Label all emails from banks and financial institutions as 'Finance'</li>
+                            <li class="command-item" onclick="copyCommand(this)">Create 'Archive-2024' label and move all old work emails there</li>
+                            <li class="command-item" onclick="copyCommand(this)">Find all subscription confirmation emails and label them 'Subscriptions'</li>
+                            <li class="command-item" onclick="copyCommand(this)">Group all travel booking confirmations under 'Travel' label</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="accordion-item">
+                <button class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>🔍 Inbox Analysis</span>
+                    <span class="accordion-icon">▼</span>
+                </button>
+                <div class="accordion-content">
+                    <div class="accordion-body">
+                        <ul class="command-list">
+                            <li class="command-item" onclick="copyCommand(this)">Show me my top 10 email senders by volume this year</li>
+                            <li class="command-item" onclick="copyCommand(this)">Find all unread emails older than 1 month</li>
+                            <li class="command-item" onclick="copyCommand(this)">List all emails taking up the most storage space</li>
+                            <li class="command-item" onclick="copyCommand(this)">Analyze my email patterns and suggest cleanup strategies</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <button class="btn" onclick="window.close()">Close Window</button>
+    </div>
+
+    <div id="copyNotification" class="copy-notification">Command copied to clipboard!</div>
+
+    <script>
+        // Random GIF selection
+        window.addEventListener('load', function() {
+            const gifs = ['cleaning.gif', 'cleaning2.gif', 'cleaning3.gif', 'cleaning4.gif', 'cleaning5.gif'];
+            const randomGif = gifs[Math.floor(Math.random() * gifs.length)];
+            const gifElement = document.getElementById('cleaning-gif');
+            if (gifElement) {
+                gifElement.src = `/images/cleaning-images/${randomGif}`;
+                gifElement.onerror = function() { this.style.display = 'none'; };
+            }
+        });
+
+        function toggleAccordion(header) {
+            const content = header.nextElementSibling;
+            const icon = header.querySelector('.accordion-icon');
+            const isActive = content.classList.contains('active');
+            
+            // Close all other accordions
+            document.querySelectorAll('.accordion-content').forEach(item => {
+                if (item !== content) {
+                    item.classList.remove('active');
+                    item.previousElementSibling.classList.remove('active');
+                    item.previousElementSibling.querySelector('.accordion-icon').style.transform = 'rotate(0deg)';
+                }
+            });
+            
+            // Toggle current accordion
+            if (isActive) {
+                content.classList.remove('active');
+                header.classList.remove('active');
+                icon.style.transform = 'rotate(0deg)';
+            } else {
+                content.classList.add('active');
+                header.classList.add('active');
+                icon.style.transform = 'rotate(180deg)';
+            }
+        }
+        
+        function copyCommand(element) {
+            const text = element.textContent.trim();
+            
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showCopyNotification();
+                }).catch(() => {
+                    fallbackCopy(text);
+                });
+            } else {
+                fallbackCopy(text);
+            }
+        }
+        
+        function fallbackCopy(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showCopyNotification();
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+            }
+            
+            document.body.removeChild(textArea);
+        }
+        
+        function showCopyNotification() {
+            const notification = document.getElementById('copyNotification');
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

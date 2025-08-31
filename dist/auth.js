@@ -16,7 +16,7 @@ function getAuthFailedHTML() {
     return fs.readFileSync(htmlPath, 'utf8');
 }
 function getAuthErrorHTML() {
-    const htmlPath = path.join(process.cwd(), 'public', 'auth-error.html');
+    const htmlPath = path.join(process.cwd(), 'public', 'auth-failed.html');
     return fs.readFileSync(htmlPath, 'utf8');
 }
 const CONFIG_DIR = path.join(os.homedir(), '.gmail-mcp');
@@ -232,37 +232,37 @@ export async function debugAuth() {
     const oauthKeysPath = findOAuthKeys();
     console.error('OAuth Keys File:');
     if (oauthKeysPath) {
-        console.error(`  ✓ Found: ${oauthKeysPath}`);
+        console.error(`  Found: ${oauthKeysPath}`);
         try {
             const credentials = JSON.parse(fs.readFileSync(oauthKeysPath, 'utf8'));
             const clientConfig = credentials.web || credentials.installed;
-            console.error(`  ✓ Client ID: ${clientConfig.client_id.substring(0, 10)}...`);
-            console.error(`  ✓ Redirect URIs: ${clientConfig.redirect_uris.length} configured`);
+            console.error(`  Client ID: ${clientConfig.client_id.substring(0, 10)}...`);
+            console.error(`  Redirect URIs: ${clientConfig.redirect_uris.length} configured`);
         }
         catch (error) {
-            console.error(`  ✗ Error reading file: ${error}`);
+            console.error(`  Error reading file: ${error}`);
         }
     }
     else {
-        console.error('  ✗ Not found in any of these locations:');
+        console.error('  Not found in any of these locations:');
         getPossibleBasePaths().forEach(p => console.error(`    - ${p}/gcp-oauth.keys.json`));
     }
     console.error('\nSaved Credentials:');
     const credentialsPath = findCredentials();
     if (credentialsPath) {
-        console.error(`  ✓ Found: ${credentialsPath}`);
+        console.error(`  Found: ${credentialsPath}`);
         try {
             const tokens = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
-            console.error(`  ✓ Access token: ${tokens.access_token ? 'Present' : 'Missing'}`);
-            console.error(`  ✓ Refresh token: ${tokens.refresh_token ? 'Present' : 'Missing'}`);
-            console.error(`  ✓ Expiry: ${tokens.expiry_date ? new Date(tokens.expiry_date).toISOString() : 'Not set'}`);
+            console.error(`  Access token: ${tokens.access_token ? 'Present' : 'Missing'}`);
+            console.error(`  Refresh token: ${tokens.refresh_token ? 'Present' : 'Missing'}`);
+            console.error(`  Expiry: ${tokens.expiry_date ? new Date(tokens.expiry_date).toISOString() : 'Not set'}`);
         }
         catch (error) {
-            console.error(`  ✗ Error reading file: ${error}`);
+            console.error(`  Error reading file: ${error}`);
         }
     }
     else {
-        console.error('  ✗ Not found');
+        console.error('  Not found');
     }
     console.error('\nEnvironment Variables:');
     console.error(`  GMAIL_OAUTH_PATH: ${process.env.GMAIL_OAUTH_PATH || 'Not set'}`);
@@ -270,15 +270,15 @@ export async function debugAuth() {
     console.error('\nTesting Authentication:');
     try {
         const client = await getAuthenticatedClient();
-        console.error('  ✓ Authentication successful!');
+        console.error('  Authentication successful!');
         // Test API access
         const { google } = await import('googleapis');
         const gmail = google.gmail({ version: 'v1', auth: client });
         const profile = await gmail.users.getProfile({ userId: 'me' });
-        console.error(`  ✓ Gmail API access successful for: ${profile.data.emailAddress}`);
+        console.error(`  Gmail API access successful for: ${profile.data.emailAddress}`);
     }
     catch (error) {
-        console.error(`  ✗ Authentication failed: ${error}`);
+        console.error(`  Authentication failed: ${error}`);
     }
     console.error('\n=== Debug Complete ===');
 }
