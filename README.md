@@ -47,7 +47,7 @@ Perfect for **inbox zero enthusiasts** and anyone drowning in email overload! �
 
 ## 🚀 Installation
 
-<details>
+<details open>
 <summary><strong>📋 Step 1: Get Gmail Credentials 🗝️</strong></summary>
 
 1. [Create New Project](https://console.cloud.google.com/projectcreate).
@@ -107,6 +107,9 @@ Add the configuration to your Claude Desktop config file:
 
 ## 🛠️ Available Tools
 
+<details>
+<summary><strong>🔧 View All Available Tools</strong></summary>
+
 | Tool | Description |
 |------|-------------|
 | ![Auth](https://img.shields.io/badge/🔐-authenticate__gmail-blue?style=flat-square) | Authenticate Gmail access via web browser |
@@ -120,6 +123,8 @@ Add the configuration to your Claude Desktop config file:
 | ![Remove](https://img.shields.io/badge/❌-delete__label-crimson?style=flat-square) | Delete a Gmail label |
 | ![Delete](https://img.shields.io/badge/🗑️-delete__email-crimson?style=flat-square) | Permanently delete an email |
 | ![Batch Delete](https://img.shields.io/badge/💥-batch__delete__emails-crimson?style=flat-square) | Delete multiple emails at once |
+
+</details>
 
 ## 💬 Example Commands
 
