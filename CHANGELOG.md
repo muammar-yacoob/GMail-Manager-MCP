@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+# [1.3.0](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.2.0...v1.3.0) (2025-08-31)
+
+
+### Bug Fixes
+
+* Add proper redirect handling for OAuth authentication flow ([f3140b8](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/f3140b856156caf5c5dd9303a4a59adab59897c7))
+* better auth ([de68b48](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/de68b48585c9a2d3f4636475b3ff58970b18b81b))
+* Properly return null when no credentials exist to force authentication ([0b74d49](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/0b74d49e9afde4120267d456ca4a52fe5dd9c48f))
+* Remove authentication caching to ensure fresh credential checks ([65de506](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/65de5064765d5597852ba96b0a344474ba4da3c4))
+* Remove automatic authentication and improve OAuth key location handling ([21aee2d](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/21aee2ddde413e74efa121bdd6edd6ea360cb876))
+* Remove emojis from JSON responses and restore automatic authentication ([47b5d33](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/47b5d33231702b86336023b60db76d94a2ec954d))
+* Remove server-scoped authentication variables and add random GIF selection ([ba848d4](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/ba848d4723d69077f34997747adeef8dd62ac8ff))
+* removed emojies error for Successful tool usage 🎉 ([88c2f18](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/88c2f18a49d6b2b9d93a2d8a0315db16494b59b4))
+
+
+### Features
+
+* Enhance authentication success page with animated background and redirect ([626dc6a](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/626dc6a905be71eec49b8d454d3c4a71e5edb0f2))
+* Enhance authentication success page with emojis and better UX ([c14e23b](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/c14e23ba447f697dfbc6d2e301f21b1c0f3c861a))
+
 # [1.2.0](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.1.7...v1.2.0) (2025-08-31)
 
 
