@@ -114,7 +114,7 @@ export async function setupAuth(): Promise<OAuth2Client> {
 
 // Authenticate user with browser flow
 async function authenticateUser(oauth2Client: OAuth2Client): Promise<OAuth2Client> {
-    const scopes = ['https://www.googleapis.com/auth/gmail.modify', 'https://www.googleapis.com/auth/gmail.settings.basic'];
+    const scopes = ['https://mail.google.com/', 'https://www.googleapis.com/auth/gmail.settings.basic'];
     
     return new Promise((resolve, reject) => {
         const server = http.createServer(async (req, res) => {
@@ -490,7 +490,7 @@ export async function authenticateWeb(oauth2Client: OAuth2Client, credentialsPat
         
         const authUrl = webOAuth2Client.generateAuthUrl({
             access_type: 'offline',
-            scope: ['https://www.googleapis.com/auth/gmail.modify', 'https://www.googleapis.com/auth/gmail.settings.basic']
+            scope: ['https://mail.google.com/', 'https://www.googleapis.com/auth/gmail.settings.basic']
         });
         
         server = http.createServer(async (req, res) => {
