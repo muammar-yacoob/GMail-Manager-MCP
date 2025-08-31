@@ -442,8 +442,7 @@ export async function authenticateWeb(oauth2Client, credentialsPath) {
             }
         });
         server.listen(port, async () => {
-            console.log(`🌐 Opening browser for Gmail authentication...`);
-            console.log(`🔗 Auth URL: ${authUrl}`);
+            // Browser will open automatically
             // Open browser (platform-agnostic)
             const { exec } = await import('child_process');
             const platform = os.platform();
@@ -459,13 +458,13 @@ export async function authenticateWeb(oauth2Client, credentialsPath) {
             }
             exec(`${command} "${authUrl}"`, (error) => {
                 if (error) {
-                    console.log(`⚠️  Could not open browser automatically. Please visit: ${authUrl}`);
+                    // Could not open browser automatically
                 }
             });
         });
         server.on('error', (error) => {
             if (error.code === 'EADDRINUSE') {
-                console.log('⚠️  Port 3000 is in use. Please close any applications using this port and try again.');
+                // Port 3000 is in use
             }
             reject(error);
         });
@@ -477,9 +476,7 @@ export async function authenticate(oauth2Client, credentialsPath) {
         access_type: 'offline',
         scope: ['https://www.googleapis.com/auth/gmail.modify', 'https://www.googleapis.com/auth/gmail.settings.basic']
     });
-    console.log('🔗 Please visit this URL to authorize the application:');
-    console.log(authUrl);
-    console.log('\n📋 Enter the authorization code:');
+    // Terminal authentication flow
     const rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout
@@ -497,7 +494,7 @@ export async function authenticate(oauth2Client, credentialsPath) {
                 }
                 // Save credentials
                 fs.writeFileSync(creds, JSON.stringify(tokens, null, 2));
-                console.log('✅ Authentication successful! Credentials saved.');
+                // Authentication successful
                 resolve();
             }
             catch (error) {

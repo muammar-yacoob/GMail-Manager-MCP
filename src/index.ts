@@ -33,14 +33,8 @@ async function main() {
             process.exit(1);
         }
         
-        console.log('🌐 Starting web-based Gmail authentication...');
-        console.log('📝 Your browser will open automatically for Gmail access permissions');
-        
         await authenticateWeb(oauth2Client);
         
-        console.log('✅ Authentication completed successfully!');
-        console.log('🎉 Gmail Manager is now ready to use with Claude Desktop');
-        console.log('\n💾 Credentials saved for future use - no need to authenticate again');
         process.exit(0);
     }
     
