@@ -10,7 +10,7 @@ async function main() {
     if (process.argv.includes('auth')) {
         const oauth2Client = await getOAuthClient();
         if (!oauth2Client) {
-            console.error('❌ OAuth credentials not configured. Please set up gcp-oauth.keys.json first.');
+            console.error('OAuth credentials not configured. Please set up gcp-oauth.keys.json first.');
             process.exit(1);
         }
         await authenticateWeb(oauth2Client);
