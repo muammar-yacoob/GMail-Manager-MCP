@@ -220,7 +220,7 @@ export async function authenticateWeb(oauth2Client: OAuth2Client, credentialsPat
                                         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
                                         background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #f5576c);
                                         background-size: 400% 400%;
-                                        animation: gradientBG 15s ease infinite;
+                                        animation: gradientBG 3s ease infinite;
                                         min-height: 100vh;
                                         display: flex;
                                         align-items: center;
@@ -329,9 +329,7 @@ export async function authenticateWeb(oauth2Client: OAuth2Client, credentialsPat
                                     }
                                     
                                     .action-buttons {
-                                        display: flex;
-                                        gap: 15px;
-                                        justify-content: center;
+                                        text-align: center;
                                         margin-top: 30px;
                                     }
                                     
@@ -377,30 +375,30 @@ export async function authenticateWeb(oauth2Client: OAuth2Client, credentialsPat
                             <body>
                                 <div class="container">
                                     <div class="success-icon"></div>
-                                    <h1>Authentication Successful!</h1>
+                                    <h1>🎉 Authentication Successful!</h1>
+                                    <div style="text-align: center; margin: 20px 0;">
+                                        <img src="images/cleaning.gif" alt="Cleaning animation" style="max-width: 150px; border-radius: 10px;">
+                                    </div>
                                     <p class="message">
-                                        Gmail Manager is now connected to your Gmail account. 
-                                        You can close this window and return to Claude Desktop.
+                                        🔗 Gmail Manager is now connected to your Gmail account! 
+                                        Ready to clean up your inbox like a pro! ✨
                                     </p>
                                     
                                     <div class="features">
-                                        <h3>What you can do now:</h3>
+                                        <h3>✨ What you can do now:</h3>
                                         <ul>
-                                            <li>Search and filter emails with natural language</li>
-                                            <li>Bulk delete unwanted emails</li>
-                                            <li>Organize inbox with smart labels</li>
-                                            <li>Clean up newsletters and spam</li>
-                                            <li>Analyze your email patterns</li>
+                                            <li>🔍 Search and filter emails with natural language</li>
+                                            <li>🗑️ Bulk delete unwanted emails</li>
+                                            <li>🏷️ Organize inbox with smart labels</li>
+                                            <li>📰 Clean up newsletters and spam</li>
+                                            <li>📊 Analyze your email patterns</li>
                                         </ul>
                                     </div>
                                     
                                     <div class="action-buttons">
-                                        <a href="https://spark-games.co.uk" target="_blank" class="btn btn-primary">
-                                            Explore More Tools
+                                        <a href="https://spark-games.co.uk" class="btn btn-primary">
+                                            🚀 Explore More Tools
                                         </a>
-                                        <button onclick="window.close()" class="btn btn-secondary">
-                                            Close Window
-                                        </button>
                                     </div>
                                 </div>
                             </body>
