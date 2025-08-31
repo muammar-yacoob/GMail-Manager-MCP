@@ -65,10 +65,7 @@ These scopes allow the Gmail Manager MCP to read, send, delete, and modify your 
   "mcpServers": {
     "gmail-manager": {
       "command": "node", "args": ["path/to/gmail-mcp-server/dist/index.js"],
-      "env": {
-        "GMAIL_OAUTH_PATH": "path/to/gcp-oauth.keys.json",
-        "GMAIL_CREDENTIALS_PATH": "path/to/gmail-mcp-server/credentials.json"
-      }
+      "env": {"GMAIL_OAUTH_PATH": "path/to/gcp-oauth.keys.json"}
     }
   }
 }
@@ -80,10 +77,7 @@ These scopes allow the Gmail Manager MCP to read, send, delete, and modify your 
   "mcpServers": {
     "gmail-manager": {
       "command": "node", "args": ["D:/MCPs/Gmail-MCP-Server/dist/index.js"],
-      "env": {
-        "GMAIL_OAUTH_PATH": "D:/MCPs/Gmail-MCP-Server/gcp-oauth.keys.json",
-        "GMAIL_CREDENTIALS_PATH": "D:/MCPs/Gmail-MCP-Server/credentials.json"
-      }
+      "env": {"GMAIL_OAUTH_PATH": "D:/MCPs/Gmail-MCP-Server/gcp-oauth.keys.json"}
     }
   }
 }
