@@ -340,7 +340,7 @@ export async function authenticateWeb(oauth2Client, credentialsPath) {
                                     <div class="success-icon"></div>
                                     <h1>🎉 Authentication Successful!</h1>
                                     <div style="text-align: center; margin: 20px 0;">
-                                        <img src="images/cleaning.gif" alt="Cleaning animation" style="max-width: 150px; border-radius: 10px;">
+                                        <img src="images/cleaning-images/${Math.random() < 0.5 ? 'cleaning.gif' : 'cleaning2.gif'}" alt="Cleaning animation" style="max-width: 150px; border-radius: 10px;">
                                     </div>
                                     <p class="message">
                                         🔗 Gmail Manager is now connected to your Gmail account! 
