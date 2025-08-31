@@ -23,11 +23,9 @@ async function main() {
             tools: {}
         }
     });
-    // Initialize OAuth client and Gmail service (may be null initially)
-    let oauth2Client = await getCredentials();
-    let gmailService = oauth2Client && await hasValidCredentials(oauth2Client)
-        ? new GmailService(oauth2Client)
-        : null;
+    // OAuth client and Gmail service will be initialized on each request
+    let oauth2Client = null;
+    let gmailService = null;
     // Handle initialization properly
     server.setRequestHandler(InitializeRequestSchema, async (request) => {
         try {
@@ -52,10 +50,8 @@ async function main() {
     server.setRequestHandler(CallToolRequestSchema, async (req) => {
         // Handle authentication tool specially
         if (req.params.name === 'authenticate_gmail') {
-            // Get or create OAuth client
-            if (!oauth2Client) {
-                oauth2Client = await getOAuthClient();
-            }
+            // Always get fresh OAuth client
+            oauth2Client = await getOAuthClient();
             if (!oauth2Client) {
                 throw new Error(`Gmail OAuth Setup Required
 
@@ -111,8 +107,13 @@ Ready to start managing your inbox!`
             }
         }
         // For all other tools, check if we need authentication
+        // Always check credentials fresh on each request
+        oauth2Client = await getCredentials();
+        gmailService = oauth2Client && await hasValidCredentials(oauth2Client)
+            ? new GmailService(oauth2Client)
+            : null;
         if (!gmailService) {
-            // Try to get OAuth client if we don't have one
+            // Get OAuth client if we don't have valid credentials
             if (!oauth2Client) {
                 oauth2Client = await getOAuthClient();
             }
