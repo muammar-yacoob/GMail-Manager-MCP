@@ -38,7 +38,9 @@
       "Bash(docker run:*)",
       "Bash(pkill:*)",
       "Read(/home/spark/.gmail-mcp/**)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Read(/tmp/**)",
+      "Read(/tmp/**)"
     ],
     "deny": [],
     "ask": []
