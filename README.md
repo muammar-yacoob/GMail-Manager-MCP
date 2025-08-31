@@ -45,63 +45,88 @@ Gmail Manager MCP gives Claude Desktop **direct access** to your Gmail inbox, al
 
 Perfect for **inbox zero enthusiasts** and anyone drowning in email overload! 📧💀
 
-## 🚀 Installation
+## 🚀 Quick Setup
+
+### 📋 Step 1: Get Gmail Credentials 🗝️
 
 <details open>
-<summary><strong>📋 Step 1: Get Gmail Credentials 🗝️</strong></summary>
+<summary><strong>🔑 Required for both installation methods</strong></summary>
 
-1. [Create New Project](https://console.cloud.google.com/projectcreate).
-2. [Enable Gmail API](https://console.cloud.google.com/apis/api/gmail.googleapis.com/metrics).
-3. Create [OAuth client ID](https://console.cloud.google.com/auth/clients) of the type Desktop app. Download as `gcp-oauth.keys.json`.
-4. Navigate to [Data access](https://console.cloud.google.com/auth/scopes) and click **Add or remove scopes** and enter: `https://mail.google.com/` then click **Add to table** then **Update**.
-6. Navigate to [Test users](https://console.cloud.google.com/auth/audience) and add your Google email account as a test user. 
-
-These scopes allow the Gmail Manager MCP to read, send, delete, and modify your emails, manage labels, and access basic Gmail settings.
-
-</details>
-
-<details>
-<summary><strong>⚙️ Step 2: Claude Desktop Configuration</strong></summary>
-
-Add the configuration to your Claude Desktop config file:
-- ![Windows](https://img.shields.io/badge/Windows-dodgerblue?style=flat-square&logo=windows&logoColor=white) [`%APPDATA%\Claude\claude_desktop_config.json`](%APPDATA%/Claude/claude_desktop_config.json)
-- ![macOS](https://img.shields.io/badge/macOS-silver?style=flat-square&logo=apple&logoColor=black) [`~/Library/Application Support/Claude/claude_desktop_config.json`](~/Library/Application%20Support/Claude/claude_desktop_config.json)
-- ![Linux](https://img.shields.io/badge/Linux-gold?style=flat-square&logo=linux&logoColor=black) [`~/.config/Claude/claude_desktop_config.json`](~/.config/Claude/claude_desktop_config.json)
-
-```json
-{
-  "mcpServers": {
-    "gmail-manager": {
-      "command": "node", "args": ["path/to/gmail-mcp-server/dist/index.js"],
-      "env": {"GMAIL_OAUTH_PATH": "path/to/gcp-oauth.keys.json"}
-    }
-  }
-}
-```
-
-**Example with absolute paths:**
-```json
-{
-  "mcpServers": {
-    "gmail-manager": {
-      "command": "node", "args": ["D:/MCPs/Gmail-MCP-Server/dist/index.js"],
-      "env": {"GMAIL_OAUTH_PATH": "D:/MCPs/Gmail-MCP-Server/gcp-oauth.keys.json"}
-    }
-  }
-}
-```
+1. [Create New Project](https://console.cloud.google.com/projectcreate)
+2. [Enable Gmail API](https://console.cloud.google.com/apis/api/gmail.googleapis.com/metrics)
+3. Create [OAuth client ID](https://console.cloud.google.com/auth/clients) (Desktop app type)
+4. Download as `gcp-oauth.keys.json`
+5. Navigate to [Data access](https://console.cloud.google.com/auth/scopes) → **Add or remove scopes** → Enter: `https://mail.google.com/`
+6. Navigate to [Test users](https://console.cloud.google.com/auth/audience) → Add your Google email
 
 </details>
 
+---
+
+### 🎯 Option 1: NPM Package (Recommended)
+
+<details open>
+<summary><strong>📦 Install from NPM</strong></summary>
+
+1. **Configure Claude Desktop** ⚙️
+
+   Add to your Claude Desktop config file:
+   - ![Windows](https://img.shields.io/badge/Windows-dodgerblue?style=flat-square&logo=windows&logoColor=white) `%APPDATA%\\Claude\\claude_desktop_config.json`
+   - ![macOS](https://img.shields.io/badge/macOS-silver?style=flat-square&logo=apple&logoColor=black) `~/Library/Application Support/Claude/claude_desktop_config.json`
+   - ![Linux](https://img.shields.io/badge/Linux-gold?style=flat-square&logo=linux&logoColor=black) `~/.config/Claude/claude_desktop_config.json`
+
+   ```json
+   {
+     "mcpServers": {
+       "gmail-manager": {
+         "command": "npx","args": ["@spark-apps/gmail-manager-mcp"]}
+     }
+   }
+   ```
+
+2. **Add OAuth Keys** 🔑
+   - Place your `gcp-oauth.keys.json` file in your home directory OR
+   - Set `GMAIL_OAUTH_PATH` environment variable to point to it
+
+3. **Complete Setup** 🎉
+   - **Restart Claude Desktop** completely
+   - **Try any Gmail command** - authentication will happen automatically
+   - **Grant permissions** when your browser opens
+
+</details>
+
+---
+
+### 🔧 Option 2: Local Development Setup
+
 <details>
-<summary><strong>🎯 Step 3: Complete Setup</strong></summary>
+<summary><strong>👨‍💻 Local Development Installation</strong></summary>
 
-1. **Restart Claude Desktop** completely (close from tray area if needed)
-2. **Try any Gmail command** from the examples below - Claude will automatically prompt for authentication
-3. **Use the `authenticate_gmail` tool** when prompted - your browser will open for Gmail login
-4. **Grant permissions** and return to Claude Desktop - you're ready to go! 🎉
+1. **Clone and Build** 📁
+   ```bash
+   git clone https://github.com/muammar-yacoob/GMail-Manager-MCP.git
+   cd GMail-Manager-MCP
+   npm install
+   npm run build
+   ```
 
-*💡 Alternative: Run `npm run auth` in your terminal for manual setup*
+2. **Add OAuth Keys** 🔑
+   - Place your `gcp-oauth.keys.json` file in the project root directory
+
+3. **Configure Claude Desktop** ⚙️
+   ```json
+   {
+     "mcpServers": {
+       "gmail-manager": {
+         "command": "node","args": ["/absolute/path/to/GMail-Manager-MCP/dist/index.js"]}
+     }
+   }
+   ```
+
+4. **Complete Setup** 🎉
+   - **Restart Claude Desktop** completely
+   - **Try any Gmail command** - authentication will happen automatically
+   - *Alternative: Run `npm run auth` for manual authentication*
 
 </details>
 
