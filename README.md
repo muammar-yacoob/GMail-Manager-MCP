@@ -38,10 +38,10 @@ Gmail Manager MCP gives Claude Desktop **direct access** to your Gmail inbox, al
 | Feature | Description |
 |---------|-------------|
 | ![Search](https://img.shields.io/badge/🔍-Email%20Search-blue?style=flat-square) | Find emails by sender, subject, date, or any Gmail query |
+| ![Analytics](https://img.shields.io/badge/📊-Inbox%20Analytics-blue?style=flat-square) | Get insights about your email patterns and volume |
 | ![Read](https://img.shields.io/badge/📖-Read%20Emails-green?style=flat-square) | Read the full content of an email |
 | ![Organize](https://img.shields.io/badge/🏷️-Smart%20Organization-yellow?style=flat-square) | Create and apply labels to categorize emails automatically |
-| ![Analytics](https://img.shields.io/badge/📊-Inbox%20Analytics-orange?style=flat-square) | Get insights about your email patterns and volume |
-| ![Cleanup](https://img.shields.io/badge/🗑️-Bulk%20Cleanup-red?style=flat-square) | Remove old newsletters, notifications, and spam efficiently |
+| ![Cleanup](https://img.shields.io/badge/🗑️-Bulk%20Cleanup-crimson?style=flat-square) | Remove old newsletters, notifications, and spam efficiently |
 
 Perfect for **inbox zero enthusiasts** and anyone drowning in email overload! 📧💀
 
