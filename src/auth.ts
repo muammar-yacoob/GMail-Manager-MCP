@@ -12,17 +12,17 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 function getAuthSuccessHTML(): string {
-    const htmlPath = path.join(process.cwd(), 'public', 'auth-success.html');
+    const htmlPath = path.join(__dirname, '..', 'public', 'auth-success.html');
     return fs.readFileSync(htmlPath, 'utf8');
 }
 
 function getAuthFailedHTML(): string {
-    const htmlPath = path.join(process.cwd(), 'public', 'auth-failed.html');
+    const htmlPath = path.join(__dirname, '..', 'public', 'auth-failed.html');
     return fs.readFileSync(htmlPath, 'utf8');
 }
 
 function getAuthErrorHTML(): string {
-    const htmlPath = path.join(process.cwd(), 'public', 'auth-failed.html');
+    const htmlPath = path.join(__dirname, '..', 'public', 'auth-failed.html');
     return fs.readFileSync(htmlPath, 'utf8');
 }
 
