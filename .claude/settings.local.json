@@ -40,7 +40,8 @@
       "Read(/home/spark/.gmail-mcp/**)",
       "Bash(find:*)",
       "Read(/tmp/**)",
-      "Read(/tmp/**)"
+      "Read(/tmp/**)",
+      "Bash(git pull:*)"
     ],
     "deny": [],
     "ask": []
