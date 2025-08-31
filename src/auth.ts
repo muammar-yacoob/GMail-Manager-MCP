@@ -159,8 +159,11 @@ async function authenticateUser(oauth2Client: OAuth2Client): Promise<OAuth2Clien
                 }
             } catch (error) {
                 console.error('Error in OAuth callback:', error);
-                res.writeHead(500, { 'Content-Type': 'text/html' });
-                res.end(getAuthErrorHTML());
+                // Only send error response if headers haven't been sent yet
+                if (!res.headersSent) {
+                    res.writeHead(500, { 'Content-Type': 'text/html' });
+                    res.end(getAuthErrorHTML());
+                }
                 
                 server.close(() => {
                     reject(error);
@@ -508,8 +511,11 @@ export async function authenticateWeb(oauth2Client: OAuth2Client, credentialsPat
                     res.end('Not Found');
                 }
             } catch (error: any) {
-                res.writeHead(500, { 'Content-Type': 'text/html' });
-                res.end(`<h1>Authentication Error</h1><p>${error instanceof Error ? error.message : 'Unknown error'}</p>`);
+                // Only send error response if headers haven't been sent yet
+                if (!res.headersSent) {
+                    res.writeHead(500, { 'Content-Type': 'text/html' });
+                    res.end(`<h1>Authentication Error</h1><p>${error instanceof Error ? error.message : 'Unknown error'}</p>`);
+                }
                 server.close();
                 reject(error);
             }
