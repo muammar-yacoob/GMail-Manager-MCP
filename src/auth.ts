@@ -6,6 +6,7 @@ import readline from 'readline';
 import http from 'http';
 import { URL } from 'url';
 import { fileURLToPath } from 'url';
+import { exec } from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -203,7 +204,6 @@ async function authenticateUser(oauth2Client: OAuth2Client): Promise<OAuth2Clien
             console.error(`Waiting for authorization...`);
             
             // Try to open the URL automatically
-            const { exec } = require('child_process');
             const platform = process.platform;
             let command = '';
             
@@ -516,12 +516,11 @@ export async function authenticateWeb(oauth2Client: OAuth2Client, credentialsPat
         });
         
         server.listen(port, async () => {
-            console.log(`\nOpening authentication in your browser...`);
-            console.log(`\nIf the browser doesn't open automatically, please visit:`);
-            console.log(`\n${authUrl}\n`);
+            console.error(`\nOpening authentication in your browser...`);
+            console.error(`\nIf the browser doesn't open automatically, please visit:`);
+            console.error(`\n${authUrl}\n`);
             
             // Open browser (platform-agnostic)
-            const { exec } = require('child_process');
             const platform = os.platform();
             
             // Check if we're in WSL
@@ -535,7 +534,7 @@ export async function authenticateWeb(oauth2Client: OAuth2Client, credentialsPat
                         // Try PowerShell as fallback
                         exec(`powershell.exe -Command "Start-Process '${authUrl}'"`, (error2: any) => {
                             if (error2) {
-                                console.log('Could not open browser automatically. Please open the URL manually.');
+                                console.error('Could not open browser automatically. Please open the URL manually.');
                             }
                         });
                     }
@@ -543,13 +542,13 @@ export async function authenticateWeb(oauth2Client: OAuth2Client, credentialsPat
             } else if (platform === 'darwin') {
                 exec(`open "${authUrl}"`, (error: any) => {
                     if (error) {
-                        console.log('Could not open browser automatically. Please open the URL manually.');
+                        console.error('Could not open browser automatically. Please open the URL manually.');
                     }
                 });
             } else if (platform === 'win32') {
                 exec(`cmd.exe /c start "" "${authUrl}"`, (error: any) => {
                     if (error) {
-                        console.log('Could not open browser automatically. Please open the URL manually.');
+                        console.error('Could not open browser automatically. Please open the URL manually.');
                     }
                 });
             } else {
@@ -559,7 +558,7 @@ export async function authenticateWeb(oauth2Client: OAuth2Client, credentialsPat
                         // Try alternative methods
                         exec(`sensible-browser "${authUrl}"`, (error2: any) => {
                             if (error2) {
-                                console.log('Could not open browser automatically. Please open the URL manually.');
+                                console.error('Could not open browser automatically. Please open the URL manually.');
                             }
                         });
                     }
