@@ -373,6 +373,69 @@ export async function authenticateWeb(oauth2Client: OAuth2Client, credentialsPat
                                         background: #e9ecef;
                                         border-color: #dee2e6;
                                     }
+                                    
+                                    .accordion {
+                                        margin: 20px 0;
+                                    }
+                                    
+                                    .accordion-item {
+                                        border: 1px solid #e9ecef;
+                                        border-radius: 8px;
+                                        margin-bottom: 10px;
+                                        overflow: hidden;
+                                    }
+                                    
+                                    .accordion-header {
+                                        background: #f8f9fa;
+                                        padding: 15px 20px;
+                                        cursor: pointer;
+                                        display: flex;
+                                        justify-content: space-between;
+                                        align-items: center;
+                                        font-weight: 600;
+                                        color: #2c3e50;
+                                        transition: all 0.3s ease;
+                                    }
+                                    
+                                    .accordion-header:hover {
+                                        background: #e9ecef;
+                                    }
+                                    
+                                    .accordion-icon {
+                                        transition: transform 0.3s ease;
+                                    }
+                                    
+                                    .accordion-content {
+                                        max-height: 0;
+                                        overflow: hidden;
+                                        transition: max-height 0.3s ease;
+                                        background: white;
+                                    }
+                                    
+                                    .accordion-content.active {
+                                        max-height: 400px;
+                                    }
+                                    
+                                    .accordion-body {
+                                        padding: 15px 20px;
+                                        color: #7f8c8d;
+                                        font-size: 14px;
+                                    }
+                                    
+                                    .example-list {
+                                        list-style: none;
+                                        margin: 0;
+                                        padding: 0;
+                                    }
+                                    
+                                    .example-list li {
+                                        margin: 8px 0;
+                                        padding: 8px 12px;
+                                        background: #f8f9fa;
+                                        border-radius: 6px;
+                                        font-style: italic;
+                                        border-left: 3px solid #4CAF50;
+                                    }
                                 </style>
                             </head>
                             <body>
@@ -380,22 +443,66 @@ export async function authenticateWeb(oauth2Client: OAuth2Client, credentialsPat
                                     <div class="success-icon"></div>
                                     <h1>🎉 Authentication Successful!</h1>
                                     <div style="text-align: center; margin: 20px 0;">
-                                        <img src="images/cleaning-images/${Math.random() < 0.5 ? 'cleaning.gif' : 'cleaning2.gif'}" alt="Cleaning animation" style="max-width: 150px; border-radius: 10px;">
+                                        <img src="/images/cleaning-images/cleaning${Math.floor(Math.random() * 5) + 1}.gif" alt="Cleaning animation" style="max-width: 150px; border-radius: 10px;" onerror="this.style.display='none';">
                                     </div>
                                     <p class="message">
                                         🔗 Gmail Manager is now connected to your Gmail account! 
                                         Ready to clean up your inbox like a pro! ✨
                                     </p>
                                     
-                                    <div class="features">
-                                        <h3>✨ What you can do now:</h3>
-                                        <ul>
-                                            <li>🔍 Search and filter emails with natural language</li>
-                                            <li>🗑️ Bulk delete unwanted emails</li>
-                                            <li>🏷️ Organize inbox with smart labels</li>
-                                            <li>📰 Clean up newsletters and spam</li>
-                                            <li>📊 Analyze your email patterns</li>
-                                        </ul>
+                                    <div class="accordion">
+                                        <div class="accordion-item">
+                                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                                <span>🧹 Storage Cleanup Commands</span>
+                                                <span class="accordion-icon">▼</span>
+                                            </div>
+                                            <div class="accordion-content">
+                                                <div class="accordion-body">
+                                                    <ul class="example-list">
+                                                        <li>"Delete all emails from noreply addresses older than 6 months"</li>
+                                                        <li>"Find and delete all promotional emails from shopping sites"</li>
+                                                        <li>"Remove all LinkedIn notification emails from the past year"</li>
+                                                        <li>"Delete all automated emails from GitHub, Slack, and Jira"</li>
+                                                        <li>"Clean up all newsletter emails I haven't opened in 3 months"</li>
+                                                        <li>"Remove all calendar invites and meeting reminders older than 30 days"</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="accordion-item">
+                                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                                <span>📊 Smart Organization</span>
+                                                <span class="accordion-icon">▼</span>
+                                            </div>
+                                            <div class="accordion-content">
+                                                <div class="accordion-body">
+                                                    <ul class="example-list">
+                                                        <li>"Label all emails from banks and financial institutions as 'Finance'"</li>
+                                                        <li>"Create 'Archive-2024' label and move all old work emails there"</li>
+                                                        <li>"Find all subscription confirmation emails and label them 'Subscriptions'"</li>
+                                                        <li>"Group all travel booking confirmations under 'Travel' label"</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="accordion-item">
+                                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                                <span>🔍 Inbox Analysis</span>
+                                                <span class="accordion-icon">▼</span>
+                                            </div>
+                                            <div class="accordion-content">
+                                                <div class="accordion-body">
+                                                    <ul class="example-list">
+                                                        <li>"Show me my top 10 email senders by volume this year"</li>
+                                                        <li>"Find all unread emails older than 1 month"</li>
+                                                        <li>"List all emails taking up the most storage space"</li>
+                                                        <li>"Analyze my email patterns and suggest cleanup strategies"</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                     
                                     <div class="action-buttons">
@@ -404,6 +511,26 @@ export async function authenticateWeb(oauth2Client: OAuth2Client, credentialsPat
                                         </a>
                                     </div>
                                 </div>
+                                
+                                <script>
+                                    function toggleAccordion(header) {
+                                        const content = header.nextElementSibling;
+                                        const icon = header.querySelector('.accordion-icon');
+                                        
+                                        // Close all other accordions
+                                        document.querySelectorAll('.accordion-content').forEach(item => {
+                                            if (item !== content) {
+                                                item.classList.remove('active');
+                                                item.previousElementSibling.querySelector('.accordion-icon').style.transform = 'rotate(0deg)';
+                                            }
+                                        });
+                                        
+                                        // Toggle current accordion
+                                        content.classList.toggle('active');
+                                        const isActive = content.classList.contains('active');
+                                        icon.style.transform = isActive ? 'rotate(180deg)' : 'rotate(0deg)';
+                                    }
+                                </script>
                             </body>
                             </html>
                         `);
@@ -540,9 +667,9 @@ export async function authenticateWeb(oauth2Client: OAuth2Client, credentialsPat
         });
         
         server.listen(port, async () => {
-            console.log(`\nOpening authentication in your browser...`);
-            console.log(`\nIf the browser doesn't open automatically, please visit:`);
-            console.log(`\n${authUrl}\n`);
+            console.error(`\nOpening authentication in your browser...`);
+            console.error(`\nIf the browser doesn't open automatically, please visit:`);
+            console.error(`\n${authUrl}\n`);
             
             // Open browser (platform-agnostic)
             const { exec } = await import('child_process');
@@ -559,7 +686,7 @@ export async function authenticateWeb(oauth2Client: OAuth2Client, credentialsPat
                         // Try PowerShell as fallback
                         exec(`powershell.exe -Command "Start-Process '${authUrl}'"`, (error2) => {
                             if (error2) {
-                                console.log('Could not open browser automatically. Please open the URL manually.');
+                                console.error('Could not open browser automatically. Please open the URL manually.');
                             }
                         });
                     }
@@ -567,13 +694,13 @@ export async function authenticateWeb(oauth2Client: OAuth2Client, credentialsPat
             } else if (platform === 'darwin') {
                 exec(`open "${authUrl}"`, (error) => {
                     if (error) {
-                        console.log('Could not open browser automatically. Please open the URL manually.');
+                        console.error('Could not open browser automatically. Please open the URL manually.');
                     }
                 });
             } else if (platform === 'win32') {
                 exec(`cmd.exe /c start "" "${authUrl}"`, (error) => {
                     if (error) {
-                        console.log('Could not open browser automatically. Please open the URL manually.');
+                        console.error('Could not open browser automatically. Please open the URL manually.');
                     }
                 });
             } else {
@@ -583,7 +710,7 @@ export async function authenticateWeb(oauth2Client: OAuth2Client, credentialsPat
                         // Try alternative methods
                         exec(`sensible-browser "${authUrl}"`, (error2) => {
                             if (error2) {
-                                console.log('Could not open browser automatically. Please open the URL manually.');
+                                console.error('Could not open browser automatically. Please open the URL manually.');
                             }
                         });
                     }

@@ -2,6 +2,7 @@
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import express from "express";
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
@@ -16,7 +17,7 @@ async function main() {
     if (process.argv.includes('auth')) {
         const oauth2Client = await getOAuthClient();
         if (!oauth2Client) {
-            console.error('❌ OAuth credentials not configured. Please set up gcp-oauth.keys.json first.');
+            console.error('ERROR: OAuth credentials not configured. Please set up gcp-oauth.keys.json first.');
             process.exit(1);
         }
         
@@ -189,8 +190,40 @@ Error: ${error instanceof Error ? error.message : String(error)}`);
         return await handleToolCall(gmailService!, req.params.name, req.params.arguments);
     });
     
-    const transport = new StdioServerTransport();
-    await server.connect(transport);
+    // Dual transport support: HTTP for containers, stdio for local development
+    const useHttp = process.env.USE_HTTP === 'true' || process.env.PORT;
+    if (useHttp) {
+        const port = parseInt(process.env.PORT || '3000');
+        const app = express();
+        
+        // Serve static files from public directory
+        app.use('/images', express.static('public/images'));
+        app.use(express.static('public'));
+        
+        app.get('/mcp', (req, res) => {
+            res.json({
+                name: "gmail-manager",
+                version: "1.1.5",
+                status: "running",
+                message: "Gmail MCP Server is running. Use MCP client to connect."
+            });
+        });
+        
+        app.listen(port, () => {
+            if (process.env.NODE_ENV !== 'production') {
+                console.error(`Gmail MCP Server running on HTTP port ${port}`);
+                console.error('Access via: http://localhost:' + port + '/mcp');
+            }
+        });
+        
+        // For HTTP mode, also listen on stdio for MCP protocol
+        const transport = new StdioServerTransport();
+        await server.connect(transport);
+    } else {
+        // Default to stdio transport for local development
+        const transport = new StdioServerTransport();
+        await server.connect(transport);
+    }
 }
 
 main().catch(console.error);

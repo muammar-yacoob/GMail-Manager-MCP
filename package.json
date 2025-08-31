@@ -20,6 +20,7 @@
   },
   "files": [
     "dist",
+    "public",
     "README.md",
     "LICENSE",
     "smithery.yaml"

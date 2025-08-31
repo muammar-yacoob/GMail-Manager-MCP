@@ -11,7 +11,7 @@ async function main() {
     if (process.argv.includes('auth')) {
         const oauth2Client = await getOAuthClient();
         if (!oauth2Client) {
-            console.error('❌ OAuth credentials not configured. Please set up gcp-oauth.keys.json first.');
+            console.error('ERROR: OAuth credentials not configured. Please set up gcp-oauth.keys.json first.');
             process.exit(1);
         }
         await authenticateWeb(oauth2Client);
@@ -177,6 +177,9 @@ Error: ${error instanceof Error ? error.message : String(error)}`);
     if (useHttp) {
         const port = parseInt(process.env.PORT || '3000');
         const app = express();
+        // Serve static files from public directory
+        app.use('/images', express.static('public/images'));
+        app.use(express.static('public'));
         app.get('/mcp', (req, res) => {
             res.json({
                 name: "gmail-manager",
@@ -187,8 +190,8 @@ Error: ${error instanceof Error ? error.message : String(error)}`);
         });
         app.listen(port, () => {
             if (process.env.NODE_ENV !== 'production') {
-                console.error(`🌐 Gmail MCP Server running on HTTP port ${port}`);
-                console.error('🔗 Access via: http://localhost:' + port + '/mcp');
+                console.error(`Gmail MCP Server running on HTTP port ${port}`);
+                console.error('Access via: http://localhost:' + port + '/mcp');
             }
         });
         // For HTTP mode, also listen on stdio for MCP protocol
