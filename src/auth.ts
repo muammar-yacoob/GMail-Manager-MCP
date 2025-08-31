@@ -48,20 +48,17 @@ function getPossibleBasePaths(): string[] {
     return [...new Set(paths)].filter(p => p && fs.existsSync(p));
 }
 
-export async function getCredentials(): Promise<OAuth2Client> {
-    const possibleBasePaths = getPossibleBasePaths();
-    
-    // Find OAuth keys file
+export async function getCredentials(): Promise<OAuth2Client | null> {
+    // Only use OAuth keys from the explicitly configured path or project root
     const oauthPath = process.env.GMAIL_OAUTH_PATH || 
-                     findFileInPaths('gcp-oauth.keys.json', possibleBasePaths);
+                     path.join(process.cwd(), 'gcp-oauth.keys.json');
     
-    if (!oauthPath || !fs.existsSync(oauthPath)) {
-        throw new Error(`OAuth keys file not found. Checked paths: ${possibleBasePaths.join(', ')}. Please place gcp-oauth.keys.json in project root or set GMAIL_OAUTH_PATH environment variable.`);
+    if (!fs.existsSync(oauthPath)) {
+        return null; // Return null instead of throwing
     }
     
-    // Find credentials file
+    // Find credentials file - only use the configured location
     const credentialsPath = process.env.GMAIL_CREDENTIALS_PATH || 
-                           findFileInPaths('credentials.json', possibleBasePaths) ||
                            path.join(CONFIG_DIR, 'credentials.json');
     
     // Create config directory if needed
@@ -92,8 +89,9 @@ export async function getCredentials(): Promise<OAuth2Client> {
         try {
             await oauth2Client.getAccessToken();
         } catch (error) {
-            // If token refresh fails, the credentials are invalid
-            throw new Error('Stored credentials are invalid or expired. Please run authentication again.');
+            // If token refresh fails, return oauth2Client without credentials
+            // This allows for re-authentication
+            return oauth2Client;
         }
     }
     
@@ -101,15 +99,12 @@ export async function getCredentials(): Promise<OAuth2Client> {
 }
 
 export async function checkAuthStatus(): Promise<{hasOAuthKeys: boolean, hasCredentials: boolean, credentialsValid: boolean}> {
-    const possibleBasePaths = getPossibleBasePaths();
-    
-    // Find OAuth keys file
+    // Only use OAuth keys from the explicitly configured path or project root
     const oauthPath = process.env.GMAIL_OAUTH_PATH || 
-                     findFileInPaths('gcp-oauth.keys.json', possibleBasePaths);
+                     path.join(process.cwd(), 'gcp-oauth.keys.json');
     
-    // Find credentials file
+    // Find credentials file - only use the configured location
     const credentialsPath = process.env.GMAIL_CREDENTIALS_PATH || 
-                           findFileInPaths('credentials.json', possibleBasePaths) ||
                            path.join(CONFIG_DIR, 'credentials.json');
     
     const hasOAuthKeys = oauthPath ? fs.existsSync(oauthPath) : false;
@@ -119,14 +114,51 @@ export async function checkAuthStatus(): Promise<{hasOAuthKeys: boolean, hasCred
     if (hasOAuthKeys && hasCredentials) {
         try {
             const oauth2Client = await getCredentials();
-            await oauth2Client.getAccessToken();
-            credentialsValid = true;
+            if (oauth2Client) {
+                await oauth2Client.getAccessToken();
+                credentialsValid = true;
+            }
         } catch (error) {
             credentialsValid = false;
         }
     }
 
     return { hasOAuthKeys, hasCredentials, credentialsValid };
+}
+
+// Get OAuth client, creating one if needed but without credentials
+export async function getOAuthClient(): Promise<OAuth2Client | null> {
+    // Only use OAuth keys from the explicitly configured path or project root
+    const oauthPath = process.env.GMAIL_OAUTH_PATH || 
+                     path.join(process.cwd(), 'gcp-oauth.keys.json');
+    
+    if (!fs.existsSync(oauthPath)) {
+        return null;
+    }
+    
+    const keysContent = JSON.parse(fs.readFileSync(oauthPath, 'utf8'));
+    const keys = keysContent.installed || keysContent.web;
+    
+    if (!keys) {
+        throw new Error('Invalid OAuth keys file format. Expected "installed" or "web" key in OAuth file.');
+    }
+    
+    const redirectUri = keys.redirect_uris?.[0] || "urn:ietf:wg:oauth:2.0:oob";
+    return new OAuth2Client(keys.client_id, keys.client_secret, redirectUri);
+}
+
+// Check if OAuth client has valid credentials
+export async function hasValidCredentials(oauth2Client: OAuth2Client): Promise<boolean> {
+    try {
+        const credentials = oauth2Client.credentials;
+        if (!credentials || !credentials.refresh_token) {
+            return false;
+        }
+        await oauth2Client.getAccessToken();
+        return true;
+    } catch {
+        return false;
+    }
 }
 
 export async function authenticateWeb(oauth2Client: OAuth2Client, credentialsPath?: string): Promise<void> {
@@ -475,26 +507,55 @@ export async function authenticateWeb(oauth2Client: OAuth2Client, credentialsPat
         });
         
         server.listen(port, async () => {
-                // Browser will open automatically
+            console.log(`\n🔐 Opening authentication in your browser...`);
+            console.log(`\nIf the browser doesn't open automatically, please visit:`);
+            console.log(`\n${authUrl}\n`);
             
             // Open browser (platform-agnostic)
             const { exec } = await import('child_process');
             const platform = os.platform();
             
-            let command: string;
-            if (platform === 'darwin') {
-                command = 'open';
-            } else if (platform === 'win32') {
-                command = 'start';
-            } else {
-                command = 'xdg-open';
-            }
+            // Check if we're in WSL
+            const isWSL = fs.existsSync('/proc/version') && 
+                         fs.readFileSync('/proc/version', 'utf8').toLowerCase().includes('microsoft');
             
-            exec(`${command} "${authUrl}"`, (error) => {
-                if (error) {
-                    // Could not open browser automatically
-                }
-            });
+            if (isWSL) {
+                // In WSL, use Windows' cmd.exe to open the browser
+                exec(`cmd.exe /c start "${authUrl}"`, (error) => {
+                    if (error) {
+                        // Try PowerShell as fallback
+                        exec(`powershell.exe -Command "Start-Process '${authUrl}'"`, (error2) => {
+                            if (error2) {
+                                console.log('Could not open browser automatically. Please open the URL manually.');
+                            }
+                        });
+                    }
+                });
+            } else if (platform === 'darwin') {
+                exec(`open "${authUrl}"`, (error) => {
+                    if (error) {
+                        console.log('Could not open browser automatically. Please open the URL manually.');
+                    }
+                });
+            } else if (platform === 'win32') {
+                exec(`cmd.exe /c start "" "${authUrl}"`, (error) => {
+                    if (error) {
+                        console.log('Could not open browser automatically. Please open the URL manually.');
+                    }
+                });
+            } else {
+                // Linux
+                exec(`xdg-open "${authUrl}"`, (error) => {
+                    if (error) {
+                        // Try alternative methods
+                        exec(`sensible-browser "${authUrl}"`, (error2) => {
+                            if (error2) {
+                                console.log('Could not open browser automatically. Please open the URL manually.');
+                            }
+                        });
+                    }
+                });
+            }
         });
         
         server.on('error', (error) => {

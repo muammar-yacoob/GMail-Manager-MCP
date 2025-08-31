@@ -7,34 +7,20 @@ import {
   ListToolsRequestSchema,
   InitializeRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { getCredentials, authenticateWeb, checkAuthStatus } from "./auth.js";
+import { getCredentials, authenticateWeb, checkAuthStatus, getOAuthClient, hasValidCredentials } from "./auth.js";
 import { GmailService } from "./gmail-service.js";
 import { getToolDefinitions, handleToolCall } from "./tools.js";
-import fs from 'fs';
-import path from 'path';
-import os from 'os';
-
-
 
 async function main() {
-    let oauth2Client = null;
-    let credentialsError: Error | null = null;
-    
-    try {
-        oauth2Client = await getCredentials();
-    } catch (error) {
-        credentialsError = error instanceof Error ? error : new Error(String(error));
-    }
-    
-    // Handle command line arguments
+    // Check for command line authentication
     if (process.argv.includes('auth')) {
+        const oauth2Client = await getOAuthClient();
         if (!oauth2Client) {
             console.error('❌ OAuth credentials not configured. Please set up gcp-oauth.keys.json first.');
             process.exit(1);
         }
         
         await authenticateWeb(oauth2Client);
-        
         process.exit(0);
     }
     
@@ -46,7 +32,11 @@ async function main() {
         }
     });
     
-    let gmailService = oauth2Client ? new GmailService(oauth2Client) : null;
+    // Initialize OAuth client and Gmail service (may be null initially)
+    let oauth2Client = await getCredentials();
+    let gmailService = oauth2Client && await hasValidCredentials(oauth2Client) 
+        ? new GmailService(oauth2Client) 
+        : null;
     
     // Handle initialization properly
     server.setRequestHandler(InitializeRequestSchema, async (request) => {
@@ -69,9 +59,15 @@ async function main() {
     });
     
     server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: getToolDefinitions() }));
+    
     server.setRequestHandler(CallToolRequestSchema, async (req) => {
         // Handle authentication tool specially
         if (req.params.name === 'authenticate_gmail') {
+            // Get or create OAuth client
+            if (!oauth2Client) {
+                oauth2Client = await getOAuthClient();
+            }
+            
             if (!oauth2Client) {
                 throw new Error(`🔐 **Gmail OAuth Setup Required**
 
@@ -97,46 +93,30 @@ async function main() {
    • Visit: https://console.cloud.google.com/auth/audience
    • Add your Google email as test user
 
-6️⃣ **Restart Claude Desktop**
+6️⃣ **Save the file to project directory and restart Claude Desktop**
 
-📍 **Current OAuth path:** ${process.env.GMAIL_OAUTH_PATH || 'not set'}`);
+📍 **Expected OAuth file location:** ${process.env.GMAIL_OAUTH_PATH || 'project directory/gcp-oauth.keys.json'}`);
             }
             
             try {
                 await authenticateWeb(oauth2Client);
+                // Reinitialize Gmail service after successful authentication
+                gmailService = new GmailService(oauth2Client);
+                
                 return { 
                     content: [{ 
                         type: "text", 
-                        text: `🎉 **Authentication Successful!** 🎉
+                        text: `✅ **Authentication Successful!**
 
-✅ **Gmail Manager is now connected to your Gmail account!**
+Gmail Manager is now connected to your Gmail account!
 
-🚀 **You can now use all Gmail tools:**
+You can now use all Gmail tools:
+• Search and filter emails
+• Delete emails in bulk
+• Create and manage labels
+• Organize your inbox
 
-🔍 **Search & Filter**
-• Find emails by sender, subject, date, or any Gmail query
-• Use natural language to search your inbox
-
-🗑️ **Bulk Operations**
-• Delete multiple emails at once
-• Clean up newsletters, spam, and old emails
-
-🏷️ **Smart Organization**
-• Create and apply labels automatically
-• Organize your inbox with smart categorization
-
-📊 **Inbox Analytics**
-• Get insights about your email patterns
-• Analyze storage usage and email volume
-
-🧹 **Smart Cleanup**
-• Remove unwanted emails efficiently
-• Maintain inbox zero with automated cleanup
-
-**Ready to clean your inbox? Try asking:**
-• "Delete all promotional emails from the past month"
-• "Find and label all bank emails as 'Finance'"
-• "Clean up all unread newsletters older than 3 months"` 
+Ready to start managing your inbox!` 
                     }] 
                 };
             } catch (error) {
@@ -144,34 +124,15 @@ async function main() {
             }
         }
         
+        // For all other tools, check if we need authentication
         if (!gmailService) {
-            const errorMsg = credentialsError?.message || 'OAuth credentials not found';
+            // Try to get OAuth client if we don't have one
+            if (!oauth2Client) {
+                oauth2Client = await getOAuthClient();
+            }
             
-            // Provide clear instructions for authentication with web option
-            if (oauth2Client && !credentialsError?.message?.includes('OAuth credentials not found')) {
-                // We have OAuth keys but no valid credentials
-                throw new Error(`🔐 **Gmail Authentication Required**
-
-✅ **OAuth keys found!** Now you need to authenticate.
-
-🎯 **Choose one of these options:**
-
-**Option 1 - Web Authentication (Recommended) 🌐**
-• Use the \`authenticate_gmail\` tool
-• Your browser will open automatically
-• Complete the Google OAuth flow
-• Return to Claude Desktop when done
-
-**Option 2 - Terminal Authentication 💻**
-1. Open a terminal in your project directory
-2. Run: \`npm run auth\`
-3. Follow the browser authentication flow
-4. Restart Claude Desktop after authentication
-
-📍 **OAuth keys found at:** ${process.env.GMAIL_OAUTH_PATH || 'project directory'}
-💾 **Credentials will be saved to:** ${process.env.GMAIL_CREDENTIALS_PATH || '~/.gmail-mcp/credentials.json'}`);
-            } else {
-                // No OAuth keys found
+            if (!oauth2Client) {
+                // No OAuth keys found at all
                 throw new Error(`🔐 **Gmail OAuth Setup Required**
 
 📋 **Please complete the following steps:**
@@ -196,12 +157,29 @@ async function main() {
    • Visit: https://console.cloud.google.com/auth/audience
    • Add your Google email as test user
 
-6️⃣ **Restart Claude Desktop**
+6️⃣ **Save the file to project directory and restart Claude Desktop**
 
-📍 **Current OAuth path:** ${process.env.GMAIL_OAUTH_PATH || 'not set'}`);
+📍 **Expected OAuth file location:** ${process.env.GMAIL_OAUTH_PATH || 'project directory/gcp-oauth.keys.json'}`);
+            }
+            
+            // We have OAuth keys but no valid credentials - prompt for authentication
+            const isValid = await hasValidCredentials(oauth2Client);
+            if (!isValid) {
+                // Don't automatically authenticate - prompt the user instead
+                throw new Error(`🔐 **Authentication Required**
+
+Gmail Manager needs to authenticate with your Google account to use this tool.
+
+**Please authenticate using one of these methods:**
+
+1. Use the \`authenticate_gmail\` tool in Claude Desktop
+2. Run \`npm run auth\` in terminal
+
+After authentication, you can use all Gmail tools.`);
             }
         }
-        return await handleToolCall(gmailService, req.params.name, req.params.arguments);
+        
+        return await handleToolCall(gmailService!, req.params.name, req.params.arguments);
     });
     
     const transport = new StdioServerTransport();

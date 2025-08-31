@@ -41,7 +41,9 @@
       "Bash(export BROWSER=sensible-browser)",
       "Bash(export BROWSER=\"cmd.exe /c start\")",
       "Bash(docker run:*)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "Read(/home/spark/.gmail-mcp/**)",
+      "Bash(GMAIL_OAUTH_PATH=\"/mnt/d/Keys/Google/gcp-oauth.keys.json\" timeout 5s node dist/index.js auth)"
     ],
     "deny": [],
     "ask": []
