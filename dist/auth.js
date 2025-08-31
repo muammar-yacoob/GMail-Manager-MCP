@@ -181,12 +181,20 @@ export async function authenticateWeb(oauth2Client, credentialsPath) {
                                     
                                     body {
                                         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-                                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                        background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #f5576c);
+                                        background-size: 400% 400%;
+                                        animation: gradientBG 15s ease infinite;
                                         min-height: 100vh;
                                         display: flex;
                                         align-items: center;
                                         justify-content: center;
                                         color: #333;
+                                    }
+                                    
+                                    @keyframes gradientBG {
+                                        0% { background-position: 0% 50%; }
+                                        50% { background-position: 100% 50%; }
+                                        100% { background-position: 0% 50%; }
                                     }
                                     
                                     .container {
@@ -283,19 +291,49 @@ export async function authenticateWeb(oauth2Client, credentialsPath) {
                                         left: 0;
                                     }
                                     
-                                    .close-notice {
-                                        background: #e8f5e8;
-                                        border: 1px solid #4CAF50;
-                                        border-radius: 8px;
-                                        padding: 15px;
-                                        color: #2e7d32;
-                                        font-size: 14px;
-                                        margin-top: 20px;
+                                    .action-buttons {
+                                        display: flex;
+                                        gap: 15px;
+                                        justify-content: center;
+                                        margin-top: 30px;
                                     }
                                     
-                                    .countdown {
-                                        font-weight: bold;
-                                        color: #4CAF50;
+                                    .btn {
+                                        padding: 12px 24px;
+                                        border: none;
+                                        border-radius: 8px;
+                                        font-size: 16px;
+                                        font-weight: 500;
+                                        cursor: pointer;
+                                        transition: all 0.3s ease;
+                                        text-decoration: none;
+                                        display: inline-block;
+                                        text-align: center;
+                                    }
+                                    
+                                    .btn-primary {
+                                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                        color: white;
+                                    }
+                                    
+                                    .btn-secondary {
+                                        background: #f8f9fa;
+                                        color: #6c757d;
+                                        border: 2px solid #e9ecef;
+                                    }
+                                    
+                                    .btn:hover {
+                                        transform: translateY(-2px);
+                                        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+                                    }
+                                    
+                                    .btn-primary:hover {
+                                        background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+                                    }
+                                    
+                                    .btn-secondary:hover {
+                                        background: #e9ecef;
+                                        border-color: #dee2e6;
                                     }
                                 </style>
                             </head>
@@ -319,25 +357,15 @@ export async function authenticateWeb(oauth2Client, credentialsPath) {
                                         </ul>
                                     </div>
                                     
-                                    <div class="close-notice">
-                                        <span class="countdown" id="countdown">2</span> seconds until this window closes automatically
+                                    <div class="action-buttons">
+                                        <a href="https://spark-games.co.uk" target="_blank" class="btn btn-primary">
+                                            Explore More Tools
+                                        </a>
+                                        <button onclick="window.close()" class="btn btn-secondary">
+                                            Close Window
+                                        </button>
                                     </div>
                                 </div>
-                                
-                                <script>
-                                    let countdown = 2;
-                                    const countdownElement = document.getElementById('countdown');
-                                    
-                                    const timer = setInterval(() => {
-                                        countdown--;
-                                        countdownElement.textContent = countdown;
-                                        
-                                        if (countdown <= 0) {
-                                            clearInterval(timer);
-                                            window.close();
-                                        }
-                                    }, 1000);
-                                </script>
                             </body>
                             </html>
                         `);
