@@ -10,3 +10,4 @@ coverage/
 .smithery/
 credentials.json
 .local/
+.claude/
