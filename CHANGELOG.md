@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+# [1.2.0](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.1.7...v1.2.0) (2025-08-31)
+
+
+### Features
+
+* using GMAIL_CREDENTIALS_PATH for Successful tool usage 🎉 ([d4b46f6](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/d4b46f68fe4c884a615ef4dfb4cf1788fc95128c))
+
 ## [1.1.7](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.1.6...v1.1.7) (2025-08-30)
 
 
