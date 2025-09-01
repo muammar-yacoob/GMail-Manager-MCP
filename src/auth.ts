@@ -62,6 +62,7 @@ function getAuthSuccessHTML(): string {
 function getAuthFailedHTML(): string {
     const htmlPath = path.join(__dirname, '..', 'public', 'auth-pages', 'auth-failed.html');
     const cssPath = path.join(__dirname, '..', 'public', 'css', 'auth-failed.css');
+    const jsPath = path.join(__dirname, '..', 'public', 'js', 'auth-failed.js');
     
     let html = fs.readFileSync(htmlPath, 'utf8');
     
@@ -71,6 +72,15 @@ function getAuthFailedHTML(): string {
         html = html.replace(
             '<link rel="stylesheet" href="/css/auth-failed.css">',
             `<style>\n${css}\n    </style>`
+        );
+    }
+    
+    // If JavaScript file exists, inject it inline
+    if (fs.existsSync(jsPath)) {
+        const js = fs.readFileSync(jsPath, 'utf8');
+        html = html.replace(
+            '<script src="/js/auth-failed.js"></script>',
+            `<script>\n${js}\n    </script>`
         );
     }
     
