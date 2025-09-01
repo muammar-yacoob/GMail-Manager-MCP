@@ -47,10 +47,10 @@ Perfect for **inbox zero enthusiasts** and anyone drowning in email overload! �
 
 ## 🚀 Quick Setup
 
-### 📋 Step 1: Get Gmail Credentials 🗝️
+### 📋 Prerequisites: Get Gmail Credentials 🗝️
 
 <details open>
-<summary><strong>🔑 Required for both installation methods</strong></summary>
+<summary><strong>🔑 Required before any installation</strong></summary>
 
 1. [Create New Project](https://console.cloud.google.com/projectcreate)
 2. [Enable Gmail API](https://console.cloud.google.com/apis/api/gmail.googleapis.com/metrics)
@@ -63,70 +63,64 @@ Perfect for **inbox zero enthusiasts** and anyone drowning in email overload! �
 
 ---
 
-### 🎯 Option 1: NPM Package (Recommended)
+## 📦 Installation Options
 
-<details open>
-<summary><strong>📦 Install from NPM</strong></summary>
+<details>
+<summary><strong>🚀 Install from npm registry</strong></summary>
 
-1. **Configure Claude Desktop** ⚙️
+```bash
+npm install @spark-apps/gmail-manager-mcp
+```
+</details>
 
-   Add to your Claude Desktop config file:
-   - ![Windows](https://img.shields.io/badge/Windows-dodgerblue?style=flat-square&logo=windows&logoColor=white) `%APPDATA%\\Claude\\claude_desktop_config.json`
-   - ![macOS](https://img.shields.io/badge/macOS-silver?style=flat-square&logo=apple&logoColor=black) `~/Library/Application Support/Claude/claude_desktop_config.json`
-   - ![Linux](https://img.shields.io/badge/Linux-gold?style=flat-square&logo=linux&logoColor=black) `~/.config/Claude/claude_desktop_config.json`
+---
 
-   ```json
-   {
-     "mcpServers": {
-       "gmail-manager": {
-         "command": "npx","args": ["@spark-apps/gmail-manager-mcp"]}
-     }
-   }
+<details>
+<summary><strong>👨‍💻 Clone and build locally</strong></summary>
+
+   ```bash
+   git clone https://github.com/muammar-yacoob/GMail-Manager-MCP.git
+   cd GMail-Manager-MCP
+   npm install
    ```
 
-2. **Add OAuth Keys** 🔑
-   - Place your `gcp-oauth.keys.json` file in your home directory OR
-   - Set `GMAIL_OAUTH_PATH` environment variable to point to it
 
-3. **Complete Setup** 🎉
-   - **Restart Claude Desktop** completely
-   - **Try any Gmail command** - authentication will happen automatically
-   - **Grant permissions** when your browser opens
+
+</details>
 
 </details>
 
 ---
 
-### 🔧 Option 2: Local Development Setup
+## ⚙️ Configure Claude Desktop
 
 <details>
-<summary><strong>👨‍💻 Local Development Installation</strong></summary>
+<summary><strong>🔧 Required for all installation methods</strong></summary>
 
-1. **Clone and Build** 📁
-   ```bash
-   git clone https://github.com/muammar-yacoob/GMail-Manager-MCP.git
-   cd GMail-Manager-MCP
-   npm install
-   npm run build
-   ```
+Add to your Claude Desktop config file:
+- ![Windows](https://img.shields.io/badge/Windows-dodgerblue?style=flat-square&logo=windows&logoColor=white) `%APPDATA%\\Claude\\claude_desktop_config.json`
+- ![macOS](https://img.shields.io/badge/macOS-silver?style=flat-square&logo=apple&logoColor=black) `~/Library/Application Support/Claude/claude_desktop_config.json`
+- ![Linux](https://img.shields.io/badge/Linux-gold?style=flat-square&logo=linux&logoColor=black) `~/.config/Claude/claude_desktop_config.json`
 
-2. **Add OAuth Keys** 🔑
-   - Place your `gcp-oauth.keys.json` file in the project root directory
+**For NPM Install:**
+```json
+{
+  "mcpServers": {
+    "gmail-manager": {
+      "command": "npx","args": ["@spark-apps/gmail-manager-mcp"]}
+  }
+}
+```
 
-3. **Configure Claude Desktop** ⚙️
-   ```json
-   {
-     "mcpServers": {
-       "gmail-manager": {
-         "command": "node","args": ["/absolute/path/to/GMail-Manager-MCP/dist/index.js"]}
-     }
-   }
-   ```
-
-4. **Complete Setup** 🎉
-   - **Restart Claude Desktop** completely
-   - **Try any Gmail command** - authentication will happen automatically
-   - *Alternative: Run `npm run auth` for manual authentication*
+**For Local Development:**
+```json
+{
+  "mcpServers": {
+    "gmail-manager": {
+      "command": "node","args": ["/absolute/path/to/GMail-Manager-MCP/dist/index.js"]}
+  }
+}
+```
 
 </details>
 
