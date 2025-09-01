@@ -191,6 +191,7 @@
         
         .accordion-body {
             padding: 0 20px 16px 20px;
+            position: relative;
         }
         
         .command-list {
@@ -249,18 +250,22 @@
             position: fixed;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            background: #28a745;
+            transform: translate(-50%, -50%) scale(0.8);
+            background: #22c55e;
             color: white;
-            padding: 16px 24px;
-            border-radius: 8px;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
             font-weight: 600;
             z-index: 1000;
-            box-shadow: 0 4px 20px rgba(40, 167, 69, 0.3);
-            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 2px 12px rgba(34, 197, 94, 0.4);
+            pointer-events: none;
+            opacity: 0;
+            transition: all 0.2s ease-in-out;
         }
         
         .copy-notification.show {
+            opacity: 1;
             transform: translate(-50%, -50%) scale(1);
         }
         
@@ -336,7 +341,6 @@
 
     <div id="copyNotification" class="copy-notification">Command copied to clipboard!</div>
 
-    <script type="module" src="/components/index.js"></script>
     <script>
         function toggleAccordion(header) {
             const content = header.nextElementSibling;
@@ -366,23 +370,55 @@
         
         function copyCommand(element) {
             const text = element.textContent.trim();
-            CommonComponents.copyToClipboard(text);
+            navigator.clipboard.writeText(text).then(() => {
+                // Show positioned popup notification
+                showCopyNotification(element);
+                
+                // Brief visual feedback on the clicked element
+                const originalColor = element.style.color;
+                element.style.color = '#22c55e';
+                setTimeout(() => {
+                    element.style.color = originalColor;
+                }, 300);
+            }).catch(() => {
+                // Fallback for older browsers
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showCopyNotification(element);
+            });
         }
         
-        function showCopyNotification() {
+        function showCopyNotification(targetElement) {
             const notification = document.getElementById('copyNotification');
             if (notification) {
-                notification.classList.add('show');
+                // Reset any previous positioning
+                notification.classList.remove('show');
+                
+                // For now, just show centered until we fix positioning
+                // Show notification with slight delay
+                setTimeout(() => {
+                    notification.classList.add('show');
+                }, 10);
+                
+                // Hide after 1 second
                 setTimeout(() => {
                     notification.classList.remove('show');
-                }, 2000);
+                }, 1000);
             }
         }
         
-        // Initialize common components and add common buttons
+        // Initialize page
         window.addEventListener('load', function() {
-            CommonComponents.initializeCommonComponents();
-            document.getElementById('common-buttons').innerHTML = CommonComponents.createCommonButtons();
+            // Add simple buttons
+            const commonButtons = `
+                <button class="btn" onclick="window.close()">Close Window</button>
+                <button class="btn" onclick="location.reload()">Refresh</button>
+            `;
+            document.getElementById('common-buttons').innerHTML = commonButtons;
         });
     </script>
 </body>

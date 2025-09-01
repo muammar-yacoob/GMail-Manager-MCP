@@ -131,20 +131,17 @@
         </div>
         <h1>Authentication Failed</h1>
         <p class="message" id="message-text">
-            Authentication failed or was cancelled. This might happen if you denied permissions or if there was an unexpected error during the OAuth process.
+            Authentication failed or was cancelled. This might happen if you denied permissions or if there was an unexpected error during the OAuth process. Check out the helpful links below!
         </p>
-        <div id="common-buttons"></div>
+        <div style="text-align: center; margin-top: 24px;">
+            <a href="https://github.com/muammar-yacoob/GMail-Manager-MCP#-quick-setup" class="btn" target="_blank">📖 Setup Instructions</a>
+            <a href="https://spark-games.co.uk" class="btn" target="_blank">🚀 Explore More</a>
+        </div>
     </div>
     
-    <script type="module" src="/components/index.js"></script>
     <script>
         // Check URL for error type and customize message
         window.addEventListener('load', function() {
-            // Initialize common components
-            CommonComponents.initializeCommonComponents();
-            
-            // Add common buttons
-            document.getElementById('common-buttons').innerHTML = CommonComponents.createCommonButtons();
             
             const urlParams = new URLSearchParams(window.location.search);
             const error = urlParams.get('error');
@@ -152,9 +149,9 @@
             
             // Customize message based on error type
             if (error === 'access_denied') {
-                messageElement.textContent = "You cancelled the authentication process. Click 'Setup Instructions' below if you'd like to try again.";
+                messageElement.textContent = "You cancelled the authentication process. Check out the 'Setup Instructions' below if you'd like to try again, or explore more cool tools!";
             } else if (error) {
-                messageElement.textContent = `Authentication error: ${error}. Please try again or check the setup instructions.`;
+                messageElement.textContent = `Authentication error: ${error}. Check the setup instructions below or explore more tools while you're here!`;
             }
             // Otherwise keep the default message
             
@@ -181,7 +178,9 @@
                     };
                     
                     errorGifElement.onerror = function() { 
-                        this.style.display = 'none'; 
+                        // Fallback to a simple error message if image fails to load
+                        errorGifElement.style.display = 'none';
+                        console.log('Failed to load image:', `/images/cleaning-images/${randomGif}`);
                     };
                 }
             }

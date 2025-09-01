@@ -56,9 +56,7 @@ Perfect for **inbox zero enthusiasts** and anyone drowning in email overload! �
 2. [Enable Gmail API](https://console.cloud.google.com/apis/api/gmail.googleapis.com/metrics)
 3. Create [OAuth client ID](https://console.cloud.google.com/auth/clients) (Desktop app type)
 4. Download as `gcp-oauth.keys.json`
-5. Navigate to [Data access](https://console.cloud.google.com/auth/scopes) → **Add or remove scopes** → Enter these scopes:
-   - `https://www.googleapis.com/auth/gmail.modify`
-   - `https://www.googleapis.com/auth/gmail.settings.basic`
+5. Navigate to [Data access](https://console.cloud.google.com/auth/scopes) → **Add or remove scopes** → Enter: `https://mail.google.com/`
 6. Navigate to [Test users](https://console.cloud.google.com/auth/audience) → Add your Google email
 
 </details>
@@ -121,8 +119,7 @@ Windows (use double backslashes):
 {
   "mcpServers": {
     "gmail-manager": {
-      "command": "node",
-      "args": ["D:\\path\\to\\GMail-Manager-MCP\\dist\\index.js"]
+      "command": "node","args": ["path-to\\GMail-Manager-MCP\\dist\\index.js"]
     }
   }
 }

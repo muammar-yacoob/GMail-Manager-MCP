@@ -32,7 +32,7 @@ function createCommonButtons() {
     return `
         <div style="text-align: center; margin-top: 24px;">
             ${createButton('📖 Setup Instructions', 'https://github.com/muammar-yacoob/GMail-Manager-MCP#-quick-setup')}
-            ${createButton('🚀 More Cool Tools', 'https://spark-games.co.uk')}
+            ${createButton('🚀 Explore More', 'https://spark-games.co.uk')}
         </div>
     `;
 }
