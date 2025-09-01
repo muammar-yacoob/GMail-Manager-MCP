@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gmail Manager - Authentication Success</title>
+    <link rel="stylesheet" href="/css/auth-success.css">
+</head>
+<body>
+    <div class="container">
+        <div class="success-icon"></div>
+        <h1>🎉 Success! You're All Set! 🚀</h1>
+        <p class="message">
+            Your Gmail Manager is now connected and ready to clean house! Try these powerful commands:
+        </p>
+        
+        <div class="accordion" id="commands-accordion">
+            <!-- Commands will be loaded dynamically from commands.json -->
+        </div>
+        
+        <div id="common-buttons">
+            <!-- Buttons will be loaded from buttons.js -->
+        </div>
+    </div>
+
+    <div id="copyNotification" class="copy-notification">Command copied to clipboard!</div>
+
+        <script src="/js/auth-success.js"></script>
+</body>
+</html>

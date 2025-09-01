@@ -1,7 +1,7 @@
 // Button Components for Gmail Manager MCP
 const buttonStyles = {
     primary: `
-        background: linear-gradient(135deg, #22c55e, #16a34a);
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
         border: none;
         color: white;
         padding: 12px 24px;
@@ -13,14 +13,14 @@ const buttonStyles = {
         margin: 8px;
         text-decoration: none;
         display: inline-block;
-        box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     `,
     hover: `
-        transform: scale(1.05);
-        box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
     `,
     active: `
-        transform: scale(0.98);
+        transform: translateY(0);
     `
 };
 

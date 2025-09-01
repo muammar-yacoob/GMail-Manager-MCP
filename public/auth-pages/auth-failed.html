@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gmail Manager - Authentication Failed</title>
+    <link rel="stylesheet" href="/css/auth-failed.css">
+</head>
+<body>
+    <div class="container">
+        <div class="error-icon">
+            <img id="error-gif" src="../images/cleaning-images/cleaning.gif" alt="Cleaning animation" onerror="this.style.display='none'; if(!this.parentNode.querySelector('.fallback-text')){const fallback=document.createElement('p');fallback.className='fallback-text';fallback.textContent='🧹 Cleaning in progress...';fallback.style.cssText='color: #94a3b8; font-size: 18px; margin-top: 20px; text-align: center;';this.parentNode.appendChild(fallback);}">
+        </div>
+        <h1>Authentication Failed</h1>
+        <p class="message" id="message-text">
+            Authentication failed or was cancelled. This might happen if you denied permissions or if there was an unexpected error during the OAuth process. Check out the helpful links below!
+        </p>
+        <div style="text-align: center; margin-top: 24px;">
+            <a href="https://github.com/muammar-yacoob/GMail-Manager-MCP#-quick-setup" class="btn" target="_blank">📖 Setup Instructions</a>
+            <a href="https://spark-games.co.uk" class="btn" target="_blank">🚀 Explore More</a>
+        </div>
+    </div>
+    
+    <script src="/js/auth-failed.js"></script>
+</body>
+</html>

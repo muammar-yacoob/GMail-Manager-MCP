@@ -1,0 +1,270 @@
+/* Gmail Manager MCP - Auth Success Page Styles */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: linear-gradient(45deg, #22c55e, #10b981, #059669, #16a34a, #22c55e, #34d399, #6ee7b7);
+    background-size: 400% 400%;
+    animation: gradientShift 3s ease infinite;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+    padding: 20px;
+}
+
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.container {
+    background: rgba(15, 15, 15, 0.95);
+    border-radius: 16px;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    box-shadow: 
+        0 0 40px rgba(34, 197, 94, 0.15),
+        0 20px 40px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    padding: 32px;
+    text-align: center;
+    max-width: 700px;
+    width: 100%;
+    animation: slideUp 0.6s ease-out;
+    backdrop-filter: blur(10px);
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.success-icon {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.success-icon::before {
+    content: "✓";
+    color: white;
+    font-size: 28px;
+    font-weight: bold;
+    animation: checkmark 0.6s ease-in-out;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 30px rgba(34, 197, 94, 0.6);
+    }
+}
+
+@keyframes checkmark {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+h1 {
+    color: #f1f5f9;
+    margin-bottom: 8px;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.message {
+    color: #94a3b8;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 32px;
+}
+
+.accordion {
+    margin: 24px 0;
+    text-align: left;
+}
+
+.accordion-item {
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    background: rgba(30, 30, 30, 0.5);
+}
+
+.accordion-item:hover {
+    border-color: rgba(34, 197, 94, 0.3);
+}
+
+.accordion-header {
+    background: transparent;
+    padding: 16px 20px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 600;
+    color: #e2e8f0;
+    transition: all 0.3s ease;
+    border: none;
+    width: 100%;
+    text-align: center;
+    font-size: 14px;
+    position: relative;
+}
+
+.accordion-header .accordion-icon {
+    position: absolute;
+    right: 20px;
+}
+
+.accordion-header:hover {
+    color: #22c55e;
+}
+
+.accordion-header.active {
+    color: #22c55e;
+    background: rgba(34, 197, 94, 0.1);
+}
+
+.accordion-icon {
+    transition: transform 0.3s ease;
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    background: transparent;
+}
+
+.accordion-content.active {
+    max-height: 300px;
+}
+
+.accordion-body {
+    padding: 0 20px 16px 20px;
+    position: relative;
+}
+
+.command-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.command-item {
+    margin: 6px 0;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.4;
+    text-align: center;
+}
+
+.command-item:hover {
+    color: #22c55e;
+    transform: scale(1.02);
+}
+
+.command-item:last-child {
+    border-bottom: none;
+}
+
+.btn {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    border: none;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin: 8px;
+    text-decoration: none;
+    display: inline-block;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.copy-notification {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #22c55e;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    z-index: 1000;
+    box-shadow: 0 2px 12px rgba(34, 197, 94, 0.4);
+    pointer-events: none;
+    opacity: 0;
+    transition: all 0.2s ease-in-out;
+    white-space: nowrap;
+}
+
+.copy-notification.show {
+    opacity: 1;
+}
+
+.copy-notification::before {
+    content: "✓";
+    margin-right: 8px;
+}

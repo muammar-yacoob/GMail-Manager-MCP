@@ -1,0 +1,55 @@
+{
+  "categories": [
+    {
+      "id": "storage-cleanup",
+      "name": " Storage Cleanup",
+      "icon": "🧹",
+      "description": "Clean up old emails and free up storage space",
+      "commands": [
+        "Delete all promotional emails from the last 30 days",
+        "Find and clean up all newsletter emails",
+        "Remove all automated notifications older than 1 month",
+        "Delete all calendar invites older than 30 days",
+        "Delete all emails from noreply addresses older than 6 months",
+        "Find and delete all promotional emails from shopping sites",
+        "Remove all LinkedIn notification emails from the past year",
+        "Delete all automated emails from GitHub, Slack, and Jira",
+        "Clean up all newsletter emails I haven't opened in 3 months",
+        "Delete all 'password reset' and 'account verification' emails",
+        "Remove all calendar invites and meeting reminders older than 30 days",
+        "Find and delete all emails with large attachments over 10MB"
+      ]
+    },
+    {
+      "id": "smart-organization",
+      "name": " Smart Organization",
+      "icon": "📊",
+      "description": "Organize and categorize your emails automatically",
+      "commands": [
+        "Label all financial emails as 'Finance'",
+        "Create 'Archive-2024' label and move old work emails",
+        "Group all travel confirmations under 'Travel'",
+        "Label subscription emails as 'Subscriptions'",
+        "Label all emails from banks and financial institutions as 'Finance'",
+        "Find all subscription confirmation emails and label them 'Subscriptions'",
+        "Group all travel booking confirmations under 'Travel' label"
+      ]
+    },
+    {
+      "id": "inbox-analysis",
+      "name": " Inbox Analysis",
+      "icon": "🔍",
+      "description": "Analyze your email patterns and get insights",
+      "commands": [
+        "Show me my largest emails taking up storage",
+        "Find all unread emails older than 2 weeks",
+        "List my top 10 email senders by volume",
+        "Analyze email patterns and suggest cleanup",
+        "Show me my top 10 email senders by volume this year",
+        "Find all unread emails older than 1 month",
+        "List all emails taking up the most storage space"
+      ]
+    }
+  ]
+}
+

@@ -10,19 +10,23 @@ function addCopyNotificationStyles() {
             position: fixed;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            background: #28a745;
+            transform: translate(-50%, -50%);
+            background: #22c55e;
             color: white;
-            padding: 16px 24px;
-            border-radius: 8px;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
             font-weight: 600;
             z-index: 1000;
-            box-shadow: 0 4px 20px rgba(40, 167, 69, 0.3);
-            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 2px 12px rgba(34, 197, 94, 0.4);
+            pointer-events: none;
+            opacity: 0;
+            transition: all 0.2s ease-in-out;
+            white-space: nowrap;
         }
         
         .copy-notification.show {
-            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
         }
         
         .copy-notification::before {
