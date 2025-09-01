@@ -1,6 +1,7 @@
 gcp-oauth.keys.json
 .env.*
 node_modules/
+dist/
 *.tsbuildinfo
 .gmail-mcp/
 *.log
