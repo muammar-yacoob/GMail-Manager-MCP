@@ -331,14 +331,12 @@
             </div>
         </div>
         
-        <div style="text-align: center; margin-top: 24px;">
-            <a href="https://github.com/muammar-yacoob/GMail-Manager-MCP#readme" class="btn">📖 Setup Instructions</a>
-            <a href="https://spark-games.co.uk" class="btn">🚀 More Cool Tools</a>
-        </div>
+        <div id="common-buttons"></div>
     </div>
 
     <div id="copyNotification" class="copy-notification">Command copied to clipboard!</div>
 
+    <script type="module" src="/components/index.js"></script>
     <script>
         function toggleAccordion(header) {
             const content = header.nextElementSibling;
@@ -368,46 +366,24 @@
         
         function copyCommand(element) {
             const text = element.textContent.trim();
-            
-            if (navigator.clipboard && window.isSecureContext) {
-                navigator.clipboard.writeText(text).then(() => {
-                    showCopyNotification();
-                }).catch(() => {
-                    fallbackCopy(text);
-                });
-            } else {
-                fallbackCopy(text);
-            }
-        }
-        
-        function fallbackCopy(text) {
-            const textArea = document.createElement('textarea');
-            textArea.value = text;
-            textArea.style.position = 'fixed';
-            textArea.style.left = '-999999px';
-            textArea.style.top = '-999999px';
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            
-            try {
-                document.execCommand('copy');
-                showCopyNotification();
-            } catch (err) {
-                console.error('Failed to copy text: ', err);
-            }
-            
-            document.body.removeChild(textArea);
+            CommonComponents.copyToClipboard(text);
         }
         
         function showCopyNotification() {
             const notification = document.getElementById('copyNotification');
-            notification.classList.add('show');
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 2000);
+            if (notification) {
+                notification.classList.add('show');
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 2000);
+            }
         }
+        
+        // Initialize common components and add common buttons
+        window.addEventListener('load', function() {
+            CommonComponents.initializeCommonComponents();
+            document.getElementById('common-buttons').innerHTML = CommonComponents.createCommonButtons();
+        });
     </script>
 </body>
 </html>
