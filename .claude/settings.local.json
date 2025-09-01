@@ -41,7 +41,12 @@
       "Bash(find:*)",
       "Read(/tmp/**)",
       "Read(/tmp/**)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(echo:*)",
+      "Read(/home/spark/**)",
+      "Read(/tmp/**)",
+      "Read(/tmp/**)",
+      "Read(/tmp/**)"
     ],
     "deny": [],
     "ask": []

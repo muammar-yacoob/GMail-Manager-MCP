@@ -68,10 +68,9 @@ Please complete the following steps:
    Choose "Desktop app" type
    Download as gcp-oauth.keys.json
 
-4. Add Required Scopes
+4. Add Required Scope
    Visit: https://console.cloud.google.com/auth/scopes
-   Add: https://www.googleapis.com/auth/gmail.modify
-   Add: https://www.googleapis.com/auth/gmail.settings.basic
+   Add: https://mail.google.com/
 
 5. Add Test User
    Visit: https://console.cloud.google.com/auth/audience
@@ -116,10 +115,8 @@ Ready to start managing your inbox!`
       : null;
     
     if (!gmailService) {
-      // If we don't have credentials, try to get OAuth client
-      if (!oauth2Client) {
-        oauth2Client = await getOAuthClient();
-      }
+      // If we don't have valid credentials, get OAuth client for authentication
+      oauth2Client = await getOAuthClient();
       
       if (!oauth2Client) {
         // No OAuth keys found at all
@@ -138,10 +135,9 @@ Please complete the following steps:
    Choose "Desktop app" type
    Download as gcp-oauth.keys.json
 
-4. Add Required Scopes
+4. Add Required Scope
    Visit: https://console.cloud.google.com/auth/scopes
-   Add: https://www.googleapis.com/auth/gmail.modify
-   Add: https://www.googleapis.com/auth/gmail.settings.basic
+   Add: https://mail.google.com/
 
 5. Add Test User
    Visit: https://console.cloud.google.com/auth/audience
@@ -152,29 +148,17 @@ Please complete the following steps:
 Expected OAuth file location: ${process.env.GMAIL_OAUTH_PATH || 'project directory/gcp-oauth.keys.json'}`);
       }
       
-      // We have OAuth keys but need to check if we have valid credentials
-      // If oauth2Client came from getCredentials(), it might have stored tokens
-      // If it came from getOAuthClient(), it won't have tokens
-      const isValid = await hasValidCredentials(oauth2Client);
-      if (!isValid) {
-        try {
-          await authenticateWeb(oauth2Client);
-          gmailService = new GmailService(oauth2Client);
-          return await handleToolCall(gmailService, req.params.name, req.params.arguments);
-        } catch (error) {
-          throw new Error(`Authentication Required
+      // We have OAuth keys but need authentication - do it automatically
+      try {
+        await authenticateWeb(oauth2Client);
+        gmailService = new GmailService(oauth2Client);
+        return await handleToolCall(gmailService, req.params.name, req.params.arguments);
+      } catch (error) {
+        throw new Error(`Authentication failed: ${error instanceof Error ? error.message : String(error)}
 
-Gmail Manager needs to authenticate with your Google account to use this tool.
-
-Please authenticate using one of these methods:
-
+Please try one of these alternatives:
 1. Use the authenticate_gmail tool in Claude Desktop
-2. Run npm run auth in terminal
-
-After authentication, you can use all Gmail tools.
-
-Error: ${error instanceof Error ? error.message : String(error)}`);
-        }
+2. Run npm run auth in terminal`);
       }
     }
     

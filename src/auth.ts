@@ -114,7 +114,7 @@ export async function setupAuth(): Promise<OAuth2Client> {
 
 // Authenticate user with browser flow
 async function authenticateUser(oauth2Client: OAuth2Client): Promise<OAuth2Client> {
-    const scopes = ['https://mail.google.com/', 'https://www.googleapis.com/auth/gmail.settings.basic'];
+    const scopes = ['https://mail.google.com/'];
     
     return new Promise((resolve, reject) => {
         const server = http.createServer(async (req, res) => {
@@ -363,9 +363,10 @@ export async function debugAuth(): Promise<void> {
 }
 
 export async function getCredentials(): Promise<OAuth2Client | null> {
-    // Only use OAuth keys from the explicitly configured path or project root
+    // Use OAuth keys from environment variable or project root (not current working directory)  
+    const projectRoot = path.dirname(__dirname); // Go up from dist/ to project root
     const oauthPath = process.env.GMAIL_OAUTH_PATH || 
-                     path.join(process.cwd(), 'gcp-oauth.keys.json');
+                     path.join(projectRoot, 'gcp-oauth.keys.json');
     
     if (!fs.existsSync(oauthPath)) {
         return null; // Return null instead of throwing
@@ -416,9 +417,10 @@ export async function getCredentials(): Promise<OAuth2Client | null> {
 }
 
 export async function checkAuthStatus(): Promise<{hasOAuthKeys: boolean, hasCredentials: boolean, credentialsValid: boolean}> {
-    // Only use OAuth keys from the explicitly configured path or project root
+    // Use OAuth keys from environment variable or project root (not current working directory)  
+    const projectRoot = path.dirname(__dirname); // Go up from dist/ to project root
     const oauthPath = process.env.GMAIL_OAUTH_PATH || 
-                     path.join(process.cwd(), 'gcp-oauth.keys.json');
+                     path.join(projectRoot, 'gcp-oauth.keys.json');
     
     // Find credentials file - only use the configured location
     const credentialsPath = process.env.GMAIL_CREDENTIALS_PATH || 
@@ -441,9 +443,10 @@ export async function checkAuthStatus(): Promise<{hasOAuthKeys: boolean, hasCred
 }
 
 export async function getOAuthClient(): Promise<OAuth2Client | null> {
-    // Only use OAuth keys from the explicitly configured path or project root
+    // Use OAuth keys from environment variable or project root (not current working directory)  
+    const projectRoot = path.dirname(__dirname); // Go up from dist/ to project root
     const oauthPath = process.env.GMAIL_OAUTH_PATH || 
-                     path.join(process.cwd(), 'gcp-oauth.keys.json');
+                     path.join(projectRoot, 'gcp-oauth.keys.json');
     
     if (!fs.existsSync(oauthPath)) {
         return null;
@@ -490,7 +493,7 @@ export async function authenticateWeb(oauth2Client: OAuth2Client, credentialsPat
         
         const authUrl = webOAuth2Client.generateAuthUrl({
             access_type: 'offline',
-            scope: ['https://mail.google.com/', 'https://www.googleapis.com/auth/gmail.settings.basic']
+            scope: ['https://mail.google.com/']
         });
         
         server = http.createServer(async (req, res) => {
