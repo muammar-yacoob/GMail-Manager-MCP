@@ -248,9 +248,6 @@
         
         .copy-notification {
             position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0.8);
             background: #22c55e;
             color: white;
             padding: 8px 16px;
@@ -262,11 +259,11 @@
             pointer-events: none;
             opacity: 0;
             transition: all 0.2s ease-in-out;
+            white-space: nowrap;
         }
         
         .copy-notification.show {
             opacity: 1;
-            transform: translate(-50%, -50%) scale(1);
         }
         
         .copy-notification::before {
@@ -398,11 +395,35 @@
                 // Reset any previous positioning
                 notification.classList.remove('show');
                 
-                // For now, just show centered until we fix positioning
-                // Show notification with slight delay
+                // Wait for visual feedback animation to complete, then position notification
                 setTimeout(() => {
+                    // Calculate position relative to the clicked element
+                    const rect = targetElement.getBoundingClientRect();
+                    const notificationWidth = notification.offsetWidth;
+                    const notificationHeight = notification.offsetHeight;
+                    
+                    // Position the notification above the clicked element with more space
+                    let left = rect.left + (rect.width / 2) - (notificationWidth / 2);
+                    let top = rect.top - notificationHeight - 20; // Increased space to 20px
+                    
+                    // Ensure notification stays within viewport bounds
+                    if (left < 10) left = 10;
+                    if (left + notificationWidth > window.innerWidth - 10) {
+                        left = window.innerWidth - notificationWidth - 10;
+                    }
+                    
+                    // If there's not enough space above, show below instead
+                    if (top < 10) {
+                        top = rect.bottom + 20; // Also increased space below to 20px
+                    }
+                    
+                    // Apply positioning
+                    notification.style.left = `${left}px`;
+                    notification.style.top = `${top}px`;
+                    
+                    // Show notification
                     notification.classList.add('show');
-                }, 10);
+                }, 350); // Wait for the 300ms color animation + 50ms buffer
                 
                 // Hide after 1 second
                 setTimeout(() => {
