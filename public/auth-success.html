@@ -395,35 +395,13 @@
                 // Reset any previous positioning
                 notification.classList.remove('show');
                 
-                // Wait for visual feedback animation to complete, then position notification
-                setTimeout(() => {
-                    // Calculate position relative to the clicked element
-                    const rect = targetElement.getBoundingClientRect();
-                    const notificationWidth = notification.offsetWidth;
-                    const notificationHeight = notification.offsetHeight;
-                    
-                    // Position the notification above the clicked element with more space
-                    let left = rect.left + (rect.width / 2) - (notificationWidth / 2);
-                    let top = rect.top - notificationHeight - 20; // Increased space to 20px
-                    
-                    // Ensure notification stays within viewport bounds
-                    if (left < 10) left = 10;
-                    if (left + notificationWidth > window.innerWidth - 10) {
-                        left = window.innerWidth - notificationWidth - 10;
-                    }
-                    
-                    // If there's not enough space above, show below instead
-                    if (top < 10) {
-                        top = rect.bottom + 20; // Also increased space below to 20px
-                    }
-                    
-                    // Apply positioning
-                    notification.style.left = `${left}px`;
-                    notification.style.top = `${top}px`;
-                    
-                    // Show notification
-                    notification.classList.add('show');
-                }, 350); // Wait for the 300ms color animation + 50ms buffer
+                // Simple positioning above the clicked element
+                const rect = targetElement.getBoundingClientRect();
+                notification.style.left = `${rect.left + (rect.width / 2) - 100}px`; // Center on element, offset by half notification width
+                notification.style.top = `${rect.top - 50}px`; // 50px above the element
+                
+                // Show notification
+                notification.classList.add('show');
                 
                 // Hide after 1 second
                 setTimeout(() => {

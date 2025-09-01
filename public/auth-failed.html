@@ -127,7 +127,7 @@
 <body>
     <div class="container">
         <div class="error-icon">
-            <img id="error-gif" src="/images/cleaning-images/cleaning.gif" alt="Cleaning animation">
+            <img id="error-gif" src="../images/cleaning-images/cleaning.gif" alt="Cleaning animation" onerror="this.style.display='none'; if(!this.parentNode.querySelector('.fallback-text')){const fallback=document.createElement('p');fallback.className='fallback-text';fallback.textContent='🧹 Cleaning in progress...';fallback.style.cssText='color: #94a3b8; font-size: 18px; margin-top: 20px; text-align: center;';this.parentNode.appendChild(fallback);}">
         </div>
         <h1>Authentication Failed</h1>
         <p class="message" id="message-text">
@@ -171,16 +171,33 @@
                 if (errorGifElement) {
                     // Add loading effect
                     errorGifElement.style.opacity = '0.5';
-                    errorGifElement.src = `/images/cleaning-images/${randomGif}`;
+                    
+                    // Try relative path first, then fallback to absolute
+                    const imagePath = `../images/cleaning-images/${randomGif}`;
+                    errorGifElement.src = imagePath;
                     
                     errorGifElement.onload = function() {
                         this.style.opacity = '1';
                     };
                     
                     errorGifElement.onerror = function() { 
-                        // Fallback to a simple error message if image fails to load
-                        errorGifElement.style.display = 'none';
-                        console.log('Failed to load image:', `/images/cleaning-images/${randomGif}`);
+                        // Try absolute path as fallback
+                        const absolutePath = `/images/cleaning-images/${randomGif}`;
+                        if (this.src !== absolutePath) {
+                            this.src = absolutePath;
+                        } else {
+                            // If both paths fail, hide the image and show fallback text
+                            errorGifElement.style.display = 'none';
+                            const existingFallback = errorGifElement.parentNode.querySelector('.fallback-text');
+                            if (!existingFallback) {
+                                const fallbackText = document.createElement('p');
+                                fallbackText.className = 'fallback-text';
+                                fallbackText.textContent = '🧹 Cleaning in progress...';
+                                fallbackText.style.cssText = 'color: #94a3b8; font-size: 18px; margin-top: 20px; text-align: center;';
+                                errorGifElement.parentNode.appendChild(fallbackText);
+                            }
+                            console.log('Failed to load image from both paths:', imagePath, 'and', absolutePath);
+                        }
                     };
                 }
             }
