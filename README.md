@@ -76,7 +76,7 @@ npm install @spark-apps/gmail-manager-mcp
 ---
 
 <details>
-<summary><strong>👨‍💻 Clone and build locally</strong></summary>
+<summary><strong>🏠 Clone and build locally</strong></summary>
 
    ```bash
    git clone https://github.com/muammar-yacoob/GMail-Manager-MCP.git
