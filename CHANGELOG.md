@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.3](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.3.2...v1.3.3) (2025-09-01)
+
+
+### Bug Fixes
+
+* zod package locked ([6347ade](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/6347aded6cba612817437bd11caa99cbf13f689f))
+
 ## [1.3.2](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.3.1...v1.3.2) (2025-08-31)
 
 
