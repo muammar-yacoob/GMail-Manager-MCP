@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.4](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.3.3...v1.3.4) (2025-09-02)
+
+
+### Bug Fixes
+
+* add .npmignore and optimize package for npx compatibility ([7649283](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/76492834498e48ce94f5dc3ed6c1cb2c1bd6823a))
+* resolve npx installation issues and update documentation ([41171c0](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/41171c09b885844e58b1d3185a2c12f352d4323c))
+
 ## [1.3.3](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.3.2...v1.3.3) (2025-09-01)
 
 
