@@ -59,6 +59,12 @@ Perfect for **inbox zero enthusiasts** and anyone drowning in email overload! �
 5. Navigate to [Data access](https://console.cloud.google.com/auth/scopes) → **Add or remove scopes** → Enter: `https://mail.google.com/`
 6. Navigate to [Test users](https://console.cloud.google.com/auth/audience) → Add your Google email
 
+**📁 Where to put `gcp-oauth.keys.json`:**
+- **If using npm (npx)**: Place it in your home directory  
+  Windows: `%USERPROFILE%` • macOS/Linux: `~/`
+- **If running locally from source**: Place it in the project root (same folder as `package.json`)
+- **Or set a custom path**: Define `GMAIL_OAUTH_PATH` in your Claude Desktop config to point to the file
+
 </details>
 
 ---
@@ -69,7 +75,7 @@ Perfect for **inbox zero enthusiasts** and anyone drowning in email overload! �
 <summary><strong>📦 Install from npm registry (Easier ⚡) </strong></summary>
 
 ```bash
-npm install @spark-apps/gmail-manager-mcp
+npm i -g @spark-apps/gmail-manager-mcp
 ```
 </details>
 
@@ -107,10 +113,14 @@ Add to your Claude Desktop config file:
 {
   "mcpServers": {
     "gmail-manager": {
-      "command": "npx","args": ["@spark-apps/gmail-manager-mcp"]}
+      "command": "npx","args": ["@spark-apps/gmail-manager-mcp@latest"],
+      "env": { "GMAIL_OAUTH_PATH": "C:/path/to/gcp-oauth.keys.json" }
+    }
   }
 }
 ```
+
+Tip: On Windows JSON, use double backslashes in paths (e.g. `C:\\path\\gcp-oauth.keys.json`).
 
 **For Local Development:**
 
