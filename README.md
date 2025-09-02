@@ -50,7 +50,7 @@ Gmail Manager MCP gives Claude Desktop **direct access** to your Gmail inbox, al
 
 ### 📋 Prerequisites: Get Gmail Credentials 🗝️
 
-<details open>
+<details>
 <summary><strong>🔑 Required before any installation</strong></summary>
 
 1. [Create New Project](https://console.cloud.google.com/projectcreate) 📁
