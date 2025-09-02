@@ -1,6 +1,6 @@
 {
   "name": "@spark-apps/gmail-manager-mcp",
-  "version": "1.3.4",
+  "version": "1.3.5",
   "description": "A minimal MCP server for Gmail to help you manage, organize, and clean up your inbox",
   "type": "module",
   "main": "dist/index.js",
