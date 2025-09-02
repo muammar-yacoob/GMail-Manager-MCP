@@ -1,0 +1,30 @@
+# Exclude heavy assets that cause npx extraction issues
+public/images/cleaning-images/*.gif
+public/images/cleaning-images/cleaning*.gif
+
+# Exclude development files
+src/
+*.ts
+*.tsbuildinfo
+.cursor/
+.claude/
+.github/
+scripts/
+test-*.sh
+test-*.js
+setup.sh
+Dockerfile
+.dockerignore
+docker-compose.yml
+smithery.yaml
+.local/
+
+# Keep only essential files
+!dist/
+!public/auth-pages/
+!public/components/
+!public/css/
+!public/js/
+!public/data/
+!public/images/trash-mail.png
+!public/images/meme.png

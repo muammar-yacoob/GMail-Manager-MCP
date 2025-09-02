@@ -21,10 +21,8 @@
   },
   "files": [
     "dist",
-    "public",
     "README.md",
-    "LICENSE",
-    "smithery.yaml"
+    "LICENSE"
   ],
   "keywords": [
     "gmail",
