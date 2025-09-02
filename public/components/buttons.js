@@ -1,58 +1,74 @@
 // Button Components for Gmail Manager MCP
-const buttonStyles = {
-    primary: `
-        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-        border: none;
-        color: white;
-        padding: 12px 24px;
-        border-radius: 8px;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        margin: 8px;
-        text-decoration: none;
-        display: inline-block;
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-    `,
-    hover: `
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
-    `,
-    active: `
-        transform: translateY(0);
-    `
+
+// Configuration constants
+const BUTTON_CONFIG = {
+    urls: {
+        support: 'https://github.com/muammar-yacoob/GMail-Manager-MCP#-support--contributions',
+        explore: 'https://spark-games.co.uk',
+        setupInstructions: 'https://github.com/muammar-yacoob/GMail-Manager-MCP#-quick-setup'
+    },
+    text: {
+        support: '💖 Support & Contributions',
+        explore: '🚀 Explore More',
+        setupInstructions: '📖 Setup Instructions'
+    }
 };
 
 function createButton(text, href, className = 'btn primary-btn') {
-    return `<a href="${href}" class="${className}">${text}</a>`;
+    return `<a href="${href}" class="${className}" target="_blank">${text}</a>`;
+}
+
+function createSupportButton() {
+    return createButton(BUTTON_CONFIG.text.support, BUTTON_CONFIG.urls.support, 'btn support-btn');
+}
+
+function createExploreButton() {
+    return createButton(BUTTON_CONFIG.text.explore, BUTTON_CONFIG.urls.explore);
+}
+
+function createSetupButton() {
+    return createButton(BUTTON_CONFIG.text.setupInstructions, BUTTON_CONFIG.urls.setupInstructions);
 }
 
 function createCommonButtons() {
     return `
-        <div style="text-align: center; margin-top: 24px;">
-            ${createButton('📖 Setup Instructions', 'https://github.com/muammar-yacoob/GMail-Manager-MCP#-quick-setup')}
-            ${createButton('🚀 Explore More', 'https://spark-games.co.uk')}
+        <div class="button-container">
+            ${createSupportButton()}
+            ${createExploreButton()}
         </div>
     `;
 }
 
-function addButtonStyles() {
-    const style = document.createElement('style');
-    style.textContent = `
-        .primary-btn {
-            ${buttonStyles.primary}
-        }
-        
-        .primary-btn:hover {
-            ${buttonStyles.hover}
-        }
-        
-        .primary-btn:active {
-            ${buttonStyles.active}
-        }
+function createFailedPageButtons() {
+    return `
+        <div class="button-container">
+            ${createSetupButton()}
+            ${createExploreButton()}
+        </div>
     `;
-    document.head.appendChild(style);
 }
 
-export { createButton, createCommonButtons, addButtonStyles };
+// Export functions for use in other modules
+if (typeof module !== 'undefined' && module.exports) {
+    // Node.js environment
+    module.exports = { 
+        createButton, 
+        createSupportButton, 
+        createExploreButton,
+        createSetupButton,
+        createCommonButtons,
+        createFailedPageButtons,
+        BUTTON_CONFIG 
+    };
+} else if (typeof window !== 'undefined') {
+    // Browser environment - attach to window object
+    window.ButtonComponents = { 
+        createButton, 
+        createSupportButton, 
+        createExploreButton,
+        createSetupButton,
+        createCommonButtons,
+        createFailedPageButtons,
+        BUTTON_CONFIG 
+    };
+}

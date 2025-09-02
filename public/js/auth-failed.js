@@ -30,14 +30,15 @@ window.addEventListener('load', function() {
         
         if (errorGifElement) {
             // Add loading effect
-            errorGifElement.style.opacity = '0.5';
+            errorGifElement.classList.add('gif-loading');
             
             // Try relative path first, then fallback to absolute
             const imagePath = `../images/cleaning-images/${randomGif}`;
             errorGifElement.src = imagePath;
             
             errorGifElement.onload = function() {
-                this.style.opacity = '1';
+                this.classList.remove('gif-loading');
+                this.classList.add('gif-loaded');
             };
             
             errorGifElement.onerror = function() { 
@@ -47,13 +48,12 @@ window.addEventListener('load', function() {
                     this.src = absolutePath;
                 } else {
                     // If both paths fail, hide the image and show fallback text
-                    errorGifElement.style.display = 'none';
+                    errorGifElement.classList.add('gif-hidden');
                     const existingFallback = errorGifElement.parentNode.querySelector('.fallback-text');
                     if (!existingFallback) {
                         const fallbackText = document.createElement('p');
                         fallbackText.className = 'fallback-text';
                         fallbackText.textContent = '🧹 Cleaning in progress...';
-                        fallbackText.style.cssText = 'color: #94a3b8; font-size: 18px; margin-top: 20px; text-align: center;';
                         errorGifElement.parentNode.appendChild(fallbackText);
                     }
                     console.log('Failed to load image from both paths:', imagePath, 'and', absolutePath);
@@ -80,5 +80,26 @@ window.addEventListener('load', function() {
             loadRandomGif();
         });
     }
+    
+    // Load buttons
+    loadButtons();
 });
+
+// Load buttons function
+function loadButtons() {
+    const buttonsContainer = document.getElementById('common-buttons');
+    if (window.ButtonComponents) {
+        // Use the centralized button component for failed page
+        buttonsContainer.innerHTML = window.ButtonComponents.createFailedPageButtons();
+    } else {
+        // Fallback if buttons.js didn't load - but this should rarely happen
+        console.warn('ButtonComponents not available, using minimal fallback');
+        buttonsContainer.innerHTML = `
+            <div class="button-container">
+                <a href="#" class="btn primary-btn" target="_blank">📖 Setup Instructions</a>
+                <a href="#" class="btn primary-btn" target="_blank">🚀 Explore More</a>
+            </div>
+        `;
+    }
+}
 

@@ -1,0 +1,48 @@
+/* Button Components for Gmail Manager MCP */
+
+.btn {
+    border: none;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin: 8px;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.primary-btn {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.primary-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+.primary-btn:active {
+    transform: translateY(0);
+}
+
+.support-btn {
+    background: linear-gradient(135deg, #10b981, #059669);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.support-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+.support-btn:active {
+    transform: translateY(0);
+}
+
+.button-container {
+    text-align: center;
+    margin-top: 24px;
+}

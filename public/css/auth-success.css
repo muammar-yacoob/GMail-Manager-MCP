@@ -268,3 +268,34 @@ h1 {
     content: "✓";
     margin-right: 8px;
 }
+
+/* Support button styles */
+.support-btn {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important;
+}
+
+.support-btn:hover {
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4) !important;
+}
+
+/* Accordion icon rotation */
+.accordion-icon {
+    transition: transform 0.3s ease;
+}
+
+.accordion-icon.rotated {
+    transform: rotate(180deg);
+}
+
+/* Copy feedback animation */
+.command-item.copied {
+    color: #22c55e !important;
+    transition: color 0.3s ease;
+}
+
+/* Button container */
+.button-container {
+    text-align: center;
+    margin-top: 24px;
+}

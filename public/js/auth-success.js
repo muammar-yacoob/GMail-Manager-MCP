@@ -63,35 +63,46 @@ function renderFallbackCommands() {
     const fallbackData = [
         {
             id: "storage-cleanup",
-            name: "🧹 Storage Cleanup",
+            name: "Smart Storage Cleanup",
             icon: "🧹",
             commands: [
-                "Delete all promotional emails from the last 30 days",
-                "Find and clean up all newsletter emails",
-                "Remove all automated notifications older than 1 month",
-                "Delete all calendar invites older than 30 days"
+                "Find and delete duplicate attachments across all emails",
+                "Remove emails with dead/broken links older than 6 months",
+                "Delete redundant email chains where I'm CC'd and the conversation continued without me",
+                "Clean up emails from defunct/expired domains"
             ]
         },
         {
             id: "smart-organization",
-            name: "📊 Smart Organization", 
-            icon: "📊",
+            name: "Intelligent Organization", 
+            icon: "🧠",
             commands: [
-                "Label all financial emails as 'Finance'",
-                "Create 'Archive-2024' label and move old work emails",
-                "Group all travel confirmations under 'Travel'",
-                "Label subscription emails as 'Subscriptions'"
+                "Auto-categorize emails by project context using content analysis",
+                "Group related emails across different senders by topic/project",
+                "Create smart folders based on my interaction patterns",
+                "Identify and group conversation threads split across multiple subjects"
             ]
         },
         {
             id: "inbox-analysis",
-            name: "🔍 Inbox Analysis",
-            icon: "🔍", 
+            name: "Advanced Analytics",
+            icon: "📊", 
             commands: [
-                "Show me my largest emails taking up storage",
-                "Find all unread emails older than 2 weeks",
-                "List my top 10 email senders by volume",
-                "Analyze email patterns and suggest cleanup"
+                "Analyze my email response patterns and suggest optimization strategies",
+                "Identify communication bottlenecks in project-related email threads",
+                "Show email interaction network map with key stakeholders",
+                "Generate engagement reports for sent newsletters"
+            ]
+        },
+        {
+            id: "automation",
+            name: "Smart Automation",
+            icon: "⚡",
+            commands: [
+                "Auto-summarize long email threads with key decisions and action items",
+                "Extract and compile all action items from emails into a task list",
+                "Generate meeting briefs from related email threads",
+                "Auto-detect and extract recurring reports from emails"
             ]
         }
     ];
@@ -125,18 +136,18 @@ function toggleAccordion(header) {
         if (item !== content) {
             item.classList.remove('active');
             item.previousElementSibling.classList.remove('active');
-            item.previousElementSibling.querySelector('.accordion-icon').style.transform = 'rotate(0deg)';
+            item.previousElementSibling.querySelector('.accordion-icon').classList.remove('rotated');
         }
     });
     
     if (isActive) {
         content.classList.remove('active');
         header.classList.remove('active');
-        icon.style.transform = 'rotate(0deg)';
+        icon.classList.remove('rotated');
     } else {
         content.classList.add('active');
         header.classList.add('active');
-        icon.style.transform = 'rotate(180deg)';
+        icon.classList.add('rotated');
     }
 }
 
@@ -144,8 +155,8 @@ function copyCommand(element) {
     const text = element.textContent.trim();
     navigator.clipboard.writeText(text).then(() => {
         showCopyNotification();
-        element.style.color = '#22c55e';
-        setTimeout(() => element.style.color = '', 300);
+        element.classList.add('copied');
+        setTimeout(() => element.classList.remove('copied'), 300);
     }).catch(() => {
         const textarea = document.createElement('textarea');
         textarea.value = text;
@@ -168,12 +179,19 @@ function showCopyNotification() {
 // Load buttons
 function loadButtons() {
     const buttonsContainer = document.getElementById('common-buttons');
-    buttonsContainer.innerHTML = `
-        <div style="text-align: center; margin-top: 24px;">
-            <a href="https://github.com/muammar-yacoob/GMail-Manager-MCP#-quick-setup" class="btn" target="_blank">📖 Setup Instructions</a>
-            <a href="https://spark-games.co.uk" class="btn" target="_blank">🚀 Explore More</a>
-        </div>
-    `;
+    if (window.ButtonComponents) {
+        // Use the centralized button component
+        buttonsContainer.innerHTML = window.ButtonComponents.createCommonButtons();
+    } else {
+        // Fallback if buttons.js didn't load - but this should rarely happen
+        console.warn('ButtonComponents not available, using minimal fallback');
+        buttonsContainer.innerHTML = `
+            <div class="button-container">
+                <a href="#" class="btn support-btn" target="_blank">💖 Support & Contributions</a>
+                <a href="#" class="btn primary-btn" target="_blank">🚀 Explore More</a>
+            </div>
+        `;
+    }
 }
 
 // Initialize page when DOM is loaded

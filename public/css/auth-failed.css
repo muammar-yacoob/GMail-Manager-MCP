@@ -85,6 +85,20 @@ body {
     text-align: center;
 }
 
+/* GIF loading states */
+.gif-loading {
+    opacity: 0.5;
+    transition: opacity 0.3s ease;
+}
+
+.gif-loaded {
+    opacity: 1;
+}
+
+.gif-hidden {
+    display: none !important;
+}
+
 h1 {
     color: #f1f5f9;
     margin-bottom: 15px;
