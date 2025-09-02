@@ -6,9 +6,38 @@ dist/
 .gmail-mcp/
 *.log
 npm-debug.log*
-.vscode/
 coverage/
 .smithery/
 credentials.json
 .local/
+
+# IDE and Editor directories
+.vscode/
+.cursor/
 .claude/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Windows environment variable paths (should never be in project)
+%USERPROFILE%*
+%APPDATA%*
+%LOCALAPPDATA%*
+%TEMP%*
+%TMP%*
+
+# NPM cache directories that can appear in Windows environments
+**/.npm-cache-clean/
+**/npm-cache-clean/
+**/.npm-cache/
+**/npm-cache/
