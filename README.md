@@ -157,64 +157,35 @@ Add to your Claude Desktop config file:
 ## 💬 Example Commands
 
 <details>
-<summary><strong>🧹 Smart Storage Cleanup</strong></summary>
+<summary><strong>🧹 Quick Cleanup</strong></summary>
 
-- *"Find and delete duplicate attachments across all emails"*
-- *"Remove emails with dead/broken links older than 6 months"*
-- *"Delete redundant email chains where I'm CC'd and the conversation continued without me"*
-- *"Clean up emails from defunct/expired domains"*
-- *"Find and merge split conversation threads"*
-- *"Remove emails from companies that no longer exist"*
-- *"Delete newsletters from sources I haven't engaged with in the last year"*
-- *"Clean up automated emails from services I no longer use"*
-- *"Remove duplicate calendar invites and their related email threads"*
-- *"Delete notification chains where a final resolution email exists"*
+- *"Delete all promotional emails from last 30 days"*
+- *"Delete all unread newsletters older than 1 week"*
+- *"Delete all 'no-reply' emails from last 3 months"*
+- *"Delete all LinkedIn notification emails"*
+- *"Delete all password reset emails older than 1 month"*
+- *"Delete redundant email chains where I'm CC'd"*
 
 </details>
 
 <details>
-<summary><strong>🧠 Intelligent Organization</strong></summary>
+<summary><strong>⚡ Smart Actions</strong></summary>
 
-- *"Auto-categorize emails by project context using content analysis"*
-- *"Group related emails across different senders by topic/project"*
-- *"Create smart folders based on my interaction patterns"*
-- *"Identify and group conversation threads split across multiple subjects"*
-- *"Auto-detect and label emails requiring follow-up based on content"*
-- *"Group emails by organizational hierarchy"*
-- *"Create dynamic labels based on recurring calendar events"*
-- *"Auto-categorize attachments by type and content"*
-- *"Group emails by project phases detected from content"*
+- *"Summarize email with subject: 'last boring meeting'"*
+- *"Summarize all emails about 'project deadline'"*
+- *"Label all emails from my bank as 'Finance'"*
+- *"Create 'Travel' label and move all booking confirmations"*
+- *"Find emails with attachments larger than 5MB"*
 
 </details>
 
 <details>
-<summary><strong>📊 Advanced Analytics</strong></summary>
+<summary><strong>📊 Inbox Insights</strong></summary>
 
-- *"Analyze my email response patterns and suggest optimization strategies"*
-- *"Identify communication bottlenecks in project-related email threads"*
-- *"Show email interaction network map with key stakeholders"*
-- *"Generate engagement reports for sent newsletters"*
-- *"Analyze meeting scheduling patterns and suggest optimal times"*
-- *"Show communication gaps with important contacts"*
-- *"Identify peak productivity hours based on email patterns"*
-- *"Generate reports on email handling efficiency"*
-- *"Show topic evolution over time in long-running threads"*
-- *"Analyze sentiment trends in customer communication"*
-
-</details>
-
-<details>
-<summary><strong>⚡ Smart Automation</strong></summary>
-
-- *"Auto-summarize long email threads with key decisions and action items"*
-- *"Extract and compile all action items from emails into a task list"*
-- *"Generate meeting briefs from related email threads"*
-- *"Auto-detect and extract recurring reports from emails"*
-- *"Create project timelines from email communication history"*
-- *"Extract and compile resource links shared across email threads"*
-- *"Generate contact engagement reports with communication frequency analysis"*
-- *"Auto-create meeting agendas based on previous related emails"*
-- *"Compile document version history from email attachments"*
+- *"Show me who sends me the most emails"*
+- *"Find all unread emails older than 1 week"*
+- *"Show my busiest email days this month"*
+- *"Find emails I starred but never replied to"*
 
 </details>
 
