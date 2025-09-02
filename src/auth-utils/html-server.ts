@@ -1,18 +1,24 @@
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Get directory path for ES modules
+const currentDir = (() => {
+    // In ES modules, we need to construct __dirname equivalent
+    try {
+        return path.dirname(new URL(import.meta.url).pathname);
+    } catch {
+        // Fallback for build-time or when import.meta is not available
+        return path.join(process.cwd(), 'dist', 'auth-utils');
+    }
+})();
 
 /**
  * Get the auth success HTML with inline CSS, JavaScript, and JSON data
  */
 export function getAuthSuccessHTML(): string {
-    const htmlPath = path.join(__dirname, '..', '..', 'public', 'auth-pages', 'auth-success.html');
-    const cssPath = path.join(__dirname, '..', '..', 'public', 'css', 'auth-success.css');
-    const jsPath = path.join(__dirname, '..', '..', 'public', 'js', 'auth-success.js');
-    const commandsPath = path.join(__dirname, '..', '..', 'public', 'data', 'commands.json');
+    const htmlPath = path.join(currentDir, '..', '..', 'public', 'auth-pages', 'auth-success.html');
+    const cssPath = path.join(currentDir, '..', '..', 'public', 'css', 'auth-success.css');
+    const jsPath = path.join(currentDir, '..', '..', 'public', 'js', 'auth-success.js');
+    const commandsPath = path.join(currentDir, '..', '..', 'public', 'data', 'commands.json');
     
     let html = fs.readFileSync(htmlPath, 'utf8');
     
@@ -60,9 +66,9 @@ export function getAuthSuccessHTML(): string {
  * Get the auth failed HTML with inline CSS and JavaScript
  */
 export function getAuthFailedHTML(): string {
-    const htmlPath = path.join(__dirname, '..', '..', 'public', 'auth-pages', 'auth-failed.html');
-    const cssPath = path.join(__dirname, '..', '..', 'public', 'css', 'auth-failed.css');
-    const jsPath = path.join(__dirname, '..', '..', 'public', 'js', 'auth-failed.js');
+    const htmlPath = path.join(currentDir, '..', '..', 'public', 'auth-pages', 'auth-failed.html');
+    const cssPath = path.join(currentDir, '..', '..', 'public', 'css', 'auth-failed.css');
+    const jsPath = path.join(currentDir, '..', '..', 'public', 'js', 'auth-failed.js');
     
     let html = fs.readFileSync(htmlPath, 'utf8');
     
@@ -91,7 +97,7 @@ export function getAuthFailedHTML(): string {
  * Get the auth error HTML (fallback)
  */
 export function getAuthErrorHTML(): string {
-    const htmlPath = path.join(__dirname, '..', '..', 'public', 'auth-pages', 'auth-failed.html');
+    const htmlPath = path.join(currentDir, '..', '..', 'public', 'auth-pages', 'auth-failed.html');
     return fs.readFileSync(htmlPath, 'utf8');
 }
 
