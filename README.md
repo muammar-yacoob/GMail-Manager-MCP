@@ -9,6 +9,7 @@
 [fork-link]: ../../fork
 [privacy-link]: ./PRIVACY.md
 [issues-link]: ../../issues
+[discord-link]: https://discord.gg/PLACEHOLDER_SERVER
 
 # <img src="public/images/trash-mail.png" alt="Gmail Manager" width="48" height="48" style="vertical-align: middle;"> Gmail Manager MCP
 
@@ -43,21 +44,21 @@ Gmail Manager MCP gives Claude Desktop **direct access** to your Gmail inbox, al
 | ![Organize](https://img.shields.io/badge/🏷️-Smart%20Organization-yellow?style=flat-square) | Create and apply labels to categorize emails automatically |
 | ![Cleanup](https://img.shields.io/badge/🗑️-Bulk%20Cleanup-crimson?style=flat-square) | Remove old newsletters, notifications, and spam efficiently |
 
-Perfect for **inbox zero enthusiasts** and anyone drowning in email overload! 📧💀
 
-## 🚀 Quick Setup
+
+## 🚀 Quick Setup 
 
 ### 📋 Prerequisites: Get Gmail Credentials 🗝️
 
 <details open>
 <summary><strong>🔑 Required before any installation</strong></summary>
 
-1. [Create New Project](https://console.cloud.google.com/projectcreate)
-2. [Enable Gmail API](https://console.cloud.google.com/apis/api/gmail.googleapis.com/metrics)
-3. Create [OAuth client ID](https://console.cloud.google.com/auth/clients) (Desktop app type)
-4. Download as `gcp-oauth.keys.json`
-5. Navigate to [Data access](https://console.cloud.google.com/auth/scopes) → **Add or remove scopes** → Enter: `https://mail.google.com/`
-6. Navigate to [Test users](https://console.cloud.google.com/auth/audience) → Add your Google email
+1. [Create New Project](https://console.cloud.google.com/projectcreate) 📁
+2. [Enable Gmail API](https://console.cloud.google.com/apis/api/gmail.googleapis.com/metrics) 📧
+3. Create [OAuth client ID](https://console.cloud.google.com/auth/clients) (Desktop app type) 🔐
+4. Download as `gcp-oauth.keys.json` 📥
+5. Navigate to [Data access](https://console.cloud.google.com/auth/scopes) → **Add or remove scopes** → Enter: `https://mail.google.com/` 🔓
+6. Navigate to [Test users](https://console.cloud.google.com/auth/audience) → Add your Google email 👤
 
 **📁 Where to put `gcp-oauth.keys.json`:**
 - **If using npm (npx)**: Place it in your home directory  
@@ -195,17 +196,17 @@ Add to your Claude Desktop config file:
 
 ⭐ **Star the repo** & I power up like Mario 🍄  
 ☕ **Devs run on coffee** - [Buy me one?][coffee-link]  
-🤝 **Contributions are welcome** - [🍴 Fork][fork-link], improve, PR!
+🤝 **Contributions are welcome** - [🍴 Fork][fork-link], improve, PR!  
+🎥 **Need help?** <img src="https://img.icons8.com/color/20/youtube-play.png" alt="YouTube" style="vertical-align: middle;"> [Setup Tutorial][vid-link] • <img src="https://img.icons8.com/color/20/discord--v2.png" alt="Discord" style="vertical-align: middle;"> [Join Discord][discord-link]
 
 ## 💖 Sponsor
+Your support helps maintain and improve the tool. please consider [sponsoring the project][stars-link]. 
 
-If you find Gmail Manager MCP useful, please consider sponsoring the project! Your support helps maintain and improve the tool.
 
 ---
 
 <div align="center">
 
-**🚀 Ready to clean your inbox?**
 
 **Made with ❤️ for Claude Desktop** • [Privacy Policy](PRIVACY.md) • [Terms of Service](TERMS.md)
 
