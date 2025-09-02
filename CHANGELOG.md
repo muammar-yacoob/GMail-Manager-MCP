@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.5](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.3.4...v1.3.5) (2025-09-02)
+
+
+### Bug Fixes
+
+* remove IDE-specific directories from tracking ([e5992bd](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/e5992bdd8e89e10091719ed5e07a044c0a1c8524))
+* remove Windows environment variable paths and enhance .gitignore ([dd736b8](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/dd736b897f3d26c41fa7e69164ef8fdc47fe6829))
+
 ## [1.3.4](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.3.3...v1.3.4) (2025-09-02)
 
 
