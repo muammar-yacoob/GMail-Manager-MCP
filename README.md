@@ -66,7 +66,7 @@ Perfect for **inbox zero enthusiasts** and anyone drowning in email overload! �
 ## 📦 Installation Options
 
 <details>
-<summary><strong>🚀 Install from npm registry</strong></summary>
+<summary><strong>📦 Install from npm registry</strong></summary>
 
 ```bash
 npm install @spark-apps/gmail-manager-mcp
@@ -102,7 +102,7 @@ Add to your Claude Desktop config file:
 - ![macOS](https://img.shields.io/badge/macOS-silver?style=flat-square&logo=apple&logoColor=black) `~/Library/Application Support/Claude/claude_desktop_config.json`
 - ![Linux](https://img.shields.io/badge/Linux-gold?style=flat-square&logo=linux&logoColor=black) `~/.config/Claude/claude_desktop_config.json`
 
-**For NPM Install:**
+**📦 For NPM Install:**
 ```json
 {
   "mcpServers": {
