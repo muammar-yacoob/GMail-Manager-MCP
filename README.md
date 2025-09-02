@@ -10,7 +10,7 @@
 [privacy-link]: ./PRIVACY.md
 [issues-link]: ../../issues
 
-# <img src="images/trash-mail.png" alt="Gmail Manager" width="48" height="48" style="vertical-align: middle;"> Gmail Manager MCP
+# <img src="public/images/trash-mail.png" alt="Gmail Manager" width="48" height="48" style="vertical-align: middle;"> Gmail Manager MCP
 
 <div align="center">
 
@@ -27,7 +27,7 @@
 [![Downloads](https://img.shields.io/github/downloads/muammar-yacoob/GMail-Manager-MCP/total?logo=cloud-download&logoColor=white&color=dodgerblue)][release-link]
 [![GitHub Stars](https://img.shields.io/github/stars/muammar-yacoob/GMail-Manager-MCP?style=social)][stars-link]
 
-<img src="images/meme.png" alt="Stop sending me unnecessary emails meme" width="400">
+<img src="public/images/meme.png" alt="Stop sending me unnecessary emails meme" width="400">
 
 </div>
 
@@ -63,10 +63,10 @@ Perfect for **inbox zero enthusiasts** and anyone drowning in email overload! �
 
 ---
 
-## 📦 Installation Options
+## 📥 Installation
 
 <details>
-<summary><strong>📦 Install from npm registry</strong></summary>
+<summary><strong>📦 Install from npm registry (Easier ⚡) </strong></summary>
 
 ```bash
 npm install @spark-apps/gmail-manager-mcp
@@ -76,7 +76,7 @@ npm install @spark-apps/gmail-manager-mcp
 ---
 
 <details>
-<summary><strong>🏠 Clone and build locally</strong></summary>
+<summary><strong>🏠 Clone and build locally (Safer 🛡️)</strong></summary>
 
    ```bash
    git clone https://github.com/muammar-yacoob/GMail-Manager-MCP.git
