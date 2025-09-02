@@ -113,42 +113,24 @@ Add to your Claude Desktop config file:
 {
   "mcpServers": {
     "gmail-manager": {
-      "command": "npx","args": ["@spark-apps/gmail-manager-mcp@latest"],
-      "env": { "GMAIL_OAUTH_PATH": "C:/path/to/gcp-oauth.keys.json" }
+      "command": "npx", "args": ["@spark-apps/gmail-manager-mcp@latest"],
+      "env": { "GMAIL_OAUTH_PATH": "C:\\path\\to\\gcp-oauth.keys.json" }
     }
   }
 }
 ```
-
-Tip: On Windows JSON, use double backslashes in paths (e.g. `C:\\path\\gcp-oauth.keys.json`).
 
 **For Local Development:**
-
-Windows (use double backslashes):
-```json
-{
-  "mcpServers": {
-    "gmail-manager": {
-      "command": "node","args": ["path-to\\GMail-Manager-MCP\\dist\\index.js"]
-    }
-  }
-}
-```
-
-macOS/Linux:
 ```json
 {
   "mcpServers": {
     "gmail-manager": {
       "command": "node",
-      "args": ["/path/to/GMail-Manager-MCP/dist/index.js"]
+      "args": ["\\path\\to\\GMail-Manager-MCP\\dist\\index.js"]
     }
   }
 }
 ```
-
-⚠️ **Important for Windows users**: Use double backslashes (`\\`) in the path!
-
 </details>
 
 ## 🛠️ Available Tools
@@ -175,35 +157,64 @@ macOS/Linux:
 ## 💬 Example Commands
 
 <details>
-<summary><strong>🧹 Storage Cleanup Commands</strong></summary>
+<summary><strong>🧹 Smart Storage Cleanup</strong></summary>
 
-- *"Delete all emails from noreply addresses older than 6 months"*
-- *"Find and delete all promotional emails from shopping sites"*
-- *"Remove all LinkedIn notification emails from the past year"*
-- *"Delete all automated emails from GitHub, Slack, and Jira"*
-- *"Clean up all newsletter emails I haven't opened in 3 months"*
-- *"Delete all 'password reset' and 'account verification' emails"*
-- *"Remove all calendar invites and meeting reminders older than 30 days"*
-- *"Find and delete all emails with large attachments over 10MB"*
-
-</details>
-
-<details>
-<summary><strong>📊 Smart Organization</strong></summary>
-
-- *"Label all emails from banks and financial institutions as 'Finance'"*
-- *"Create 'Archive-2024' label and move all old work emails there"*
-- *"Find all subscription confirmation emails and label them 'Subscriptions'"*
-- *"Group all travel booking confirmations under 'Travel' label"*
+- *"Find and delete duplicate attachments across all emails"*
+- *"Remove emails with dead/broken links older than 6 months"*
+- *"Delete redundant email chains where I'm CC'd and the conversation continued without me"*
+- *"Clean up emails from defunct/expired domains"*
+- *"Find and merge split conversation threads"*
+- *"Remove emails from companies that no longer exist"*
+- *"Delete newsletters from sources I haven't engaged with in the last year"*
+- *"Clean up automated emails from services I no longer use"*
+- *"Remove duplicate calendar invites and their related email threads"*
+- *"Delete notification chains where a final resolution email exists"*
 
 </details>
 
 <details>
-<summary><strong>🔍 Inbox Analysis</strong></summary>
+<summary><strong>🧠 Intelligent Organization</strong></summary>
 
-- *"Show me my top 10 email senders by volume this year"*
-- *"Find all unread emails older than 1 month"*
-- *"List all emails taking up the most storage space"*
+- *"Auto-categorize emails by project context using content analysis"*
+- *"Group related emails across different senders by topic/project"*
+- *"Create smart folders based on my interaction patterns"*
+- *"Identify and group conversation threads split across multiple subjects"*
+- *"Auto-detect and label emails requiring follow-up based on content"*
+- *"Group emails by organizational hierarchy"*
+- *"Create dynamic labels based on recurring calendar events"*
+- *"Auto-categorize attachments by type and content"*
+- *"Group emails by project phases detected from content"*
+
+</details>
+
+<details>
+<summary><strong>📊 Advanced Analytics</strong></summary>
+
+- *"Analyze my email response patterns and suggest optimization strategies"*
+- *"Identify communication bottlenecks in project-related email threads"*
+- *"Show email interaction network map with key stakeholders"*
+- *"Generate engagement reports for sent newsletters"*
+- *"Analyze meeting scheduling patterns and suggest optimal times"*
+- *"Show communication gaps with important contacts"*
+- *"Identify peak productivity hours based on email patterns"*
+- *"Generate reports on email handling efficiency"*
+- *"Show topic evolution over time in long-running threads"*
+- *"Analyze sentiment trends in customer communication"*
+
+</details>
+
+<details>
+<summary><strong>⚡ Smart Automation</strong></summary>
+
+- *"Auto-summarize long email threads with key decisions and action items"*
+- *"Extract and compile all action items from emails into a task list"*
+- *"Generate meeting briefs from related email threads"*
+- *"Auto-detect and extract recurring reports from emails"*
+- *"Create project timelines from email communication history"*
+- *"Extract and compile resource links shared across email threads"*
+- *"Generate contact engagement reports with communication frequency analysis"*
+- *"Auto-create meeting agendas based on previous related emails"*
+- *"Compile document version history from email attachments"*
 
 </details>
 
