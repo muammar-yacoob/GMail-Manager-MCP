@@ -1,74 +1,52 @@
 // Button Components for Gmail Manager MCP
 
-// Configuration constants
-const BUTTON_CONFIG = {
-    urls: {
-        support: 'https://github.com/muammar-yacoob/GMail-Manager-MCP#-support--contributions',
-        explore: 'https://spark-games.co.uk',
-        setupInstructions: 'https://github.com/muammar-yacoob/GMail-Manager-MCP#-quick-setup'
+// Available buttons configuration
+const BUTTONS = {
+    support: {
+        text: '💖 Support & Contributions',
+        url: 'https://github.com/muammar-yacoob/GMail-Manager-MCP#-support--contributions',
+        className: 'btn support-btn'
     },
-    text: {
-        support: '💖 Support & Contributions',
-        explore: '🚀 Explore More',
-        setupInstructions: '📖 Setup Instructions'
+    explore: {
+        text: '🚀 Explore More',
+        url: 'https://spark-games.co.uk',
+        className: 'btn primary-btn'
+    },
+    setup: {
+        text: '📖 Setup Instructions',
+        url: 'https://github.com/muammar-yacoob/GMail-Manager-MCP#-quick-setup',
+        className: 'btn primary-btn'
     }
 };
 
-function createButton(text, href, className = 'btn primary-btn') {
-    return `<a href="${href}" class="${className}" target="_blank">${text}</a>`;
-}
-
-function createSupportButton() {
-    return createButton(BUTTON_CONFIG.text.support, BUTTON_CONFIG.urls.support, 'btn support-btn');
-}
-
-function createExploreButton() {
-    return createButton(BUTTON_CONFIG.text.explore, BUTTON_CONFIG.urls.explore);
-}
-
-function createSetupButton() {
-    return createButton(BUTTON_CONFIG.text.setupInstructions, BUTTON_CONFIG.urls.setupInstructions);
-}
-
-function createCommonButtons() {
-    return `
-        <div class="button-container">
-            ${createSupportButton()}
-            ${createExploreButton()}
-        </div>
-    `;
-}
-
-function createFailedPageButtons() {
-    return `
-        <div class="button-container">
-            ${createSetupButton()}
-            ${createExploreButton()}
-        </div>
-    `;
+// Create buttons from array of button keys
+function createButtons(buttonKeys) {
+    const buttonHtml = buttonKeys
+        .map(key => {
+            const button = BUTTONS[key];
+            if (!button) {
+                console.warn(`Button '${key}' not found in BUTTONS config`);
+                return '';
+            }
+            return `<a href="${button.url}" class="${button.className}" target="_blank">${button.text}</a>`;
+        })
+        .filter(html => html !== '')
+        .join('');
+    
+    return `<div class="button-container">${buttonHtml}</div>`;
 }
 
 // Export functions for use in other modules
 if (typeof module !== 'undefined' && module.exports) {
     // Node.js environment
     module.exports = { 
-        createButton, 
-        createSupportButton, 
-        createExploreButton,
-        createSetupButton,
-        createCommonButtons,
-        createFailedPageButtons,
-        BUTTON_CONFIG 
+        createButtons,
+        BUTTONS 
     };
 } else if (typeof window !== 'undefined') {
     // Browser environment - attach to window object
     window.ButtonComponents = { 
-        createButton, 
-        createSupportButton, 
-        createExploreButton,
-        createSetupButton,
-        createCommonButtons,
-        createFailedPageButtons,
-        BUTTON_CONFIG 
+        createButtons,
+        BUTTONS 
     };
 }

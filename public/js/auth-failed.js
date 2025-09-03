@@ -86,17 +86,12 @@ window.addEventListener('load', function() {
 function loadButtons() {
     const buttonsContainer = document.getElementById('common-buttons');
     if (window.ButtonComponents) {
-        // Use the centralized button component for failed page
-        buttonsContainer.innerHTML = window.ButtonComponents.createFailedPageButtons();
+        // Failed page shows: Setup & Explore buttons
+        buttonsContainer.innerHTML = window.ButtonComponents.createButtons(['setup', 'explore']);
     } else {
-        // Fallback if buttons.js didn't load - but this should rarely happen
-        console.warn('ButtonComponents not available, using minimal fallback');
-        buttonsContainer.innerHTML = `
-            <div class="button-container">
-                <a href="#" class="btn primary-btn" target="_blank">📖 Setup Instructions</a>
-                <a href="#" class="btn primary-btn" target="_blank">🚀 Explore More</a>
-            </div>
-        `;
+        // Fallback if buttons.js didn't load - this should rarely happen
+        console.warn('ButtonComponents not available - buttons.js failed to load');
+        buttonsContainer.innerHTML = '<div class="button-container"><p>Unable to load buttons</p></div>';
     }
 }
 

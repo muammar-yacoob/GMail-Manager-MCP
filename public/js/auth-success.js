@@ -180,17 +180,12 @@ function showCopyNotification() {
 function loadButtons() {
     const buttonsContainer = document.getElementById('common-buttons');
     if (window.ButtonComponents) {
-        // Use the centralized button component
-        buttonsContainer.innerHTML = window.ButtonComponents.createCommonButtons();
+        // Success page shows: Support & Explore buttons
+        buttonsContainer.innerHTML = window.ButtonComponents.createButtons(['support', 'explore']);
     } else {
-        // Fallback if buttons.js didn't load - but this should rarely happen
-        console.warn('ButtonComponents not available, using minimal fallback');
-        buttonsContainer.innerHTML = `
-            <div class="button-container">
-                <a href="#" class="btn support-btn" target="_blank">💖 Support & Contributions</a>
-                <a href="#" class="btn primary-btn" target="_blank">🚀 Explore More</a>
-            </div>
-        `;
+        // Fallback if buttons.js didn't load - this should rarely happen
+        console.warn('ButtonComponents not available - buttons.js failed to load');
+        buttonsContainer.innerHTML = '<div class="button-container"><p>Unable to load buttons</p></div>';
     }
 }
 
