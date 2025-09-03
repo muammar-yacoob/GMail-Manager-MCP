@@ -212,12 +212,12 @@ function createFallbackButtons(buttonKeys) {
 function loadButtons() {
     const buttonsContainer = document.getElementById('common-buttons');
     if (window.ButtonComponents) {
-        // Success page shows: Support & Explore buttons
-        buttonsContainer.innerHTML = window.ButtonComponents.createButtons(['support', 'explore']);
+        // Success page shows: Support button only
+        buttonsContainer.innerHTML = window.ButtonComponents.createButtons(['support']);
     } else {
         // Fallback when buttons.js didn't load
         console.warn('ButtonComponents not available - using inline fallback');
-        buttonsContainer.innerHTML = createFallbackButtons(['support', 'explore']);
+        buttonsContainer.innerHTML = createFallbackButtons(['support']);
     }
 }
 
