@@ -18,27 +18,19 @@ window.addEventListener('load', function() {
     // GIF management
     const gifs = ['cleaning.gif', 'cleaning2.gif', 'cleaning3.gif', 'cleaning4.gif', 'cleaning5.gif'];
     const errorGifElement = document.getElementById('error-gif');
-    let currentGif = '';
+    let currentGifIndex = -1;
     
-    function loadRandomGif() {
-        if (gifs.length <= 1) {
-            currentGif = gifs[0];
-            return;
-        }
-        
-        let randomGif;
-        do {
-            randomGif = gifs[Math.floor(Math.random() * gifs.length)];
-        } while (randomGif === currentGif);
-        
-        currentGif = randomGif;
+    function loadNextGif() {
+        // Always load the next GIF in sequence to ensure different image
+        currentGifIndex = (currentGifIndex + 1) % gifs.length;
+        const nextGif = gifs[currentGifIndex];
         
         if (errorGifElement) {
             // Add loading effect
             errorGifElement.classList.add('gif-loading');
             
             // Try relative path first, then fallback to absolute
-            const imagePath = `../images/cleaning-images/${randomGif}`;
+            const imagePath = `../images/cleaning-images/${nextGif}`;
             errorGifElement.src = imagePath;
             
             errorGifElement.onload = function() {
@@ -48,10 +40,8 @@ window.addEventListener('load', function() {
             
             errorGifElement.onerror = function() { 
                 // Try absolute path as fallback
-                const absolutePath = `/images/cleaning-images/${randomGif}`;
-                if (this.src !== absolutePath) {
-                    this.src = absolutePath;
-                } else {
+                const absolutePath = `/images/cleaning-images/${nextGif}`;
+                if (this.src.includes(absolutePath)) {
                     // If both paths fail, hide the image and show fallback text
                     errorGifElement.classList.add('gif-hidden');
                     const existingFallback = errorGifElement.parentNode.querySelector('.fallback-text');
@@ -62,19 +52,21 @@ window.addEventListener('load', function() {
                         errorGifElement.parentNode.appendChild(fallbackText);
                     }
                     console.log('Failed to load image from both paths:', imagePath, 'and', absolutePath);
+                } else {
+                    this.src = absolutePath;
                 }
             };
         }
     }
     
-    // Load initial random GIF
-    loadRandomGif();
+    // Load initial GIF
+    loadNextGif();
     
-    // Click anywhere to load new random GIF
+    // Click anywhere to load next GIF
     document.addEventListener('click', function(e) {
         // Don't reload GIF if clicking on buttons
         if (!e.target.classList.contains('btn') && !e.target.closest('.btn')) {
-            loadRandomGif();
+            loadNextGif();
         }
     });
     
@@ -82,7 +74,7 @@ window.addEventListener('load', function() {
     if (errorGifElement) {
         errorGifElement.addEventListener('click', function(e) {
             e.stopPropagation();
-            loadRandomGif();
+            loadNextGif();
         });
     }
     
