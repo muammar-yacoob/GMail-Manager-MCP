@@ -21,10 +21,15 @@ window.addEventListener('load', function() {
     let currentGif = '';
     
     function loadRandomGif() {
+        if (gifs.length <= 1) {
+            currentGif = gifs[0];
+            return;
+        }
+        
         let randomGif;
         do {
             randomGif = gifs[Math.floor(Math.random() * gifs.length)];
-        } while (randomGif === currentGif && gifs.length > 1);
+        } while (randomGif === currentGif);
         
         currentGif = randomGif;
         
