@@ -6,23 +6,27 @@ import readline from 'readline';
 import http from 'http';
 import { URL } from 'url';
 import { exec } from 'child_process';
+import { fileURLToPath } from 'url';
 
-// Get directory path for ES modules
+// Get directory path for ES modules - robust cross-platform resolution
 const currentDir = (() => {
-    // In ES modules, we need to construct __dirname equivalent
     try {
-        return path.dirname(new URL(import.meta.url).pathname);
+        // Use fileURLToPath for proper cross-platform path resolution
+        return path.dirname(fileURLToPath(import.meta.url));
     } catch {
-        // Fallback for build-time or when import.meta is not available
-        return path.join(process.cwd(), 'dist');
+        // Fallback to process.cwd() if import.meta.url is not available
+        return process.cwd();
     }
 })();
 
+// Get project root directory (one level up from src/)
+const projectRoot = path.dirname(currentDir);
+
 function getAuthSuccessHTML(): string {
-    const htmlPath = path.join(currentDir, '..', 'public', 'auth-pages', 'auth-success.html');
-    const cssPath = path.join(currentDir, '..', 'public', 'css', 'auth-success.css');
-    const jsPath = path.join(currentDir, '..', 'public', 'js', 'auth-success.js');
-    const commandsPath = path.join(currentDir, '..', 'public', 'data', 'commands.json');
+    const htmlPath = path.join(projectRoot, 'public', 'auth-pages', 'auth-success.html');
+    const cssPath = path.join(projectRoot, 'public', 'css', 'auth-success.css');
+    const jsPath = path.join(projectRoot, 'public', 'js', 'auth-success.js');
+    const commandsPath = path.join(projectRoot, 'public', 'data', 'commands.json');
     
     let html = fs.readFileSync(htmlPath, 'utf8');
     
@@ -67,9 +71,9 @@ function getAuthSuccessHTML(): string {
 }
 
 function getAuthFailedHTML(): string {
-    const htmlPath = path.join(currentDir, '..', 'public', 'auth-pages', 'auth-failed.html');
-    const cssPath = path.join(currentDir, '..', 'public', 'css', 'auth-failed.css');
-    const jsPath = path.join(currentDir, '..', 'public', 'js', 'auth-failed.js');
+    const htmlPath = path.join(projectRoot, 'public', 'auth-pages', 'auth-failed.html');
+    const cssPath = path.join(projectRoot, 'public', 'css', 'auth-failed.css');
+    const jsPath = path.join(projectRoot, 'public', 'js', 'auth-failed.js');
     
     let html = fs.readFileSync(htmlPath, 'utf8');
     
@@ -95,7 +99,7 @@ function getAuthFailedHTML(): string {
 }
 
 function getAuthErrorHTML(): string {
-    const htmlPath = path.join(currentDir, '..', 'public', 'auth-pages', 'auth-failed.html');
+    const htmlPath = path.join(projectRoot, 'public', 'auth-pages', 'auth-failed.html');
     return fs.readFileSync(htmlPath, 'utf8');
 }
 
@@ -117,9 +121,9 @@ function findFileInPaths(filename: string, possiblePaths: string[]): string | nu
 function getPossibleBasePaths(): string[] {
     const paths = [
         process.cwd(),
-        path.dirname(__filename), // dist/
-        path.dirname(path.dirname(__filename)), // project root (from dist/)
-        path.dirname(path.dirname(path.dirname(__filename))), // parent of project root
+        currentDir, // src/
+        projectRoot, // project root
+        path.dirname(projectRoot), // parent of project root
         CONFIG_DIR
     ];
     
@@ -228,7 +232,7 @@ async function authenticateUser(oauth2Client: OAuth2Client): Promise<OAuth2Clien
                     }
                 } else if (url.pathname.startsWith('/images/')) {
                     // Serve static images
-                    const imagePath = path.join(currentDir, '..', 'public', url.pathname);
+                    const imagePath = path.join(projectRoot, 'public', url.pathname);
                     try {
                         if (fs.existsSync(imagePath)) {
                             const imageData = fs.readFileSync(imagePath);
@@ -250,7 +254,7 @@ async function authenticateUser(oauth2Client: OAuth2Client): Promise<OAuth2Clien
                     }
                 } else if (url.pathname.startsWith('/css/')) {
                     // Serve CSS files
-                    const cssPath = path.join(currentDir, '..', 'public', url.pathname);
+                    const cssPath = path.join(projectRoot, 'public', url.pathname);
                     try {
                         if (fs.existsSync(cssPath) && path.extname(cssPath).toLowerCase() === '.css') {
                             const cssData = fs.readFileSync(cssPath, 'utf8');
@@ -266,7 +270,7 @@ async function authenticateUser(oauth2Client: OAuth2Client): Promise<OAuth2Clien
                     }
                 } else if (url.pathname.startsWith('/data/')) {
                     // Serve JSON data files
-                    const dataPath = path.join(currentDir, '..', 'public', url.pathname);
+                    const dataPath = path.join(projectRoot, 'public', url.pathname);
                     try {
                         if (fs.existsSync(dataPath) && path.extname(dataPath).toLowerCase() === '.json') {
                             const jsonData = fs.readFileSync(dataPath, 'utf8');
@@ -282,7 +286,7 @@ async function authenticateUser(oauth2Client: OAuth2Client): Promise<OAuth2Clien
                     }
                 } else if (url.pathname.startsWith('/js/')) {
                     // Serve JavaScript files
-                    const jsPath = path.join(currentDir, '..', 'public', url.pathname);
+                    const jsPath = path.join(projectRoot, 'public', url.pathname);
                     try {
                         if (fs.existsSync(jsPath) && path.extname(jsPath).toLowerCase() === '.js') {
                             const jsData = fs.readFileSync(jsPath, 'utf8');
@@ -484,8 +488,7 @@ export async function debugAuth(): Promise<void> {
 }
 
 export async function getCredentials(): Promise<OAuth2Client | null> {
-    // Use OAuth keys from environment variable or project root (not current working directory)  
-    const projectRoot = path.dirname(currentDir); // Go up from dist/ to project root
+    // Use OAuth keys from environment variable or project root
     const oauthPath = process.env.GMAIL_OAUTH_PATH || 
                      path.join(projectRoot, 'gcp-oauth.keys.json');
     
@@ -538,8 +541,7 @@ export async function getCredentials(): Promise<OAuth2Client | null> {
 }
 
 export async function checkAuthStatus(): Promise<{hasOAuthKeys: boolean, hasCredentials: boolean, credentialsValid: boolean}> {
-    // Use OAuth keys from environment variable or project root (not current working directory)  
-    const projectRoot = path.dirname(currentDir); // Go up from dist/ to project root
+    // Use OAuth keys from environment variable or project root
     const oauthPath = process.env.GMAIL_OAUTH_PATH || 
                      path.join(projectRoot, 'gcp-oauth.keys.json');
     
@@ -564,8 +566,7 @@ export async function checkAuthStatus(): Promise<{hasOAuthKeys: boolean, hasCred
 }
 
 export async function getOAuthClient(): Promise<OAuth2Client | null> {
-    // Use OAuth keys from environment variable or project root (not current working directory)  
-    const projectRoot = path.dirname(currentDir); // Go up from dist/ to project root
+    // Use OAuth keys from environment variable or project root
     const oauthPath = process.env.GMAIL_OAUTH_PATH || 
                      path.join(projectRoot, 'gcp-oauth.keys.json');
     
@@ -602,30 +603,28 @@ export async function authenticateWeb(oauth2Client: OAuth2Client, credentialsPat
     
     return new Promise((resolve, reject) => {
         let server: http.Server;
-        const port = 3000;
-        const redirectUri = `http://localhost:${port}/oauth/callback`;
-        
-        // Create a new OAuth client with localhost redirect URI
-        const webOAuth2Client = new OAuth2Client(
-            (oauth2Client as any)._clientId,
-            (oauth2Client as any)._clientSecret,
-            redirectUri
-        );
-        
-        const authUrl = webOAuth2Client.generateAuthUrl({
-            access_type: 'offline',
-            scope: ['https://mail.google.com/']
-        });
+        let port: number;
+        let redirectUri: string;
         
         server = http.createServer(async (req, res) => {
             try {
-                const url = new URL(req.url!, `http://localhost:${port}`);
+                // Get the actual server address for URL parsing
+                const serverAddress = server.address();
+                const currentPort = serverAddress && typeof serverAddress === 'object' ? serverAddress.port : port;
+                const url = new URL(req.url!, `http://localhost:${currentPort}`);
                 
                 if (url.pathname === '/oauth/callback') {
                     const code = url.searchParams.get('code');
                     
                     if (code) {
-                        const { tokens } = await webOAuth2Client.getToken(code);
+                        // Create OAuth client with current redirect URI
+                        const currentWebOAuth2Client = new OAuth2Client(
+                            (oauth2Client as any)._clientId,
+                            (oauth2Client as any)._clientSecret,
+                            redirectUri
+                        );
+                        
+                        const { tokens } = await currentWebOAuth2Client.getToken(code);
                         oauth2Client.setCredentials(tokens);
                         
                         // Ensure the directory exists
@@ -650,11 +649,23 @@ export async function authenticateWeb(oauth2Client: OAuth2Client, credentialsPat
                     }
                 } else if (url.pathname === '/') {
                     // Landing page - redirect to Google OAuth
-                    res.writeHead(302, { 'Location': authUrl });
+                    // Create OAuth client with current redirect URI for auth URL generation
+                    const currentWebOAuth2Client = new OAuth2Client(
+                        (oauth2Client as any)._clientId,
+                        (oauth2Client as any)._clientSecret,
+                        redirectUri
+                    );
+                    
+                    const currentAuthUrl = currentWebOAuth2Client.generateAuthUrl({
+                        access_type: 'offline',
+                        scope: ['https://mail.google.com/']
+                    });
+                    
+                    res.writeHead(302, { 'Location': currentAuthUrl });
                     res.end();
                 } else if (url.pathname.startsWith('/images/')) {
                     // Serve static images
-                    const imagePath = path.join(currentDir, '..', 'public', url.pathname);
+                    const imagePath = path.join(projectRoot, 'public', url.pathname);
                     try {
                         if (fs.existsSync(imagePath)) {
                             const imageData = fs.readFileSync(imagePath);
@@ -676,7 +687,7 @@ export async function authenticateWeb(oauth2Client: OAuth2Client, credentialsPat
                     }
                 } else if (url.pathname.startsWith('/css/')) {
                     // Serve CSS files
-                    const cssPath = path.join(currentDir, '..', 'public', url.pathname);
+                    const cssPath = path.join(projectRoot, 'public', url.pathname);
                     try {
                         if (fs.existsSync(cssPath) && path.extname(cssPath).toLowerCase() === '.css') {
                             const cssData = fs.readFileSync(cssPath, 'utf8');
@@ -692,7 +703,7 @@ export async function authenticateWeb(oauth2Client: OAuth2Client, credentialsPat
                     }
                 } else if (url.pathname.startsWith('/data/')) {
                     // Serve JSON data files
-                    const dataPath = path.join(currentDir, '..', 'public', url.pathname);
+                    const dataPath = path.join(projectRoot, 'public', url.pathname);
                     try {
                         if (fs.existsSync(dataPath) && path.extname(dataPath).toLowerCase() === '.json') {
                             const jsonData = fs.readFileSync(dataPath, 'utf8');
@@ -708,7 +719,7 @@ export async function authenticateWeb(oauth2Client: OAuth2Client, credentialsPat
                     }
                 } else if (url.pathname.startsWith('/js/')) {
                     // Serve JavaScript files
-                    const jsPath = path.join(currentDir, '..', 'public', url.pathname);
+                    const jsPath = path.join(projectRoot, 'public', url.pathname);
                     try {
                         if (fs.existsSync(jsPath) && path.extname(jsPath).toLowerCase() === '.js') {
                             const jsData = fs.readFileSync(jsPath, 'utf8');
@@ -737,7 +748,29 @@ export async function authenticateWeb(oauth2Client: OAuth2Client, credentialsPat
             }
         });
         
-        server.listen(port, async () => {
+        server.listen(0, async () => {
+            // Get the actual port that was assigned
+            const address = server.address();
+            if (!address || typeof address === 'string') {
+                reject(new Error('Failed to start OAuth server'));
+                return;
+            }
+            
+            port = address.port;
+            redirectUri = `http://localhost:${port}/oauth/callback`;
+            
+            // Update the OAuth client with the dynamic redirect URI
+            const webOAuth2Client = new OAuth2Client(
+                (oauth2Client as any)._clientId,
+                (oauth2Client as any)._clientSecret,
+                redirectUri
+            );
+            
+            const authUrl = webOAuth2Client.generateAuthUrl({
+                access_type: 'offline',
+                scope: ['https://mail.google.com/']
+            });
+            
             console.error(`\nOpening authentication in your browser...`);
             console.error(`\nIf the browser doesn't open automatically, please visit:`);
             console.error(`\n${authUrl}\n`);

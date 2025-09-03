@@ -4,12 +4,12 @@
 const BUTTON_CONFIG = {
     urls: {
         support: 'https://github.com/muammar-yacoob/GMail-Manager-MCP#-support--contributions',
-        explore: 'https://spark-games.co.uk',
+        explore: 'https://github.com/muammar-yacoob/GMail-Manager-MCP',
         setupInstructions: 'https://github.com/muammar-yacoob/GMail-Manager-MCP#-quick-setup'
     },
     text: {
         support: '💖 Support & Contributions',
-        explore: '🚀 Explore More',
+        explore: '📦 View Repository',
         setupInstructions: '📖 Setup Instructions'
     }
 };

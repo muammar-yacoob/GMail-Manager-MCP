@@ -20,12 +20,12 @@
 }
 
 .primary-btn:hover {
-    transform: translateY(-2px);
+    transform: scale(1.05);
     box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
 }
 
 .primary-btn:active {
-    transform: translateY(0);
+    transform: scale(1.02);
 }
 
 .support-btn {
@@ -34,12 +34,12 @@
 }
 
 .support-btn:hover {
-    transform: translateY(-2px);
+    transform: scale(1.05);
     box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
 }
 
 .support-btn:active {
-    transform: translateY(0);
+    transform: scale(1.02);
 }
 
 .button-container {
