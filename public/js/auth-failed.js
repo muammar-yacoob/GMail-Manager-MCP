@@ -29,33 +29,43 @@ window.addEventListener('load', function() {
             // Add loading effect
             errorGifElement.classList.add('gif-loading');
             
-            // Try relative path first, then fallback to absolute
+            // Try relative path first
             const imagePath = `../images/cleaning-images/${nextGif}`;
-            errorGifElement.src = imagePath;
+            let attemptCount = 0;
             
-            errorGifElement.onload = function() {
-                this.classList.remove('gif-loading');
-                this.classList.add('gif-loaded');
-            };
-            
-            errorGifElement.onerror = function() { 
-                // Try absolute path as fallback
-                const absolutePath = `/images/cleaning-images/${nextGif}`;
-                if (this.src.includes(absolutePath)) {
-                    // If both paths fail, hide the image and show fallback text
-                    errorGifElement.classList.add('gif-hidden');
-                    const existingFallback = errorGifElement.parentNode.querySelector('.fallback-text');
-                    if (!existingFallback) {
-                        const fallbackText = document.createElement('p');
-                        fallbackText.className = 'fallback-text';
-                        fallbackText.textContent = '🧹 Cleaning in progress...';
-                        errorGifElement.parentNode.appendChild(fallbackText);
+            const tryLoadImage = (path) => {
+                attemptCount++;
+                errorGifElement.src = path;
+                
+                errorGifElement.onload = function() {
+                    this.classList.remove('gif-loading');
+                    this.classList.add('gif-loaded');
+                };
+                
+                errorGifElement.onerror = function() {
+                    if (attemptCount === 1) {
+                        // Try absolute path
+                        tryLoadImage(`/images/cleaning-images/${nextGif}`);
+                    } else if (attemptCount === 2) {
+                        // Try different relative path for direct file access
+                        tryLoadImage(`images/cleaning-images/${nextGif}`);
+                    } else {
+                        // All paths failed, show fallback text and hide image
+                        this.style.display = 'none';
+                        const existingFallback = this.parentNode.querySelector('.fallback-text');
+                        if (!existingFallback) {
+                            const fallbackText = document.createElement('p');
+                            fallbackText.className = 'fallback-text';
+                            fallbackText.innerHTML = '🧹<br><span style="font-size: 14px; color: #94a3b8;">Cleaning animation would be here</span>';
+                            fallbackText.style.cssText = 'color: #64748b; font-size: 18px; margin-top: 20px; text-align: center; line-height: 1.4;';
+                            this.parentNode.appendChild(fallbackText);
+                        }
+                        console.log('All image paths failed for:', nextGif);
                     }
-                    console.log('Failed to load image from both paths:', imagePath, 'and', absolutePath);
-                } else {
-                    this.src = absolutePath;
-                }
+                };
             };
+            
+            tryLoadImage(imagePath);
         }
     }
     
@@ -82,6 +92,38 @@ window.addEventListener('load', function() {
     loadButtons();
 });
 
+// Inline fallback button config (mirrors buttons.js)
+const FALLBACK_BUTTONS = {
+    support: {
+        text: '💖 Support & Contributions',
+        url: 'https://github.com/muammar-yacoob/GMail-Manager-MCP#-support--contributions',
+        className: 'btn support-btn'
+    },
+    explore: {
+        text: '🚀 Explore More',
+        url: 'https://spark-games.co.uk',
+        className: 'btn primary-btn'
+    },
+    setup: {
+        text: '📖 Setup Instructions',
+        url: 'https://github.com/muammar-yacoob/GMail-Manager-MCP#-quick-setup',
+        className: 'btn primary-btn'
+    }
+};
+
+function createFallbackButtons(buttonKeys) {
+    const buttonHtml = buttonKeys
+        .map(key => {
+            const button = FALLBACK_BUTTONS[key];
+            if (!button) return '';
+            return `<a href="${button.url}" class="${button.className}" target="_blank">${button.text}</a>`;
+        })
+        .filter(html => html !== '')
+        .join('');
+    
+    return `<div class="button-container">${buttonHtml}</div>`;
+}
+
 // Load buttons function
 function loadButtons() {
     const buttonsContainer = document.getElementById('common-buttons');
@@ -89,9 +131,9 @@ function loadButtons() {
         // Failed page shows: Setup & Explore buttons
         buttonsContainer.innerHTML = window.ButtonComponents.createButtons(['setup', 'explore']);
     } else {
-        // Fallback if buttons.js didn't load - this should rarely happen
-        console.warn('ButtonComponents not available - buttons.js failed to load');
-        buttonsContainer.innerHTML = '<div class="button-container"><p>Unable to load buttons</p></div>';
+        // Fallback when buttons.js didn't load
+        console.warn('ButtonComponents not available - using inline fallback');
+        buttonsContainer.innerHTML = createFallbackButtons(['setup', 'explore']);
     }
 }
 

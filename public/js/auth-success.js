@@ -176,6 +176,38 @@ function showCopyNotification() {
     }
 }
 
+// Inline fallback button config (mirrors buttons.js)
+const FALLBACK_BUTTONS = {
+    support: {
+        text: '💖 Support & Contributions',
+        url: 'https://github.com/muammar-yacoob/GMail-Manager-MCP#-support--contributions',
+        className: 'btn support-btn'
+    },
+    explore: {
+        text: '🚀 Explore More',
+        url: 'https://spark-games.co.uk',
+        className: 'btn primary-btn'
+    },
+    setup: {
+        text: '📖 Setup Instructions',
+        url: 'https://github.com/muammar-yacoob/GMail-Manager-MCP#-quick-setup',
+        className: 'btn primary-btn'
+    }
+};
+
+function createFallbackButtons(buttonKeys) {
+    const buttonHtml = buttonKeys
+        .map(key => {
+            const button = FALLBACK_BUTTONS[key];
+            if (!button) return '';
+            return `<a href="${button.url}" class="${button.className}" target="_blank">${button.text}</a>`;
+        })
+        .filter(html => html !== '')
+        .join('');
+    
+    return `<div class="button-container">${buttonHtml}</div>`;
+}
+
 // Load buttons
 function loadButtons() {
     const buttonsContainer = document.getElementById('common-buttons');
@@ -183,9 +215,9 @@ function loadButtons() {
         // Success page shows: Support & Explore buttons
         buttonsContainer.innerHTML = window.ButtonComponents.createButtons(['support', 'explore']);
     } else {
-        // Fallback if buttons.js didn't load - this should rarely happen
-        console.warn('ButtonComponents not available - buttons.js failed to load');
-        buttonsContainer.innerHTML = '<div class="button-container"><p>Unable to load buttons</p></div>';
+        // Fallback when buttons.js didn't load
+        console.warn('ButtonComponents not available - using inline fallback');
+        buttonsContainer.innerHTML = createFallbackButtons(['support', 'explore']);
     }
 }
 
