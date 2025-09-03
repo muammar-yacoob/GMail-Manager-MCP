@@ -1,0 +1,43 @@
+{
+  "categories": [
+    {
+      "id": "quick-cleanup",
+      "name": "Quick Cleanup",
+      "icon": "🧹",
+      "description": "Simple cleanup tasks for common email clutter",
+      "commands": [
+        "Delete all promotional emails from last 30 days",
+        "Delete all unread newsletters older than 1 week",
+        "Delete all 'no-reply' emails from last 3 months",
+        "Delete all LinkedIn notification emails",
+        "Delete all password reset emails older than 1 month",
+        "Delete redundant email chains where I'm CC'd"
+      ]
+    },
+    {
+      "id": "smart-actions",
+      "name": "Smart Actions",
+      "icon": "⚡",
+      "description": "Intelligent email processing and organization",
+      "commands": [
+        "Summarize email with subject: 'last boring meeting'",
+        "Summarize all emails about 'project deadline'",
+        "Label all emails from my bank as 'Finance'",
+        "Create 'Travel' label and move all booking confirmations",
+        "Find emails with attachments larger than 5MB"
+      ]
+    },
+    {
+      "id": "inbox-insights",
+      "name": "Inbox Insights",
+      "icon": "📊",
+      "description": "Quick insights about your email habits",
+      "commands": [
+        "Show me who sends me the most emails",
+        "Find all unread emails older than 1 week",
+        "Show my busiest email days this month",
+        "Find emails I starred but never replied to"
+      ]
+    }
+  ]
+}

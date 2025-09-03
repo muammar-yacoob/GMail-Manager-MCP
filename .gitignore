@@ -42,3 +42,5 @@ Thumbs.db
 **/.npm-cache/
 **/npm-cache/
 CLAUDE.md
+publish.md
+promo/
