@@ -9,7 +9,7 @@
 [fork-link]: ../../fork
 [privacy-link]: ./PRIVACY.md
 [issues-link]: ../../issues
-[discord-link]: https://discord.gg/PLACEHOLDER_SERVER
+[discord-link]: https://discord.gg/S9kS2D5ueg
 
 # <img src="public/images/trash-mail.png" alt="Gmail Manager" width="48" height="48" style="vertical-align: middle;"> Gmail Manager MCP
 
