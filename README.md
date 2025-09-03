@@ -126,8 +126,7 @@ Add to your Claude Desktop config file:
 {
   "mcpServers": {
     "gmail-manager": {
-      "command": "node",
-      "args": ["\\path\\to\\GMail-Manager-MCP\\dist\\index.js"]
+      "command": "node", "args": ["C:\\path\\to\\GMail-Manager-MCP\\dist\\index.js"]
     }
   }
 }
