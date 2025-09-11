@@ -27,7 +27,7 @@ const schemas = {
     }),
     create_reply: z.object({
         messageId: z.string().describe("Email message ID to reply to"),
-        context: z.string().optional().describe("Brief context about the email content to help generate an appropriate reply")
+        replyMessage: z.string().describe("The reply message content to create as a draft")
     }),
     authenticate_gmail: z.object({})
 };
@@ -132,7 +132,7 @@ export async function handleToolCall(gmailService: GmailService, name: string, a
             
             case "create_reply": {
                 const v = validated as z.infer<typeof schemas.create_reply>;
-                const reply = await gmailService.createReply(v.messageId, v.context);
+                const reply = await gmailService.createReply(v.messageId, v.replyMessage);
                 return { content: [{ type: "text", text: reply }] };
             }
             
