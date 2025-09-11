@@ -115,11 +115,11 @@ Gmail Manager MCP gives Claude Desktop **direct access** to your Gmail inbox, al
 
 | Feature | Description |
 |---------|-------------|
-| ![Email Search](https://img.shields.io/badge/🔍%20Email%20Search-1a365d?style=for-the-badge&logo=searchengin&logoColor=white) | Find emails by sender, subject, date, or any Gmail query |
-| ![Inbox Analytics](https://img.shields.io/badge/📊%20Inbox%20Analytics-1a365d?style=for-the-badge&logo=analytics&logoColor=white) | Get insights about your email patterns and volume |
-| ![Read & Draft Replies](https://img.shields.io/badge/📖%20Read%20%26%20Draft%20Replies-155724?style=for-the-badge&logo=read-the-docs&logoColor=white) | Read the full content of an email |
-| ![Smart Organization](https://img.shields.io/badge/🏷️%20Smart%20Organization-b8860b?style=for-the-badge&logo=organization&logoColor=white) | Create and apply labels to categorize emails automatically |
-| ![Bulk Cleanup](https://img.shields.io/badge/🗑️%20Bulk%20Cleanup-a71e2a?style=for-the-badge&logo=trash&logoColor=white) | Remove old newsletters, notifications, and spam efficiently |
+| ![](https://img.shields.io/badge/🔍-333333?style=for-the-badge)![Email Search](https://img.shields.io/badge/Email%20Search-0066ff?style=for-the-badge) | Find emails by sender, subject, date, or any Gmail query |
+| ![](https://img.shields.io/badge/📊-333333?style=for-the-badge)![Inbox Analytics](https://img.shields.io/badge/Inbox%20Analytics-0066ff?style=for-the-badge) | Get insights about your email patterns and volume |
+| ![](https://img.shields.io/badge/📖-2d5a2d?style=for-the-badge)![Read & Draft Replies](https://img.shields.io/badge/Read%20%26%20Draft%20Replies-00cc66?style=for-the-badge) | Read the full content of an email |
+| ![](https://img.shields.io/badge/🏷️-b8860b?style=for-the-badge)![Smart Organization](https://img.shields.io/badge/Smart%20Organization-ffdd00?style=for-the-badge) | Create and apply labels to categorize emails automatically |
+| ![](https://img.shields.io/badge/🗑️-8b1538?style=for-the-badge)![Bulk Cleanup](https://img.shields.io/badge/Bulk%20Cleanup-ff4466?style=for-the-badge) | Remove old newsletters, notifications, and spam efficiently |
 
 
 
@@ -215,18 +215,18 @@ Add to your Claude Desktop config file:
 
 | Tool | Description |
 |------|-------------|
-| ![Authenticate Gmail](https://img.shields.io/badge/🔐%20Authenticate%20Gmail-1a365d?style=for-the-badge&logo=google&logoColor=white) | Authenticate Gmail access via web browser |
-| ![Search Emails](https://img.shields.io/badge/🔍%20Search%20Emails-1a365d?style=for-the-badge&logo=searchengin&logoColor=white) | Search emails using Gmail query syntax |
-| ![Read Email](https://img.shields.io/badge/📖%20Read%20Email-155724?style=for-the-badge&logo=read-the-docs&logoColor=white) | Read the full content of an email |
-| ![Create Reply](https://img.shields.io/badge/💬%20Create%20Reply-155724?style=for-the-badge&logo=reply&logoColor=white) | Create a draft reply to an email with a smart, context-aware response |
-| ![List Labels](https://img.shields.io/badge/📋%20List%20Labels-155724?style=for-the-badge&logo=list&logoColor=white) | List all Gmail labels |
-| ![Create Label](https://img.shields.io/badge/➕%20Create%20Label-b8860b?style=for-the-badge&logo=plus&logoColor=white) | Create a new Gmail label |
-| ![Apply Label](https://img.shields.io/badge/🏷️%20Apply%20Label-b8860b?style=for-the-badge&logo=tag&logoColor=white) | Apply a label to an email |
-| ![Batch Apply Labels](https://img.shields.io/badge/⚡%20Batch%20Apply%20Labels-b8860b?style=for-the-badge&logo=zap&logoColor=white) | Apply labels to multiple emails |
-| ![Remove Label](https://img.shields.io/badge/🚫%20Remove%20Label-b8860b?style=for-the-badge&logo=minus&logoColor=white) | Remove a label from an email |
-| ![Delete Label](https://img.shields.io/badge/❌%20Delete%20Label-a71e2a?style=for-the-badge&logo=x&logoColor=white) | Delete a Gmail label |
-| ![Delete Email](https://img.shields.io/badge/🗑️%20Delete%20Email-a71e2a?style=for-the-badge&logo=trash&logoColor=white) | Permanently delete an email |
-| ![Batch Delete Emails](https://img.shields.io/badge/💥%20Batch%20Delete%20Emails-a71e2a?style=for-the-badge&logo=explosion&logoColor=white) | Delete multiple emails at once |
+| ![](https://img.shields.io/badge/🔐-333333?style=for-the-badge)![Authenticate Gmail](https://img.shields.io/badge/Authenticate%20Gmail-0066ff?style=for-the-badge) | Authenticate Gmail access via web browser |
+| ![](https://img.shields.io/badge/🔍-333333?style=for-the-badge)![Search Emails](https://img.shields.io/badge/Search%20Emails-0066ff?style=for-the-badge) | Search emails using Gmail query syntax |
+| ![](https://img.shields.io/badge/📖-2d5a2d?style=for-the-badge)![Read Email](https://img.shields.io/badge/Read%20Email-00cc66?style=for-the-badge) | Read the full content of an email |
+| ![](https://img.shields.io/badge/💬-2d5a2d?style=for-the-badge)![Create Reply](https://img.shields.io/badge/Create%20Reply-00cc66?style=for-the-badge) | Create a draft reply to an email with a smart, context-aware response |
+| ![](https://img.shields.io/badge/📋-2d5a2d?style=for-the-badge)![List Labels](https://img.shields.io/badge/List%20Labels-00cc66?style=for-the-badge) | List all Gmail labels |
+| ![](https://img.shields.io/badge/➕-b8860b?style=for-the-badge)![Create Label](https://img.shields.io/badge/Create%20Label-ffdd00?style=for-the-badge) | Create a new Gmail label |
+| ![](https://img.shields.io/badge/🏷️-b8860b?style=for-the-badge)![Apply Label](https://img.shields.io/badge/Apply%20Label-ffdd00?style=for-the-badge) | Apply a label to an email |
+| ![](https://img.shields.io/badge/⚡-b8860b?style=for-the-badge)![Batch Apply Labels](https://img.shields.io/badge/Batch%20Apply%20Labels-ffdd00?style=for-the-badge) | Apply labels to multiple emails |
+| ![](https://img.shields.io/badge/🚫-b8860b?style=for-the-badge)![Remove Label](https://img.shields.io/badge/Remove%20Label-ffdd00?style=for-the-badge) | Remove a label from an email |
+| ![](https://img.shields.io/badge/❌-8b1538?style=for-the-badge)![Delete Label](https://img.shields.io/badge/Delete%20Label-ff4466?style=for-the-badge) | Delete a Gmail label |
+| ![](https://img.shields.io/badge/🗑️-8b1538?style=for-the-badge)![Delete Email](https://img.shields.io/badge/Delete%20Email-ff4466?style=for-the-badge) | Permanently delete an email |
+| ![](https://img.shields.io/badge/💥-8b1538?style=for-the-badge)![Batch Delete Emails](https://img.shields.io/badge/Batch%20Delete%20Emails-ff4466?style=for-the-badge) | Delete multiple emails at once |
 
 </details>
 
