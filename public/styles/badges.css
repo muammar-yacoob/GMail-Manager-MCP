@@ -46,17 +46,17 @@ table td:first-child {
   font-weight: bold;
 }
 
-/* Color variants */
-.badge-blue { background: #007acc; }
+/* Color variants with gradients */
+.badge-blue { background: linear-gradient(90deg, #007acc 0%, #0056b3 100%); }
 .badge-blue-dark { background: #003d82; }
 
-.badge-green { background: #28a745; }
+.badge-green { background: linear-gradient(90deg, #28a745 0%, #1e7e34 100%); }
 .badge-green-dark { background: #155724; }
 
-.badge-yellow { background: #ffc107; }
+.badge-yellow { background: linear-gradient(90deg, #ffc107 0%, #e0a800 100%); }
 .badge-yellow-dark { background: #b8860b; }
 
-.badge-red { background: #dc3545; }
+.badge-red { background: linear-gradient(90deg, #dc3545 0%, #c82333 100%); }
 .badge-red-dark { background: #a71e2a; }
 
 /* OS-specific badges */
