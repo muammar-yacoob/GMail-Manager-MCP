@@ -130,11 +130,11 @@ Gmail Manager MCP gives Claude Desktop **direct access** to your Gmail inbox, al
 
 | Feature | Description |
 |---------|-------------|
-| <div class="badge"><div class="badge-emoji badge-blue-dark">🔍</div><div class="badge-text badge-blue">Email Search</div></div> | Find emails by sender, subject, date, or any Gmail query |
-| <div class="badge"><div class="badge-emoji badge-blue-dark">📊</div><div class="badge-text badge-blue">Inbox Analytics</div></div> | Get insights about your email patterns and volume |
-| <div class="badge"><div class="badge-emoji badge-green-dark">📖</div><div class="badge-text badge-green">Read & Draft Replies</div></div> | Read the full content of an email |
-| <div class="badge"><div class="badge-emoji badge-yellow-dark">🏷️</div><div class="badge-text badge-yellow">Smart Organization</div></div> | Create and apply labels to categorize emails automatically |
-| <div class="badge"><div class="badge-emoji badge-red-dark">🗑️</div><div class="badge-text badge-red">Bulk Cleanup</div></div> | Remove old newsletters, notifications, and spam efficiently |
+| ![Email Search](https://img.shields.io/badge/🔍%20Email%20Search-blue?style=for-the-badge) | Find emails by sender, subject, date, or any Gmail query |
+| ![Inbox Analytics](https://img.shields.io/badge/📊%20Inbox%20Analytics-blue?style=for-the-badge) | Get insights about your email patterns and volume |
+| ![Read & Draft Replies](https://img.shields.io/badge/📖%20Read%20%26%20Draft%20Replies-green?style=for-the-badge) | Read the full content of an email |
+| ![Smart Organization](https://img.shields.io/badge/🏷️%20Smart%20Organization-yellow?style=for-the-badge) | Create and apply labels to categorize emails automatically |
+| ![Bulk Cleanup](https://img.shields.io/badge/🗑️%20Bulk%20Cleanup-red?style=for-the-badge) | Remove old newsletters, notifications, and spam efficiently |
 
 
 
@@ -230,18 +230,18 @@ Add to your Claude Desktop config file:
 
 | Tool | Description |
 |------|-------------|
-| <div class="badge"><div class="badge-emoji badge-blue-dark">🔐</div><div class="badge-text badge-blue">Authenticate Gmail</div></div> | Authenticate Gmail access via web browser |
-| <div class="badge"><div class="badge-emoji badge-blue-dark">🔍</div><div class="badge-text badge-blue">Search Emails</div></div> | Search emails using Gmail query syntax |
-| <div class="badge"><div class="badge-emoji badge-green-dark">📖</div><div class="badge-text badge-green">Read Email</div></div> | Read the full content of an email |
-| <div class="badge"><div class="badge-emoji badge-green-dark">💬</div><div class="badge-text badge-green">Create Reply</div></div> | Create a draft reply to an email with a smart, context-aware response |
-| <div class="badge"><div class="badge-emoji badge-green-dark">📋</div><div class="badge-text badge-green">List Labels</div></div> | List all Gmail labels |
-| <div class="badge"><div class="badge-emoji badge-yellow-dark">➕</div><div class="badge-text badge-yellow">Create Label</div></div> | Create a new Gmail label |
-| <div class="badge"><div class="badge-emoji badge-yellow-dark">🏷️</div><div class="badge-text badge-yellow">Apply Label</div></div> | Apply a label to an email |
-| <div class="badge"><div class="badge-emoji badge-yellow-dark">⚡</div><div class="badge-text badge-yellow">Batch Apply Labels</div></div> | Apply labels to multiple emails |
-| <div class="badge"><div class="badge-emoji badge-yellow-dark">🚫</div><div class="badge-text badge-yellow">Remove Label</div></div> | Remove a label from an email |
-| <div class="badge"><div class="badge-emoji badge-red-dark">❌</div><div class="badge-text badge-red">Delete Label</div></div> | Delete a Gmail label |
-| <div class="badge"><div class="badge-emoji badge-red-dark">🗑️</div><div class="badge-text badge-red">Delete Email</div></div> | Permanently delete an email |
-| <div class="badge"><div class="badge-emoji badge-red-dark">💥</div><div class="badge-text badge-red">Batch Delete Emails</div></div> | Delete multiple emails at once |
+| ![Authenticate Gmail](https://img.shields.io/badge/🔐%20Authenticate%20Gmail-blue?style=for-the-badge) | Authenticate Gmail access via web browser |
+| ![Search Emails](https://img.shields.io/badge/🔍%20Search%20Emails-blue?style=for-the-badge) | Search emails using Gmail query syntax |
+| ![Read Email](https://img.shields.io/badge/📖%20Read%20Email-green?style=for-the-badge) | Read the full content of an email |
+| ![Create Reply](https://img.shields.io/badge/💬%20Create%20Reply-green?style=for-the-badge) | Create a draft reply to an email with a smart, context-aware response |
+| ![List Labels](https://img.shields.io/badge/📋%20List%20Labels-green?style=for-the-badge) | List all Gmail labels |
+| ![Create Label](https://img.shields.io/badge/➕%20Create%20Label-yellow?style=for-the-badge) | Create a new Gmail label |
+| ![Apply Label](https://img.shields.io/badge/🏷️%20Apply%20Label-yellow?style=for-the-badge) | Apply a label to an email |
+| ![Batch Apply Labels](https://img.shields.io/badge/⚡%20Batch%20Apply%20Labels-yellow?style=for-the-badge) | Apply labels to multiple emails |
+| ![Remove Label](https://img.shields.io/badge/🚫%20Remove%20Label-yellow?style=for-the-badge) | Remove a label from an email |
+| ![Delete Label](https://img.shields.io/badge/❌%20Delete%20Label-red?style=for-the-badge) | Delete a Gmail label |
+| ![Delete Email](https://img.shields.io/badge/🗑️%20Delete%20Email-red?style=for-the-badge) | Permanently delete an email |
+| ![Batch Delete Emails](https://img.shields.io/badge/💥%20Batch%20Delete%20Emails-red?style=for-the-badge) | Delete multiple emails at once |
 
 </details>
 
