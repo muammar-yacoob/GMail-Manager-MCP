@@ -13,8 +13,7 @@
     [
       "@semantic-release/npm",
       {
-        "npmPublish": false,
-        "tarballDir": "dist-package"
+        "npmPublish": true
       }
     ],
     [
