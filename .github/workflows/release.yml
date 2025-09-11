@@ -8,15 +8,14 @@ on:
 
 jobs:
   build:
-    # Only run for release-triggering commits (feat:, fix:, perf:, refactor: with BREAKING CHANGE)
+    # Run for release-triggering commits, including in merge commits
     if: |
-      startsWith(github.event.head_commit.message, 'feat:') ||
-      startsWith(github.event.head_commit.message, 'feat!:') ||
-      startsWith(github.event.head_commit.message, 'fix:') ||
-      startsWith(github.event.head_commit.message, 'perf:') ||
-      (startsWith(github.event.head_commit.message, 'refactor:') && contains(github.event.head_commit.message, 'BREAKING CHANGE')) ||
-      contains(github.event.head_commit.message, 'BREAKING CHANGE:') ||
-      github.event_name == 'workflow_dispatch'
+      github.event_name == 'workflow_dispatch' ||
+      contains(toJSON(github.event.commits.*.message), 'feat:') ||
+      contains(toJSON(github.event.commits.*.message), 'feat!:') ||
+      contains(toJSON(github.event.commits.*.message), 'fix:') ||
+      contains(toJSON(github.event.commits.*.message), 'perf:') ||
+      contains(toJSON(github.event.commits.*.message), 'BREAKING CHANGE')
     runs-on: ubuntu-latest
     permissions:
       contents: write
