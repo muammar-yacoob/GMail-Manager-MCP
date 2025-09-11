@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+# [1.5.0](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.4.0...v1.5.0) (2025-09-11)
+
+
+### Features
+
+* enhance reply tool to create actual Gmail drafts ([853934f](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/853934ff707a3a07e9a5cf6a397c6792d7d1b13d))
+
 ## [1.3.5](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.3.4...v1.3.5) (2025-09-03)
 
 
