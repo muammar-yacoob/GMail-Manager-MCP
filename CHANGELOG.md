@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+# [1.7.0](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.6.0...v1.7.0) (2025-09-11)
+
+
+### Bug Fixes
+
+* improve badge formatting with darker colors and inline emojis ([ab7d906](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/ab7d90612201973e48fb8a134970277d30cacc45))
+* improve badge formatting with darker colors and inline emojis ([bc3ffa0](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/bc3ffa0abd1128b60c8f200d6e0c841af26164db))
+* standardize emoji badge width with consistent spacing for uniform alignment ([0777a1c](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/0777a1c712002c7a60f28e224788d264fa43e734))
+
+
+### Features
+
+* enhance badges with vivid colors, matching darker emoji backgrounds, left-aligned headers, and consistent 25-character text width ([403fda1](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/403fda1676c5475d656b6ebba53ef32921f6ae3c))
+
 # [1.6.0](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.5.0...v1.6.0) (2025-09-11)
 
 
