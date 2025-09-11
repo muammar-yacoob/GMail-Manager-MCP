@@ -146,31 +146,8 @@ export class GmailService {
         return text || html || '';
     }
 
-    async createReply(messageId: string, context?: string): Promise<string> {
+    async createReply(messageId: string, replyMessage: string): Promise<{message: string, to: string, subject: string, replyMessage: string}> {
         const email = await this.readEmail(messageId);
-        
-        const replyTemplates = [
-            "Thanks for reaching out!",
-            "Got it, thanks!", 
-            "Will take a look at this.",
-            "Thanks for the update.",
-            "Noted, will follow up soon.",
-            "Thanks for letting me know.",
-            "Sounds good!",
-            "Perfect, thanks!",
-            "Received, thanks!",
-            "Will check on this."
-        ];
-        
-        let replyText = replyTemplates[Math.floor(Math.random() * replyTemplates.length)];
-        
-        if (context && context.toLowerCase().includes('meeting')) {
-            replyText = "Thanks! I'll check my calendar and get back to you.";
-        } else if (context && (context.toLowerCase().includes('urgent') || context.toLowerCase().includes('asap'))) {
-            replyText = "Got it - will prioritize this.";
-        } else if (context && context.toLowerCase().includes('question')) {
-            replyText = "Thanks for the question! Let me look into this.";
-        }
 
         // Create email message for draft
         const subject = email.subject.startsWith('Re: ') ? email.subject : `Re: ${email.subject}`;
@@ -184,7 +161,7 @@ export class GmailService {
             `In-Reply-To: ${inReplyTo}`,
             `References: ${references}`,
             '',
-            replyText
+            replyMessage
         ].join('\n');
 
         const encodedMessage = Buffer.from(emailContent).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
@@ -202,12 +179,22 @@ export class GmailService {
 
             const draftUrl = `https://mail.google.com/mail/u/0/#drafts/${draft.id}`;
             
-            return `Reply draft created: "${replyText}"\n\nGmail draft URL: ${draftUrl}`;
+            return {
+                message: `Reply draft created and saved to Gmail drafts.\n\n**Gmail draft URL:** ${draftUrl}`,
+                to,
+                subject,
+                replyMessage
+            };
         } catch (error) {
             console.error('Failed to create draft:', error);
             // Fallback to compose URL
-            const gmailComposeUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(replyText)}`;
-            return `Reply draft: "${replyText}"\n\nGmail compose URL: ${gmailComposeUrl}`;
+            const gmailComposeUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(replyMessage)}`;
+            return {
+                message: `Failed to create draft. Gmail compose URL: ${gmailComposeUrl}`,
+                to,
+                subject, 
+                replyMessage
+            };
         }
     }
 }
