@@ -11,7 +11,97 @@
 [issues-link]: ../../issues
 [discord-link]: https://discord.gg/S9kS2D5ueg
 
-<link rel="stylesheet" href="public/styles/badges.css">
+<style>
+/* Gmail Manager MCP Badge Styles */
+.badge {
+  display: inline-flex;
+  width: 180px;
+  height: 24px;
+  border-radius: 4px;
+  overflow: hidden;
+  vertical-align: middle;
+}
+
+/* Ensure consistent table row heights */
+table tr {
+  height: 32px;
+}
+
+table td {
+  vertical-align: middle;
+  padding: 4px 12px;
+}
+
+table td:first-child {
+  padding-right: 20px;
+}
+
+.badge-os {
+  width: 80px;
+  padding-left: 8px;
+}
+
+.badge-emoji {
+  width: 32px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.badge-text {
+  flex: 1;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  padding-left: 8px;
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+/* Color variants with gradients */
+.badge-blue { background: linear-gradient(90deg, #007acc 0%, #0056b3 100%); }
+.badge-blue-dark { background: #003d82; }
+
+.badge-green { background: linear-gradient(90deg, #28a745 0%, #1e7e34 100%); }
+.badge-green-dark { background: #155724; }
+
+.badge-yellow { background: linear-gradient(90deg, #ffc107 0%, #e0a800 100%); }
+.badge-yellow-dark { background: #b8860b; }
+
+.badge-red { background: linear-gradient(90deg, #dc3545 0%, #c82333 100%); }
+.badge-red-dark { background: #a71e2a; }
+
+/* OS-specific badges */
+.badge-windows { 
+  background: #1e90ff; 
+  text-align: center;
+  line-height: 24px;
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.badge-macos { 
+  background: #c0c0c0; 
+  text-align: center;
+  line-height: 24px;
+  color: black !important; 
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.badge-linux { 
+  background: #ffd700; 
+  text-align: center;
+  line-height: 24px;
+  color: black !important; 
+  font-size: 11px;
+  font-weight: bold;
+}
+</style>
 
 # <img src="public/images/trash-mail.png" alt="Gmail Manager" width="48" height="48" style="vertical-align: middle;"> Gmail Manager MCP
 
@@ -105,9 +195,9 @@ npm i -g @spark-apps/gmail-manager-mcp
 <summary><strong>🔧 Required for all installation methods</strong></summary>
 
 Add to your Claude Desktop config file:
-- <div class="badge badge-os badge-windows">Windows</div> `%APPDATA%\\Claude\\claude_desktop_config.json`
-- <div class="badge badge-os badge-macos">macOS</div> `~/Library/Application Support/Claude/claude_desktop_config.json`
-- <div class="badge badge-os badge-linux">Linux</div> `~/.config/Claude/claude_desktop_config.json`
+- <span style="background: #1e90ff; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px; font-weight: bold;">Windows</span> `%APPDATA%\\Claude\\claude_desktop_config.json`
+- <span style="background: #c0c0c0; color: black; padding: 2px 6px; border-radius: 3px; font-size: 11px; font-weight: bold;">macOS</span> `~/Library/Application Support/Claude/claude_desktop_config.json`
+- <span style="background: #ffd700; color: black; padding: 2px 6px; border-radius: 3px; font-size: 11px; font-weight: bold;">Linux</span> `~/.config/Claude/claude_desktop_config.json`
 
 **📦 For NPM Install:**
 ```json
