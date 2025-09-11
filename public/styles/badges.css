@@ -10,12 +10,16 @@
 
 /* Ensure consistent table row heights */
 table tr {
-  height: 40px;
+  height: 32px;
 }
 
 table td {
   vertical-align: middle;
-  padding: 8px 0;
+  padding: 4px 12px;
+}
+
+table td:first-child {
+  padding-right: 20px;
 }
 
 .badge-os {
@@ -44,16 +48,16 @@ table td {
 
 /* Color variants */
 .badge-blue { background: #007acc; }
-.badge-blue-dark { background: #0056b3; }
+.badge-blue-dark { background: #003d82; }
 
 .badge-green { background: #28a745; }
-.badge-green-dark { background: #1e7e34; }
+.badge-green-dark { background: #155724; }
 
 .badge-yellow { background: #ffc107; }
-.badge-yellow-dark { background: #e0a800; }
+.badge-yellow-dark { background: #b8860b; }
 
 .badge-red { background: #dc3545; }
-.badge-red-dark { background: #c82333; }
+.badge-red-dark { background: #a71e2a; }
 
 /* OS-specific badges */
 .badge-windows { 

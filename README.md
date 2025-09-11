@@ -143,7 +143,7 @@ Add to your Claude Desktop config file:
 | <div class="badge"><div class="badge-emoji badge-blue-dark">🔐</div><div class="badge-text badge-blue">Authenticate Gmail</div></div> | Authenticate Gmail access via web browser |
 | <div class="badge"><div class="badge-emoji badge-blue-dark">🔍</div><div class="badge-text badge-blue">Search Emails</div></div> | Search emails using Gmail query syntax |
 | <div class="badge"><div class="badge-emoji badge-green-dark">📖</div><div class="badge-text badge-green">Read Email</div></div> | Read the full content of an email |
-| <div class="badge"><div class="badge-emoji badge-blue-dark">💬</div><div class="badge-text badge-blue">Create Reply</div></div> | Create a draft reply to an email with a smart, context-aware response |
+| <div class="badge"><div class="badge-emoji badge-green-dark">💬</div><div class="badge-text badge-green">Create Reply</div></div> | Create a draft reply to an email with a smart, context-aware response |
 | <div class="badge"><div class="badge-emoji badge-green-dark">📋</div><div class="badge-text badge-green">List Labels</div></div> | List all Gmail labels |
 | <div class="badge"><div class="badge-emoji badge-yellow-dark">➕</div><div class="badge-text badge-yellow">Create Label</div></div> | Create a new Gmail label |
 | <div class="badge"><div class="badge-emoji badge-yellow-dark">🏷️</div><div class="badge-text badge-yellow">Apply Label</div></div> | Apply a label to an email |
