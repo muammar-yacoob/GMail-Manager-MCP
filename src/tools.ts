@@ -61,7 +61,7 @@ export async function handleToolCall(gmailService: GmailService, name: string, a
                 const v = validated as z.infer<typeof schemas.search_emails>;
                 const results = await gmailService.searchEmails(v.query, v.maxResults);
                 return { content: [{ type: "text", text: results.length ? 
-                    results.map(e => `ID: ${e.id}\nSubject: ${e.subject}\nFrom: ${e.from}\nDate: ${e.date}\nSnippet: ${e.snippet}\n`).join('---\n') : 
+                    results.map(e => `ID: ${e.id}\nSubject: ${e.subject}\nFrom: ${e.from}\nDate: ${e.date}\nSnippet: ${e.snippet}\nGmail URL: ${gmailService.getEmailUrl(e.id)}\n`).join('---\n') : 
                     "No emails found." }] };
             }
             
@@ -69,7 +69,7 @@ export async function handleToolCall(gmailService: GmailService, name: string, a
                 const v = validated as z.infer<typeof schemas.read_email>;
                 const email = await gmailService.readEmail(v.messageId);
                 return { content: [{ type: "text", 
-                    text: `Subject: ${email.subject}\nFrom: ${email.from}\nTo: ${email.to}\nDate: ${email.date}\nThread ID: ${email.threadId}\n\nContent:\n${email.body}` }] };
+                    text: `Subject: ${email.subject}\nFrom: ${email.from}\nTo: ${email.to}\nDate: ${email.date}\nThread ID: ${email.threadId}\nGmail URL: ${gmailService.getEmailUrl(v.messageId)}\n\nContent:\n${email.body}` }] };
             }
             
             case "delete_email": {

@@ -13,8 +13,7 @@
     [
       "@semantic-release/npm",
       {
-        "npmPublish": false,
-        "tarballDir": "dist-package"
+        "npmPublish": true
       }
     ],
     [
@@ -29,7 +28,7 @@
       {
         "assets": [
           {
-            "path": "gmail-manager-mcp-*.tar.gz",
+            "path": "gmail-manager-mcp-${nextRelease.version}.tar.gz",
             "label": "Gmail Manager MCP Distribution"
           }
         ]
