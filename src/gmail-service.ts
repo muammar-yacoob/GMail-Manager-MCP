@@ -179,12 +179,12 @@ export class GmailService {
 
             const draftUrl = `https://mail.google.com/mail/u/0/#drafts/${draft.id}`;
             
-            return `Reply draft created and saved to Gmail drafts.\n\nGmail draft URL: ${draftUrl}`;
+            return `Reply draft created and saved to Gmail drafts.\n\n**Gmail draft URL:** ${draftUrl}\n\n**Draft preview:**\n\`\`\`\n${replyMessage}\n\`\`\``;
         } catch (error) {
             console.error('Failed to create draft:', error);
             // Fallback to compose URL
             const gmailComposeUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(replyMessage)}`;
-            return `Failed to create draft. Gmail compose URL: ${gmailComposeUrl}`;
+            return `Failed to create draft. Gmail compose URL: ${gmailComposeUrl}\n\n**Draft preview:**\n\`\`\`\n${replyMessage}\n\`\`\``;
         }
     }
 }
