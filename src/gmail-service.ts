@@ -122,6 +122,10 @@ export class GmailService {
         return { successes, failures };
     }
     
+    getEmailUrl(messageId: string): string {
+        return `https://mail.google.com/mail/u/0/#inbox/${messageId}`;
+    }
+    
     private extractBody(payload: any): string {
         if (!payload) return '';
         let text = '', html = '';

@@ -50,6 +50,7 @@ jobs:
         id: semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npx semantic-release
       
       - name: Create Distribution Package
@@ -78,17 +79,5 @@ jobs:
         if: steps.semantic-release.outputs.new_release_published == 'true'
         run: |
           cd dist-package
-          tar -czf ../gmail-manager-mcp-v${{ steps.semantic-release.outputs.new_release_version }}.tar.gz *
-          cd ..
-
-      - name: Upload to Release
-        if: steps.semantic-release.outputs.new_release_published == 'true'
-        uses: softprops/action-gh-release@v1
-        with:
-          files: gmail-manager-mcp-v${{ steps.semantic-release.outputs.new_release_version }}.tar.gz
-          name: Release ${{ steps.semantic-release.outputs.new_release_version }}
-          tag_name: v${{ steps.semantic-release.outputs.new_release_version }}
-          draft: false
-          prerelease: false
-          token: ${{ secrets.GITHUB_TOKEN }}
-          generate_release_notes: true 
+          tar -czf ../gmail-manager-mcp-${{ steps.semantic-release.outputs.new_release_version }}.tar.gz *
+          cd .. 
