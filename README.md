@@ -31,6 +31,21 @@
 .emoji-cell.yellow-dark { background: #cc8800; }
 .emoji-cell.red-dark { background: #cc2244; }
 
+/* Fixed width for shields.io badges */
+img[src*="shields.io"] {
+  width: 172px !important;
+  height: 28px !important;
+  object-fit: contain;
+  vertical-align: top !important;
+}
+
+/* Ensure emoji cells display properly */
+.emoji-cell {
+  background-color: inherit !important;
+  display: inline-block !important;
+  vertical-align: top !important;
+}
+
 /* Color variants with gradients */
 .badge-blue { background: linear-gradient(90deg, #007acc 0%, #0056b3 100%); }
 .badge-blue-dark { background: #003d82; }
@@ -100,11 +115,11 @@ Gmail Manager MCP gives Claude Desktop **direct access** to your Gmail inbox, al
 
 | Feature | Description |
 |---------|-------------|
-| <span class="emoji-cell blue-dark">🔍</span>![Email Search](https://img.shields.io/badge/Email%20Search-0066ff?style=for-the-badge&labelColor=0066ff) | Find emails by sender, subject, date, or any Gmail query |
-| <span class="emoji-cell blue-dark">📊</span>![Inbox Analytics](https://img.shields.io/badge/Inbox%20Analytics-0066ff?style=for-the-badge&labelColor=0066ff) | Get insights about your email patterns and volume |
-| <span class="emoji-cell green-dark">📖</span>![Read & Draft Replies](https://img.shields.io/badge/Read%20%26%20Draft%20Replies-00cc66?style=for-the-badge&labelColor=00cc66) | Read the full content of an email |
-| <span class="emoji-cell yellow-dark">🏷️</span>![Smart Organization](https://img.shields.io/badge/Smart%20Organization-ffaa00?style=for-the-badge&labelColor=ffaa00) | Create and apply labels to categorize emails automatically |
-| <span class="emoji-cell red-dark">🗑️</span>![Bulk Cleanup](https://img.shields.io/badge/Bulk%20Cleanup-ff3366?style=for-the-badge&labelColor=ff3366) | Remove old newsletters, notifications, and spam efficiently |
+| ![Email Search](https://img.shields.io/badge/🔍%20Email%20Search-1a365d?style=for-the-badge&logo=searchengin&logoColor=white) | Find emails by sender, subject, date, or any Gmail query |
+| ![Inbox Analytics](https://img.shields.io/badge/📊%20Inbox%20Analytics-1a365d?style=for-the-badge&logo=analytics&logoColor=white) | Get insights about your email patterns and volume |
+| ![Read & Draft Replies](https://img.shields.io/badge/📖%20Read%20%26%20Draft%20Replies-155724?style=for-the-badge&logo=read-the-docs&logoColor=white) | Read the full content of an email |
+| ![Smart Organization](https://img.shields.io/badge/🏷️%20Smart%20Organization-b8860b?style=for-the-badge&logo=organization&logoColor=white) | Create and apply labels to categorize emails automatically |
+| ![Bulk Cleanup](https://img.shields.io/badge/🗑️%20Bulk%20Cleanup-a71e2a?style=for-the-badge&logo=trash&logoColor=white) | Remove old newsletters, notifications, and spam efficiently |
 
 
 
@@ -200,18 +215,18 @@ Add to your Claude Desktop config file:
 
 | Tool | Description |
 |------|-------------|
-| <span class="emoji-cell blue-dark">🔐</span>![Authenticate Gmail](https://img.shields.io/badge/Authenticate%20Gmail-0066ff?style=for-the-badge&labelColor=0066ff) | Authenticate Gmail access via web browser |
-| <span class="emoji-cell blue-dark">🔍</span>![Search Emails](https://img.shields.io/badge/Search%20Emails-0066ff?style=for-the-badge&labelColor=0066ff) | Search emails using Gmail query syntax |
-| <span class="emoji-cell green-dark">📖</span>![Read Email](https://img.shields.io/badge/Read%20Email-00cc66?style=for-the-badge&labelColor=00cc66) | Read the full content of an email |
-| <span class="emoji-cell green-dark">💬</span>![Create Reply](https://img.shields.io/badge/Create%20Reply-00cc66?style=for-the-badge&labelColor=00cc66) | Create a draft reply to an email with a smart, context-aware response |
-| <span class="emoji-cell green-dark">📋</span>![List Labels](https://img.shields.io/badge/List%20Labels-00cc66?style=for-the-badge&labelColor=00cc66) | List all Gmail labels |
-| <span class="emoji-cell yellow-dark">➕</span>![Create Label](https://img.shields.io/badge/Create%20Label-ffaa00?style=for-the-badge&labelColor=ffaa00) | Create a new Gmail label |
-| <span class="emoji-cell yellow-dark">🏷️</span>![Apply Label](https://img.shields.io/badge/Apply%20Label-ffaa00?style=for-the-badge&labelColor=ffaa00) | Apply a label to an email |
-| <span class="emoji-cell yellow-dark">⚡</span>![Batch Apply Labels](https://img.shields.io/badge/Batch%20Apply%20Labels-ffaa00?style=for-the-badge&labelColor=ffaa00) | Apply labels to multiple emails |
-| <span class="emoji-cell yellow-dark">🚫</span>![Remove Label](https://img.shields.io/badge/Remove%20Label-ffaa00?style=for-the-badge&labelColor=ffaa00) | Remove a label from an email |
-| <span class="emoji-cell red-dark">❌</span>![Delete Label](https://img.shields.io/badge/Delete%20Label-ff3366?style=for-the-badge&labelColor=ff3366) | Delete a Gmail label |
-| <span class="emoji-cell red-dark">🗑️</span>![Delete Email](https://img.shields.io/badge/Delete%20Email-ff3366?style=for-the-badge&labelColor=ff3366) | Permanently delete an email |
-| <span class="emoji-cell red-dark">💥</span>![Batch Delete Emails](https://img.shields.io/badge/Batch%20Delete%20Emails-ff3366?style=for-the-badge&labelColor=ff3366) | Delete multiple emails at once |
+| ![Authenticate Gmail](https://img.shields.io/badge/🔐%20Authenticate%20Gmail-1a365d?style=for-the-badge&logo=google&logoColor=white) | Authenticate Gmail access via web browser |
+| ![Search Emails](https://img.shields.io/badge/🔍%20Search%20Emails-1a365d?style=for-the-badge&logo=searchengin&logoColor=white) | Search emails using Gmail query syntax |
+| ![Read Email](https://img.shields.io/badge/📖%20Read%20Email-155724?style=for-the-badge&logo=read-the-docs&logoColor=white) | Read the full content of an email |
+| ![Create Reply](https://img.shields.io/badge/💬%20Create%20Reply-155724?style=for-the-badge&logo=reply&logoColor=white) | Create a draft reply to an email with a smart, context-aware response |
+| ![List Labels](https://img.shields.io/badge/📋%20List%20Labels-155724?style=for-the-badge&logo=list&logoColor=white) | List all Gmail labels |
+| ![Create Label](https://img.shields.io/badge/➕%20Create%20Label-b8860b?style=for-the-badge&logo=plus&logoColor=white) | Create a new Gmail label |
+| ![Apply Label](https://img.shields.io/badge/🏷️%20Apply%20Label-b8860b?style=for-the-badge&logo=tag&logoColor=white) | Apply a label to an email |
+| ![Batch Apply Labels](https://img.shields.io/badge/⚡%20Batch%20Apply%20Labels-b8860b?style=for-the-badge&logo=zap&logoColor=white) | Apply labels to multiple emails |
+| ![Remove Label](https://img.shields.io/badge/🚫%20Remove%20Label-b8860b?style=for-the-badge&logo=minus&logoColor=white) | Remove a label from an email |
+| ![Delete Label](https://img.shields.io/badge/❌%20Delete%20Label-a71e2a?style=for-the-badge&logo=x&logoColor=white) | Delete a Gmail label |
+| ![Delete Email](https://img.shields.io/badge/🗑️%20Delete%20Email-a71e2a?style=for-the-badge&logo=trash&logoColor=white) | Permanently delete an email |
+| ![Batch Delete Emails](https://img.shields.io/badge/💥%20Batch%20Delete%20Emails-a71e2a?style=for-the-badge&logo=explosion&logoColor=white) | Delete multiple emails at once |
 
 </details>
 
