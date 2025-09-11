@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+# [1.4.0](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.3.4...v1.4.0) (2025-09-11)
+
+
+### Bug Fixes
+
+* auth buttons urls ([991cfe1](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/991cfe1b71c314d5decead5cd9b8bdce97c29297))
+* auto npm publish ([f4ee330](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/f4ee330e4a8d49811b2df2f93c845e2eb77ce523))
+* bump up package version ([291ec2d](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/291ec2deb324b29fc0ba43aef897adb1e90dd548))
+* email Id added ([16a4c25](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/16a4c25962d3c25dc366d4b378067df760baa494))
+* manual release ([294cc15](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/294cc15c7107e66b1fbf13018d6e6e1ea8f49a8d))
+* remove IDE-specific directories from tracking ([e5992bd](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/e5992bdd8e89e10091719ed5e07a044c0a1c8524))
+* remove Windows environment variable paths and enhance .gitignore ([dd736b8](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/dd736b897f3d26c41fa7e69164ef8fdc47fe6829))
+* resolve Smithery deployment issues ([d1a8361](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/d1a83618118ea0f3207057822ba911b409610a6e))
+* support button added to auth page ([dab84f2](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/dab84f20c546c3518a6b14df8f95d3506a402621))
+* workflow triggers for merge commits ([83fcddb](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/83fcddb4d26b4e3dc08232afe3013844bbaed7bc))
+
+
+### Features
+
+* draft reply tool added ([8b317d6](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/8b317d6d50d90091dbd5b45ea3f943c23598e622))
+
 ## [1.3.5](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.3.4...v1.3.5) (2025-09-03)
 
 
