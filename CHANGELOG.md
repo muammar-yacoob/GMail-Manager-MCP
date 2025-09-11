@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+# [1.6.0](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.5.0...v1.6.0) (2025-09-11)
+
+
+### Bug Fixes
+
+* revert to user-generated reply content instead of templates ([4439dff](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/4439dff264097c1e06d2ffc88b938aaf08e63803))
+* show draft preview in readable format instead of artifacts ([18a3539](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/18a3539d11ec88a05059e5ef01242308627c1b87))
+
+
+### Features
+
+* show draft as previewable artifact with To, Subject, and Message ([af7db0c](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/af7db0c9aed4e54789d9bd512a2db7684912952e))
+* show draft preview in markdown format for user review ([a7354dc](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/a7354dcbdf3d0af8c5d09c265a82e04e7411632e))
+
 # [1.5.0](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.4.0...v1.5.0) (2025-09-11)
 
 
