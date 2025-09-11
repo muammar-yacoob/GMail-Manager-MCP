@@ -18,7 +18,8 @@ import { getToolDefinitions, handleToolCall } from "./tools.js";
 export function createGmailManagerServer(): Server {
   const server = new Server({
     name: "gmail-manager",
-    version: "1.1.5",
+    version: "1.3.5"
+  }, {
     capabilities: {
       tools: {}
     }
@@ -28,13 +29,13 @@ export function createGmailManagerServer(): Server {
   server.setRequestHandler(InitializeRequestSchema, async (request) => {
     try {
       const response = {
-        protocolVersion: "2024-11-05",
+        protocolVersion: request.params.protocolVersion,
         capabilities: {
           tools: {}
         },
         serverInfo: {
           name: "gmail-manager",
-          version: "1.1.5"
+          version: "1.3.5"
         }
       };
       return response;

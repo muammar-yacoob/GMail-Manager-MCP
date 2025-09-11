@@ -25,6 +25,10 @@ const schemas = {
         messageIds: z.array(z.string()).describe("Array of email message IDs"),
         labelIds: z.array(z.string()).describe("Array of label IDs to apply")
     }),
+    create_reply: z.object({
+        messageId: z.string().describe("Email message ID to reply to"),
+        context: z.string().optional().describe("Brief context about the email content to help generate an appropriate reply")
+    }),
     authenticate_gmail: z.object({})
 };
 
@@ -39,6 +43,7 @@ const toolDescriptions: Record<string, string> = {
     apply_label: "Apply a label to an email",
     remove_label: "Remove a label from an email",
     batch_apply_labels: "Apply labels to multiple emails at once",
+    create_reply: "Generate a brief, natural reply draft and provide Gmail compose URL",
     authenticate_gmail: "Authenticate Gmail access via web browser (opens browser automatically)"
 };
 
@@ -123,6 +128,12 @@ export async function handleToolCall(gmailService: GmailService, name: string, a
                 const result = await gmailService.batchApplyLabels(v.messageIds, v.labelIds);
                 return { content: [{ type: "text", 
                     text: `Batch label application completed:\nSuccessfully processed: ${result.successes} emails\nFailed: ${result.failures} emails` }] };
+            }
+            
+            case "create_reply": {
+                const v = validated as z.infer<typeof schemas.create_reply>;
+                const reply = await gmailService.createReply(v.messageId, v.context);
+                return { content: [{ type: "text", text: reply }] };
             }
             
             case "authenticate_gmail": {
