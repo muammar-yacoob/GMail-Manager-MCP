@@ -130,11 +130,11 @@ Gmail Manager MCP gives Claude Desktop **direct access** to your Gmail inbox, al
 
 | Feature | Description |
 |---------|-------------|
-| ![Email Search](https://img.shields.io/badge/🔍%20Email%20Search-blue?style=for-the-badge) | Find emails by sender, subject, date, or any Gmail query |
-| ![Inbox Analytics](https://img.shields.io/badge/📊%20Inbox%20Analytics-blue?style=for-the-badge) | Get insights about your email patterns and volume |
-| ![Read & Draft Replies](https://img.shields.io/badge/📖%20Read%20%26%20Draft%20Replies-green?style=for-the-badge) | Read the full content of an email |
-| ![Smart Organization](https://img.shields.io/badge/🏷️%20Smart%20Organization-yellow?style=for-the-badge) | Create and apply labels to categorize emails automatically |
-| ![Bulk Cleanup](https://img.shields.io/badge/🗑️%20Bulk%20Cleanup-red?style=for-the-badge) | Remove old newsletters, notifications, and spam efficiently |
+| <span style="background: #003d82; color: white; padding: 0; border-radius: 4px 0 0 4px; font-size: 16px; vertical-align: top; display: inline-block; height: 28px; width: 28px; line-height: 28px; text-align: center;">🔍</span>![Email Search](https://img.shields.io/badge/Email%20Search-blue?style=for-the-badge&labelColor=blue) | Find emails by sender, subject, date, or any Gmail query |
+| <span style="background: #003d82; color: white; padding: 0; border-radius: 4px 0 0 4px; font-size: 16px; vertical-align: top; display: inline-block; height: 28px; width: 28px; line-height: 28px; text-align: center;">📊</span>![Inbox Analytics](https://img.shields.io/badge/Inbox%20Analytics-blue?style=for-the-badge&labelColor=blue) | Get insights about your email patterns and volume |
+| <span style="background: #155724; color: white; padding: 0; border-radius: 4px 0 0 4px; font-size: 16px; vertical-align: top; display: inline-block; height: 28px; width: 28px; line-height: 28px; text-align: center;">📖</span>![Read & Draft Replies](https://img.shields.io/badge/Read%20%26%20Draft%20Replies-green?style=for-the-badge&labelColor=green) | Read the full content of an email |
+| <span style="background: #b8860b; color: white; padding: 0; border-radius: 4px 0 0 4px; font-size: 16px; vertical-align: top; display: inline-block; height: 28px; width: 28px; line-height: 28px; text-align: center;">🏷️</span>![Smart Organization](https://img.shields.io/badge/Smart%20Organization-yellow?style=for-the-badge&labelColor=yellow) | Create and apply labels to categorize emails automatically |
+| <span style="background: #a71e2a; color: white; padding: 0; border-radius: 4px 0 0 4px; font-size: 16px; vertical-align: top; display: inline-block; height: 28px; width: 28px; line-height: 28px; text-align: center;">🗑️</span>![Bulk Cleanup](https://img.shields.io/badge/Bulk%20Cleanup-red?style=for-the-badge&labelColor=red) | Remove old newsletters, notifications, and spam efficiently |
 
 
 
@@ -230,18 +230,18 @@ Add to your Claude Desktop config file:
 
 | Tool | Description |
 |------|-------------|
-| ![Authenticate Gmail](https://img.shields.io/badge/🔐%20Authenticate%20Gmail-blue?style=for-the-badge) | Authenticate Gmail access via web browser |
-| ![Search Emails](https://img.shields.io/badge/🔍%20Search%20Emails-blue?style=for-the-badge) | Search emails using Gmail query syntax |
-| ![Read Email](https://img.shields.io/badge/📖%20Read%20Email-green?style=for-the-badge) | Read the full content of an email |
-| ![Create Reply](https://img.shields.io/badge/💬%20Create%20Reply-green?style=for-the-badge) | Create a draft reply to an email with a smart, context-aware response |
-| ![List Labels](https://img.shields.io/badge/📋%20List%20Labels-green?style=for-the-badge) | List all Gmail labels |
-| ![Create Label](https://img.shields.io/badge/➕%20Create%20Label-yellow?style=for-the-badge) | Create a new Gmail label |
-| ![Apply Label](https://img.shields.io/badge/🏷️%20Apply%20Label-yellow?style=for-the-badge) | Apply a label to an email |
-| ![Batch Apply Labels](https://img.shields.io/badge/⚡%20Batch%20Apply%20Labels-yellow?style=for-the-badge) | Apply labels to multiple emails |
-| ![Remove Label](https://img.shields.io/badge/🚫%20Remove%20Label-yellow?style=for-the-badge) | Remove a label from an email |
-| ![Delete Label](https://img.shields.io/badge/❌%20Delete%20Label-red?style=for-the-badge) | Delete a Gmail label |
-| ![Delete Email](https://img.shields.io/badge/🗑️%20Delete%20Email-red?style=for-the-badge) | Permanently delete an email |
-| ![Batch Delete Emails](https://img.shields.io/badge/💥%20Batch%20Delete%20Emails-red?style=for-the-badge) | Delete multiple emails at once |
+| <span style="background: #003d82; color: white; padding: 0; border-radius: 4px 0 0 4px; font-size: 16px; vertical-align: top; display: inline-block; height: 28px; width: 28px; line-height: 28px; text-align: center;">🔐</span>![Authenticate Gmail](https://img.shields.io/badge/Authenticate%20Gmail-blue?style=for-the-badge&labelColor=blue) | Authenticate Gmail access via web browser |
+| <span style="background: #003d82; color: white; padding: 0; border-radius: 4px 0 0 4px; font-size: 16px; vertical-align: top; display: inline-block; height: 28px; width: 28px; line-height: 28px; text-align: center;">🔍</span>![Search Emails](https://img.shields.io/badge/Search%20Emails-blue?style=for-the-badge&labelColor=blue) | Search emails using Gmail query syntax |
+| <span style="background: #155724; color: white; padding: 0; border-radius: 4px 0 0 4px; font-size: 16px; vertical-align: top; display: inline-block; height: 28px; width: 28px; line-height: 28px; text-align: center;">📖</span>![Read Email](https://img.shields.io/badge/Read%20Email-green?style=for-the-badge&labelColor=green) | Read the full content of an email |
+| <span style="background: #155724; color: white; padding: 0; border-radius: 4px 0 0 4px; font-size: 16px; vertical-align: top; display: inline-block; height: 28px; width: 28px; line-height: 28px; text-align: center;">💬</span>![Create Reply](https://img.shields.io/badge/Create%20Reply-green?style=for-the-badge&labelColor=green) | Create a draft reply to an email with a smart, context-aware response |
+| <span style="background: #155724; color: white; padding: 0; border-radius: 4px 0 0 4px; font-size: 16px; vertical-align: top; display: inline-block; height: 28px; width: 28px; line-height: 28px; text-align: center;">📋</span>![List Labels](https://img.shields.io/badge/List%20Labels-green?style=for-the-badge&labelColor=green) | List all Gmail labels |
+| <span style="background: #b8860b; color: white; padding: 0; border-radius: 4px 0 0 4px; font-size: 16px; vertical-align: top; display: inline-block; height: 28px; width: 28px; line-height: 28px; text-align: center;">➕</span>![Create Label](https://img.shields.io/badge/Create%20Label-yellow?style=for-the-badge&labelColor=yellow) | Create a new Gmail label |
+| <span style="background: #b8860b; color: white; padding: 0; border-radius: 4px 0 0 4px; font-size: 16px; vertical-align: top; display: inline-block; height: 28px; width: 28px; line-height: 28px; text-align: center;">🏷️</span>![Apply Label](https://img.shields.io/badge/Apply%20Label-yellow?style=for-the-badge&labelColor=yellow) | Apply a label to an email |
+| <span style="background: #b8860b; color: white; padding: 0; border-radius: 4px 0 0 4px; font-size: 16px; vertical-align: top; display: inline-block; height: 28px; width: 28px; line-height: 28px; text-align: center;">⚡</span>![Batch Apply Labels](https://img.shields.io/badge/Batch%20Apply%20Labels-yellow?style=for-the-badge&labelColor=yellow) | Apply labels to multiple emails |
+| <span style="background: #b8860b; color: white; padding: 0; border-radius: 4px 0 0 4px; font-size: 16px; vertical-align: top; display: inline-block; height: 28px; width: 28px; line-height: 28px; text-align: center;">🚫</span>![Remove Label](https://img.shields.io/badge/Remove%20Label-yellow?style=for-the-badge&labelColor=yellow) | Remove a label from an email |
+| <span style="background: #a71e2a; color: white; padding: 0; border-radius: 4px 0 0 4px; font-size: 16px; vertical-align: top; display: inline-block; height: 28px; width: 28px; line-height: 28px; text-align: center;">❌</span>![Delete Label](https://img.shields.io/badge/Delete%20Label-red?style=for-the-badge&labelColor=red) | Delete a Gmail label |
+| <span style="background: #a71e2a; color: white; padding: 0; border-radius: 4px 0 0 4px; font-size: 16px; vertical-align: top; display: inline-block; height: 28px; width: 28px; line-height: 28px; text-align: center;">🗑️</span>![Delete Email](https://img.shields.io/badge/Delete%20Email-red?style=for-the-badge&labelColor=red) | Permanently delete an email |
+| <span style="background: #a71e2a; color: white; padding: 0; border-radius: 4px 0 0 4px; font-size: 16px; vertical-align: top; display: inline-block; height: 28px; width: 28px; line-height: 28px; text-align: center;">💥</span>![Batch Delete Emails](https://img.shields.io/badge/Batch%20Delete%20Emails-red?style=for-the-badge&labelColor=red) | Delete multiple emails at once |
 
 </details>
 
