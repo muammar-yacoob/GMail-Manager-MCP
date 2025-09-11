@@ -1,0 +1,84 @@
+/* Gmail Manager MCP Badge Styles */
+.badge {
+  display: inline-flex;
+  width: 180px;
+  height: 24px;
+  border-radius: 4px;
+  overflow: hidden;
+  vertical-align: middle;
+}
+
+/* Ensure consistent table row heights */
+table tr {
+  height: 40px;
+}
+
+table td {
+  vertical-align: middle;
+  padding: 8px 0;
+}
+
+.badge-os {
+  width: 80px;
+}
+
+.badge-emoji {
+  width: 32px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.badge-text {
+  flex: 1;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  padding-left: 8px;
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+/* Color variants */
+.badge-blue { background: #007acc; }
+.badge-blue-dark { background: #0056b3; }
+
+.badge-green { background: #28a745; }
+.badge-green-dark { background: #1e7e34; }
+
+.badge-yellow { background: #ffc107; }
+.badge-yellow-dark { background: #e0a800; }
+
+.badge-red { background: #dc3545; }
+.badge-red-dark { background: #c82333; }
+
+/* OS-specific badges */
+.badge-windows { 
+  background: #1e90ff; 
+  text-align: center;
+  line-height: 24px;
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.badge-macos { 
+  background: #c0c0c0; 
+  text-align: center;
+  line-height: 24px;
+  color: black !important; 
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.badge-linux { 
+  background: #ffd700; 
+  text-align: center;
+  line-height: 24px;
+  color: black !important; 
+  font-size: 11px;
+  font-weight: bold;
+}

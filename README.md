@@ -11,6 +11,8 @@
 [issues-link]: ../../issues
 [discord-link]: https://discord.gg/S9kS2D5ueg
 
+<link rel="stylesheet" href="public/styles/badges.css">
+
 # <img src="public/images/trash-mail.png" alt="Gmail Manager" width="48" height="48" style="vertical-align: middle;"> Gmail Manager MCP
 
 <div align="center">
@@ -38,11 +40,11 @@ Gmail Manager MCP gives Claude Desktop **direct access** to your Gmail inbox, al
 
 | Feature | Description |
 |---------|-------------|
-| <div style="display: inline-block; width: 180px; height: 24px; background: #007acc; border-radius: 4px; text-align: center; line-height: 24px; color: white; font-size: 11px; font-weight: bold;">🔍 Email Search</div> | Find emails by sender, subject, date, or any Gmail query |
-| <div style="display: inline-block; width: 180px; height: 24px; background: #007acc; border-radius: 4px; text-align: center; line-height: 24px; color: white; font-size: 11px; font-weight: bold;">📊 Inbox Analytics</div> | Get insights about your email patterns and volume |
-| <div style="display: inline-block; width: 180px; height: 24px; background: #28a745; border-radius: 4px; text-align: center; line-height: 24px; color: white; font-size: 11px; font-weight: bold;">📖 Read Emails & Draft Replies</div> | Read the full content of an email |
-| <div style="display: inline-block; width: 180px; height: 24px; background: #ffc107; border-radius: 4px; text-align: center; line-height: 24px; color: white; font-size: 11px; font-weight: bold;">🏷️ Smart Organization</div> | Create and apply labels to categorize emails automatically |
-| <div style="display: inline-block; width: 180px; height: 24px; background: #dc3545; border-radius: 4px; text-align: center; line-height: 24px; color: white; font-size: 11px; font-weight: bold;">🗑️ Bulk Cleanup</div> | Remove old newsletters, notifications, and spam efficiently |
+| <div class="badge"><div class="badge-emoji badge-blue-dark">🔍</div><div class="badge-text badge-blue">Email Search</div></div> | Find emails by sender, subject, date, or any Gmail query |
+| <div class="badge"><div class="badge-emoji badge-blue-dark">📊</div><div class="badge-text badge-blue">Inbox Analytics</div></div> | Get insights about your email patterns and volume |
+| <div class="badge"><div class="badge-emoji badge-green-dark">📖</div><div class="badge-text badge-green">Read & Draft Replies</div></div> | Read the full content of an email |
+| <div class="badge"><div class="badge-emoji badge-yellow-dark">🏷️</div><div class="badge-text badge-yellow">Smart Organization</div></div> | Create and apply labels to categorize emails automatically |
+| <div class="badge"><div class="badge-emoji badge-red-dark">🗑️</div><div class="badge-text badge-red">Bulk Cleanup</div></div> | Remove old newsletters, notifications, and spam efficiently |
 
 
 
@@ -103,9 +105,9 @@ npm i -g @spark-apps/gmail-manager-mcp
 <summary><strong>🔧 Required for all installation methods</strong></summary>
 
 Add to your Claude Desktop config file:
-- <div style="display: inline-block; width: 80px; height: 24px; background: #1e90ff; border-radius: 4px; text-align: center; line-height: 24px; color: white; font-size: 11px; font-weight: bold;">Windows</div> `%APPDATA%\\Claude\\claude_desktop_config.json`
-- <div style="display: inline-block; width: 80px; height: 24px; background: #c0c0c0; border-radius: 4px; text-align: center; line-height: 24px; color: black; font-size: 11px; font-weight: bold;">macOS</div> `~/Library/Application Support/Claude/claude_desktop_config.json`
-- <div style="display: inline-block; width: 80px; height: 24px; background: #ffd700; border-radius: 4px; text-align: center; line-height: 24px; color: black; font-size: 11px; font-weight: bold;">Linux</div> `~/.config/Claude/claude_desktop_config.json`
+- <div class="badge badge-os badge-windows">Windows</div> `%APPDATA%\\Claude\\claude_desktop_config.json`
+- <div class="badge badge-os badge-macos">macOS</div> `~/Library/Application Support/Claude/claude_desktop_config.json`
+- <div class="badge badge-os badge-linux">Linux</div> `~/.config/Claude/claude_desktop_config.json`
 
 **📦 For NPM Install:**
 ```json
@@ -138,18 +140,18 @@ Add to your Claude Desktop config file:
 
 | Tool | Description |
 |------|-------------|
-| <div style="display: inline-block; width: 180px; height: 24px; background: #007acc; border-radius: 4px; text-align: center; line-height: 24px; color: white; font-size: 11px; font-weight: bold;">🔐 Authenticate Gmail</div> | Authenticate Gmail access via web browser |
-| <div style="display: inline-block; width: 180px; height: 24px; background: #007acc; border-radius: 4px; text-align: center; line-height: 24px; color: white; font-size: 11px; font-weight: bold;">🔍 Search Emails</div> | Search emails using Gmail query syntax |
-| <div style="display: inline-block; width: 180px; height: 24px; background: #28a745; border-radius: 4px; text-align: center; line-height: 24px; color: white; font-size: 11px; font-weight: bold;">📖 Read Email</div> | Read the full content of an email |
-| <div style="display: inline-block; width: 180px; height: 24px; background: #007acc; border-radius: 4px; text-align: center; line-height: 24px; color: white; font-size: 11px; font-weight: bold;">💬 Create Reply</div> | Create a draft reply to an email with a smart, context-aware response |
-| <div style="display: inline-block; width: 180px; height: 24px; background: #28a745; border-radius: 4px; text-align: center; line-height: 24px; color: white; font-size: 11px; font-weight: bold;">📋 List Labels</div> | List all Gmail labels |
-| <div style="display: inline-block; width: 180px; height: 24px; background: #ffc107; border-radius: 4px; text-align: center; line-height: 24px; color: white; font-size: 11px; font-weight: bold;">➕ Create Label</div> | Create a new Gmail label |
-| <div style="display: inline-block; width: 180px; height: 24px; background: #ffc107; border-radius: 4px; text-align: center; line-height: 24px; color: white; font-size: 11px; font-weight: bold;">🏷️ Apply Label</div> | Apply a label to an email |
-| <div style="display: inline-block; width: 180px; height: 24px; background: #ffc107; border-radius: 4px; text-align: center; line-height: 24px; color: white; font-size: 11px; font-weight: bold;">⚡ Batch Apply Labels</div> | Apply labels to multiple emails |
-| <div style="display: inline-block; width: 180px; height: 24px; background: #ffc107; border-radius: 4px; text-align: center; line-height: 24px; color: white; font-size: 11px; font-weight: bold;">🚫 Remove Label</div> | Remove a label from an email |
-| <div style="display: inline-block; width: 180px; height: 24px; background: #dc3545; border-radius: 4px; text-align: center; line-height: 24px; color: white; font-size: 11px; font-weight: bold;">❌ Delete Label</div> | Delete a Gmail label |
-| <div style="display: inline-block; width: 180px; height: 24px; background: #dc3545; border-radius: 4px; text-align: center; line-height: 24px; color: white; font-size: 11px; font-weight: bold;">🗑️ Delete Email</div> | Permanently delete an email |
-| <div style="display: inline-block; width: 180px; height: 24px; background: #dc3545; border-radius: 4px; text-align: center; line-height: 24px; color: white; font-size: 11px; font-weight: bold;">💥 Batch Delete Emails</div> | Delete multiple emails at once |
+| <div class="badge"><div class="badge-emoji badge-blue-dark">🔐</div><div class="badge-text badge-blue">Authenticate Gmail</div></div> | Authenticate Gmail access via web browser |
+| <div class="badge"><div class="badge-emoji badge-blue-dark">🔍</div><div class="badge-text badge-blue">Search Emails</div></div> | Search emails using Gmail query syntax |
+| <div class="badge"><div class="badge-emoji badge-green-dark">📖</div><div class="badge-text badge-green">Read Email</div></div> | Read the full content of an email |
+| <div class="badge"><div class="badge-emoji badge-blue-dark">💬</div><div class="badge-text badge-blue">Create Reply</div></div> | Create a draft reply to an email with a smart, context-aware response |
+| <div class="badge"><div class="badge-emoji badge-green-dark">📋</div><div class="badge-text badge-green">List Labels</div></div> | List all Gmail labels |
+| <div class="badge"><div class="badge-emoji badge-yellow-dark">➕</div><div class="badge-text badge-yellow">Create Label</div></div> | Create a new Gmail label |
+| <div class="badge"><div class="badge-emoji badge-yellow-dark">🏷️</div><div class="badge-text badge-yellow">Apply Label</div></div> | Apply a label to an email |
+| <div class="badge"><div class="badge-emoji badge-yellow-dark">⚡</div><div class="badge-text badge-yellow">Batch Apply Labels</div></div> | Apply labels to multiple emails |
+| <div class="badge"><div class="badge-emoji badge-yellow-dark">🚫</div><div class="badge-text badge-yellow">Remove Label</div></div> | Remove a label from an email |
+| <div class="badge"><div class="badge-emoji badge-red-dark">❌</div><div class="badge-text badge-red">Delete Label</div></div> | Delete a Gmail label |
+| <div class="badge"><div class="badge-emoji badge-red-dark">🗑️</div><div class="badge-text badge-red">Delete Email</div></div> | Permanently delete an email |
+| <div class="badge"><div class="badge-emoji badge-red-dark">💥</div><div class="badge-text badge-red">Batch Delete Emails</div></div> | Delete multiple emails at once |
 
 </details>
 
