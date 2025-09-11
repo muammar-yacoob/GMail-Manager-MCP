@@ -132,8 +132,16 @@ export async function handleToolCall(gmailService: GmailService, name: string, a
             
             case "create_reply": {
                 const v = validated as z.infer<typeof schemas.create_reply>;
-                const reply = await gmailService.createReply(v.messageId, v.replyMessage);
-                return { content: [{ type: "text", text: reply }] };
+                const result = await gmailService.createReply(v.messageId, v.replyMessage);
+                return { 
+                    content: [
+                        { type: "text", text: result.message },
+                        {
+                            type: "text",
+                            text: `<artifact identifier="gmail-draft-preview" type="text/plain" title="Gmail Draft Preview">To: ${result.to}\nSubject: ${result.subject}\n\n${result.replyMessage}</artifact>`
+                        }
+                    ]
+                };
             }
             
             case "authenticate_gmail": {

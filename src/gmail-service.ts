@@ -146,7 +146,7 @@ export class GmailService {
         return text || html || '';
     }
 
-    async createReply(messageId: string, replyMessage: string): Promise<string> {
+    async createReply(messageId: string, replyMessage: string): Promise<{message: string, to: string, subject: string, replyMessage: string}> {
         const email = await this.readEmail(messageId);
 
         // Create email message for draft
@@ -179,12 +179,22 @@ export class GmailService {
 
             const draftUrl = `https://mail.google.com/mail/u/0/#drafts/${draft.id}`;
             
-            return `Reply draft created and saved to Gmail drafts.\n\n**Gmail draft URL:** ${draftUrl}\n\n**Draft preview:**\n\`\`\`\n${replyMessage}\n\`\`\``;
+            return {
+                message: `Reply draft created and saved to Gmail drafts.\n\n**Gmail draft URL:** ${draftUrl}`,
+                to,
+                subject,
+                replyMessage
+            };
         } catch (error) {
             console.error('Failed to create draft:', error);
             // Fallback to compose URL
             const gmailComposeUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(replyMessage)}`;
-            return `Failed to create draft. Gmail compose URL: ${gmailComposeUrl}\n\n**Draft preview:**\n\`\`\`\n${replyMessage}\n\`\`\``;
+            return {
+                message: `Failed to create draft. Gmail compose URL: ${gmailComposeUrl}`,
+                to,
+                subject, 
+                replyMessage
+            };
         }
     }
 }
