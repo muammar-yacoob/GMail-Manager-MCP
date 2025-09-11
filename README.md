@@ -11,83 +11,6 @@
 [issues-link]: ../../issues
 [discord-link]: https://discord.gg/S9kS2D5ueg
 
-<style>
-/* Gmail Manager MCP Badge Styles - DRY Implementation */
-.emoji-cell {
-  color: white;
-  padding: 0;
-  border-radius: 4px 0 0 4px;
-  font-size: 16px;
-  vertical-align: top;
-  display: inline-block;
-  height: 28px;
-  width: 28px;
-  line-height: 28px;
-  text-align: center;
-}
-
-.emoji-cell.blue-dark { background: #0044cc; }
-.emoji-cell.green-dark { background: #009944; }
-.emoji-cell.yellow-dark { background: #cc8800; }
-.emoji-cell.red-dark { background: #cc2244; }
-
-/* Fixed width for shields.io badges */
-img[src*="shields.io"] {
-  width: 172px !important;
-  height: 28px !important;
-  object-fit: contain;
-  vertical-align: top !important;
-}
-
-/* Ensure emoji cells display properly */
-.emoji-cell {
-  background-color: inherit !important;
-  display: inline-block !important;
-  vertical-align: top !important;
-}
-
-/* Color variants with gradients */
-.badge-blue { background: linear-gradient(90deg, #007acc 0%, #0056b3 100%); }
-.badge-blue-dark { background: #003d82; }
-
-.badge-green { background: linear-gradient(90deg, #28a745 0%, #1e7e34 100%); }
-.badge-green-dark { background: #155724; }
-
-.badge-yellow { background: linear-gradient(90deg, #ffc107 0%, #e0a800 100%); }
-.badge-yellow-dark { background: #b8860b; }
-
-.badge-red { background: linear-gradient(90deg, #dc3545 0%, #c82333 100%); }
-.badge-red-dark { background: #a71e2a; }
-
-/* OS-specific badges */
-.badge-windows { 
-  background: #1e90ff; 
-  text-align: center;
-  line-height: 24px;
-  color: white;
-  font-size: 11px;
-  font-weight: bold;
-}
-
-.badge-macos { 
-  background: #c0c0c0; 
-  text-align: center;
-  line-height: 24px;
-  color: black !important; 
-  font-size: 11px;
-  font-weight: bold;
-}
-
-.badge-linux { 
-  background: #ffd700; 
-  text-align: center;
-  line-height: 24px;
-  color: black !important; 
-  font-size: 11px;
-  font-weight: bold;
-}
-</style>
-
 # <img src="public/images/trash-mail.png" alt="Gmail Manager" width="48" height="48" style="vertical-align: middle;"> Gmail Manager MCP
 
 <div align="center">
@@ -285,5 +208,6 @@ Your support helps maintain and improve the tool. please consider [sponsoring th
 
 
 **Made with ❤️ for Claude Desktop** • [Privacy Policy](PRIVACY.md) • [Terms of Service](TERMS.md)
+
 
 </div>
