@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.1](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.7.0...v1.7.1) (2025-09-12)
+
+
+### Bug Fixes
+
+* improve badge formatting with darker colors and inline emojis ([9448665](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/9448665364cca17e63e80a9964f287dbce0bfd67))
+
 # [1.7.0](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.6.0...v1.7.0) (2025-09-11)
 
 
