@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.3](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.7.2...v1.7.3) (2025-09-12)
+
+
+### Bug Fixes
+
+* support desktop OAuth clients in auth command ([6892b22](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/6892b22a8a4118b65e6657b0aab4828d5aaeff95))
+
 ## [1.7.2](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.7.1...v1.7.2) (2025-09-12)
 
 
