@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.2](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.7.1...v1.7.2) (2025-09-12)
+
+
+### Bug Fixes
+
+* remove circular dependency causing path resolution error ([eed0471](https://github.com/muammar-yacoob/GMail-Manager-MCP/commit/eed0471ad099f6c4db7bb3fe891f11a2e44ec0bc))
+
 ## [1.7.1](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.7.0...v1.7.1) (2025-09-12)
 
 
