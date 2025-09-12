@@ -120,7 +120,7 @@ npx @spark-apps/gmail-manager-mcp@latest --test
 ## ⚙️ Configure MCP Client
 
 <details>
-<summary><strong>🔧 Required for all installation methods</strong></summary>
+<summary><strong>🔧 Required for MCP client integration</strong></summary>
 
 Add to your MCP client config file (Claude Desktop example):
 - <span style="background: #1e90ff; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px; font-weight: bold;">Windows</span> `%APPDATA%\\Claude\\claude_desktop_config.json`
