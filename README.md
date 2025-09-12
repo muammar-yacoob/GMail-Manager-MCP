@@ -34,7 +34,7 @@
 
 ## ✨ What It Does
 
-Gmail Manager MCP gives Claude Desktop **direct access** to your Gmail inbox, allowing you to:
+Gmail Manager MCP provides **direct access** to your Gmail inbox through the Model Context Protocol, allowing you to:
 
 | <div align="left">Feature</div> | <div align="left">Description</div> |
 |:---------|:-------------|
@@ -97,12 +97,32 @@ npm i -g @spark-apps/gmail-manager-mcp
 
 ---
 
-## ⚙️ Configure Claude Desktop
+## 💻 Terminal Usage
+
+<details>
+<summary><strong>🖥️ Quick Commands</strong></summary>
+
+```bash
+# Install globally
+npm i -g @spark-apps/gmail-manager-mcp
+
+# Run directly
+npx @spark-apps/gmail-manager-mcp@latest
+
+# Test connection
+npx @spark-apps/gmail-manager-mcp@latest --test
+```
+
+</details>
+
+---
+
+## ⚙️ Configure MCP Client
 
 <details>
 <summary><strong>🔧 Required for all installation methods</strong></summary>
 
-Add to your Claude Desktop config file:
+Add to your MCP client config file (Claude Desktop example):
 - <span style="background: #1e90ff; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px; font-weight: bold;">Windows</span> `%APPDATA%\\Claude\\claude_desktop_config.json`
 - <span style="background: #c0c0c0; color: black; padding: 2px 6px; border-radius: 3px; font-size: 11px; font-weight: bold;">macOS</span> `~/Library/Application Support/Claude/claude_desktop_config.json`
 - <span style="background: #ffd700; color: black; padding: 2px 6px; border-radius: 3px; font-size: 11px; font-weight: bold;">Linux</span> `~/.config/Claude/claude_desktop_config.json`
@@ -207,7 +227,7 @@ Your support helps maintain and improve the tool. please consider [sponsoring th
 <div align="center">
 
 
-**Made with ❤️ for Claude Desktop** • [Privacy Policy](PRIVACY.md) • [Terms of Service](TERMS.md)
+**Made with ❤️ for MCP** • [Privacy Policy](PRIVACY.md) • [Terms of Service](TERMS.md)
 
 
 </div>
