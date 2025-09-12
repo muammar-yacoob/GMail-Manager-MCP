@@ -11,53 +11,43 @@
 [issues-link]: ../../issues
 [discord-link]: https://discord.gg/S9kS2D5ueg
 
-<!-- Badge Templates -->
-[blue-emoji]: https://img.shields.io/badge/📧%20%20%20-1a365d?style=for-the-badge
-[blue-text]: https://img.shields.io/badge/PLACEHOLDER%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20-007bff?style=for-the-badge
-[green-emoji]: https://img.shields.io/badge/📖%20%20%20-1a5e3a?style=for-the-badge
-[green-text]: https://img.shields.io/badge/PLACEHOLDER%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20-28a745?style=for-the-badge
-[orange-emoji]: https://img.shields.io/badge/🏷️%20%20%20-cc6600?style=for-the-badge
-[orange-text]: https://img.shields.io/badge/PLACEHOLDER%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20-ff9500?style=for-the-badge
-[red-emoji]: https://img.shields.io/badge/🗑️%20%20%20-c41e3a?style=for-the-badge
-[red-text]: https://img.shields.io/badge/PLACEHOLDER%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20-ff073a?style=for-the-badge
-
 <!-- Feature Badges -->
-[search-badge]: https://img.shields.io/badge/🔍%20%20%20-1a365d?style=for-the-badge
-[search-text]: https://img.shields.io/badge/Email%20Search%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20-007bff?style=for-the-badge
-[analytics-badge]: https://img.shields.io/badge/📊%20%20%20-1a5e3a?style=for-the-badge
-[analytics-text]: https://img.shields.io/badge/Inbox%20Analytics%20%20%20%20%20%20%20%20%20%20%20%20-28a745?style=for-the-badge
-[read-badge]: https://img.shields.io/badge/📖%20%20%20-1a5e3a?style=for-the-badge
-[read-text]: https://img.shields.io/badge/Read%20%26%20Draft%20Replies%20%20%20%20%20%20-28a745?style=for-the-badge
-[organize-badge]: https://img.shields.io/badge/🏷️%20%20%20-cc6600?style=for-the-badge
-[organize-text]: https://img.shields.io/badge/Smart%20Organization%20%20%20%20%20%20%20%20%20-ff9500?style=for-the-badge
-[cleanup-badge]: https://img.shields.io/badge/🗑️%20%20%20-c41e3a?style=for-the-badge
-[cleanup-text]: https://img.shields.io/badge/Bulk%20Cleanup%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20-ff073a?style=for-the-badge
+[search-badge]: https://img.shields.io/badge/🔍-1a365d?style=for-the-badge
+[search-text]: https://img.shields.io/badge/Email_Search-007bff?style=for-the-badge
+[analytics-badge]: https://img.shields.io/badge/📊-1a5e3a?style=for-the-badge
+[analytics-text]: https://img.shields.io/badge/Inbox_Analytics-28a745?style=for-the-badge
+[read-badge]: https://img.shields.io/badge/📖-1a5e3a?style=for-the-badge
+[read-text]: https://img.shields.io/badge/Read_&_Draft_Replies-28a745?style=for-the-badge
+[organize-badge]: https://img.shields.io/badge/🏷️-cc6600?style=for-the-badge
+[organize-text]: https://img.shields.io/badge/Smart_Organization-ff9500?style=for-the-badge
+[cleanup-badge]: https://img.shields.io/badge/🗑️-c41e3a?style=for-the-badge
+[cleanup-text]: https://img.shields.io/badge/Bulk_Cleanup-ff073a?style=for-the-badge
 
 <!-- Tool Badges -->
-[auth-badge]: https://img.shields.io/badge/🔐%20%20%20-1a365d?style=for-the-badge
-[auth-text]: https://img.shields.io/badge/Authenticate%20Gmail%20%20%20%20%20%20%20%20-007bff?style=for-the-badge
-[search-emails-badge]: https://img.shields.io/badge/🔍%20%20%20-1a365d?style=for-the-badge
-[search-emails-text]: https://img.shields.io/badge/Search%20Emails%20%20%20%20%20%20%20%20%20%20%20%20-007bff?style=for-the-badge
-[read-email-badge]: https://img.shields.io/badge/📖%20%20%20-1a5e3a?style=for-the-badge
-[read-email-text]: https://img.shields.io/badge/Read%20Email%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20-28a745?style=for-the-badge
-[reply-badge]: https://img.shields.io/badge/💬%20%20%20-1a5e3a?style=for-the-badge
-[reply-text]: https://img.shields.io/badge/Create%20Reply%20%20%20%20%20%20%20%20%20%20%20%20%20%20-28a745?style=for-the-badge
-[list-labels-badge]: https://img.shields.io/badge/📋%20%20%20-1a5e3a?style=for-the-badge
-[list-labels-text]: https://img.shields.io/badge/List%20Labels%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20-28a745?style=for-the-badge
-[create-label-badge]: https://img.shields.io/badge/➕%20%20%20-cc6600?style=for-the-badge
-[create-label-text]: https://img.shields.io/badge/Create%20Label%20%20%20%20%20%20%20%20%20%20%20%20%20-ff9500?style=for-the-badge
-[apply-label-badge]: https://img.shields.io/badge/🏷️%20%20%20-cc6600?style=for-the-badge
-[apply-label-text]: https://img.shields.io/badge/Apply%20Label%20%20%20%20%20%20%20%20%20%20%20%20%20%20-ff9500?style=for-the-badge
-[batch-apply-badge]: https://img.shields.io/badge/⚡%20%20%20-cc6600?style=for-the-badge
-[batch-apply-text]: https://img.shields.io/badge/Batch%20Apply%20Labels%20%20%20%20%20%20%20-ff9500?style=for-the-badge
-[remove-label-badge]: https://img.shields.io/badge/🚫%20%20%20-cc6600?style=for-the-badge
-[remove-label-text]: https://img.shields.io/badge/Remove%20Label%20%20%20%20%20%20%20%20%20%20%20%20%20-ff9500?style=for-the-badge
-[delete-label-badge]: https://img.shields.io/badge/❌%20%20%20-c41e3a?style=for-the-badge
-[delete-label-text]: https://img.shields.io/badge/Delete%20Label%20%20%20%20%20%20%20%20%20%20%20%20%20-ff073a?style=for-the-badge
-[delete-email-badge]: https://img.shields.io/badge/🗑️%20%20%20-c41e3a?style=for-the-badge
-[delete-email-text]: https://img.shields.io/badge/Delete%20Email%20%20%20%20%20%20%20%20%20%20%20%20%20%20-ff073a?style=for-the-badge
-[batch-delete-badge]: https://img.shields.io/badge/💥%20%20%20-c41e3a?style=for-the-badge
-[batch-delete-text]: https://img.shields.io/badge/Batch%20Delete%20Emails%20%20%20%20%20%20-ff073a?style=for-the-badge
+[auth-badge]: https://img.shields.io/badge/🔐-1a365d?style=for-the-badge
+[auth-text]: https://img.shields.io/badge/Authenticate_Gmail-007bff?style=for-the-badge
+[search-emails-badge]: https://img.shields.io/badge/🔍-1a365d?style=for-the-badge
+[search-emails-text]: https://img.shields.io/badge/Search_Emails-007bff?style=for-the-badge
+[read-email-badge]: https://img.shields.io/badge/📖-1a5e3a?style=for-the-badge
+[read-email-text]: https://img.shields.io/badge/Read_Email-28a745?style=for-the-badge
+[reply-badge]: https://img.shields.io/badge/💬-1a5e3a?style=for-the-badge
+[reply-text]: https://img.shields.io/badge/Create_Reply-28a745?style=for-the-badge
+[list-labels-badge]: https://img.shields.io/badge/📋-1a5e3a?style=for-the-badge
+[list-labels-text]: https://img.shields.io/badge/List_Labels-28a745?style=for-the-badge
+[create-label-badge]: https://img.shields.io/badge/➕-cc6600?style=for-the-badge
+[create-label-text]: https://img.shields.io/badge/Create_Label-ff9500?style=for-the-badge
+[apply-label-badge]: https://img.shields.io/badge/🏷️-cc6600?style=for-the-badge
+[apply-label-text]: https://img.shields.io/badge/Apply_Label-ff9500?style=for-the-badge
+[batch-apply-badge]: https://img.shields.io/badge/⚡-cc6600?style=for-the-badge
+[batch-apply-text]: https://img.shields.io/badge/Batch_Apply_Labels-ff9500?style=for-the-badge
+[remove-label-badge]: https://img.shields.io/badge/🚫-cc6600?style=for-the-badge
+[remove-label-text]: https://img.shields.io/badge/Remove_Label-ff9500?style=for-the-badge
+[delete-label-badge]: https://img.shields.io/badge/❌-c41e3a?style=for-the-badge
+[delete-label-text]: https://img.shields.io/badge/Delete_Label-ff073a?style=for-the-badge
+[delete-email-badge]: https://img.shields.io/badge/🗑️-c41e3a?style=for-the-badge
+[delete-email-text]: https://img.shields.io/badge/Delete_Email-ff073a?style=for-the-badge
+[batch-delete-badge]: https://img.shields.io/badge/💥-c41e3a?style=for-the-badge
+[batch-delete-text]: https://img.shields.io/badge/Batch_Delete_Emails-ff073a?style=for-the-badge
 
 # <img src="public/images/trash-mail.png" alt="Gmail Manager" width="48" height="48" style="vertical-align: middle;"> Gmail Manager MCP
 
