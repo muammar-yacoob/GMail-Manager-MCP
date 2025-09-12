@@ -60,10 +60,17 @@ Gmail Manager MCP provides **direct access** to your Gmail inbox through the Mod
 6. Navigate to [Test users](https://console.cloud.google.com/auth/audience) → Add your Google email 👤
 
 **📁 Where to put `gcp-oauth.keys.json`:**
-- **If using npm (npx)**: Place it in your home directory  
-  Windows: `%USERPROFILE%` • macOS/Linux: `~/`
-- **If running locally from source**: Place it in the project root (same folder as `package.json`)
-- **Or set a custom path**: Define `GMAIL_OAUTH_PATH` in your Claude Desktop config to point to the file
+
+**For Windows users in WSL:**
+```bash
+# Copy from Windows to current directory
+cp /mnt/c/Users/YourUsername/gcp-oauth.keys.json ./gcp-oauth.keys.json
+```
+
+**General locations:**
+- **Current directory**: `./gcp-oauth.keys.json` (works everywhere)
+- **Home directory**: `~/gcp-oauth.keys.json` (for npx usage)
+- **Custom path**: Set `GMAIL_OAUTH_PATH` environment variable
 
 </details>
 
@@ -105,11 +112,11 @@ npm i -g @spark-apps/gmail-manager-mcp
 # Install globally
 npm i -g @spark-apps/gmail-manager-mcp
 
-# Run directly
-npx @spark-apps/gmail-manager-mcp@latest
+# Setup authentication (run this first)
+npx @spark-apps/gmail-manager-mcp@latest auth
 
-# Test connection
-npx @spark-apps/gmail-manager-mcp@latest --test
+# Test MCP server (for debugging)
+npx @modelcontextprotocol/inspector npx @spark-apps/gmail-manager-mcp@latest
 ```
 
 </details>
