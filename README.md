@@ -29,6 +29,10 @@
 
 <img src="public/images/meme.png" alt="Stop sending me unnecessary emails meme" width="400">
 
+<a href="https://glama.ai/mcp/servers/@muammar-yacoob/GMail-Manager-MCP">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@muammar-yacoob/GMail-Manager-MCP/badge" alt="GMail Manager MCP server" />
+</a>
+
 </div>
 
 ## ✨ What It Does
