@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/muammar-yacoob-gmail-manager-mcp-badge.png)](https://mseep.ai/app/muammar-yacoob-gmail-manager-mcp)
+
 [//]: # (Constants)
 [license-link]: ../../blob/main/LICENSE
 [stars-link]: ../../stargazers
