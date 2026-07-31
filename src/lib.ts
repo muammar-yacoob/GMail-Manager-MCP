@@ -11,6 +11,28 @@ import {
 import { getCredentials, authenticateWeb, getOAuthClient, hasValidCredentials } from "./auth.js";
 import { GmailService } from "./gmail-service.js";
 import { getToolDefinitions, handleToolCall } from "./tools.js";
+import { readFileSync } from "fs";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
+
+// Single source of truth for the reported version: package.json.
+// Hardcoding it here meant `serverInfo.version` drifted (stuck at 1.3.5 while
+// npm shipped 1.7.x), so clients could not tell which build they were talking to.
+const SERVER_VERSION: string = (() => {
+  try {
+    const pkgPath = join(dirname(fileURLToPath(import.meta.url)), "..", "package.json");
+    return JSON.parse(readFileSync(pkgPath, "utf8")).version ?? "0.0.0";
+  } catch {
+    return "0.0.0";
+  }
+})();
+
+/** Whether this process could realistically hand the user a browser consent screen. */
+function canOpenBrowser(): boolean {
+  if (process.env.GMAIL_ASSUME_BROWSER === '1') return true;
+  if (process.platform === 'darwin' || process.platform === 'win32') return true;
+  return Boolean(process.env.DISPLAY || process.env.WAYLAND_DISPLAY);
+}
 
 /**
  * Create and configure the Gmail Manager MCP server
@@ -18,7 +40,7 @@ import { getToolDefinitions, handleToolCall } from "./tools.js";
 export function createGmailManagerServer(): Server {
   const server = new Server({
     name: "gmail-manager",
-    version: "1.3.5"
+    version: SERVER_VERSION
   }, {
     capabilities: {
       tools: {}
@@ -35,7 +57,7 @@ export function createGmailManagerServer(): Server {
         },
         serverInfo: {
           name: "gmail-manager",
-          version: "1.3.5"
+          version: SERVER_VERSION
         }
       };
       return response;
@@ -149,6 +171,17 @@ Please complete the following steps:
 Expected OAuth file location: ${process.env.GMAIL_OAUTH_PATH || 'project directory/gcp-oauth.keys.json'}`);
       }
       
+      // Nothing can answer the OAuth callback without a browser, so don't make the
+      // caller wait out the auth timeout to be told that.
+      if (!canOpenBrowser()) {
+        throw new Error(`Gmail re-authentication required.
+
+No browser is available in this environment, so authentication cannot complete here.
+
+Run this in a terminal on a machine with a browser, then restart the client:
+  npx @spark-apps/gmail-manager-mcp@latest auth`);
+      }
+
       // We have OAuth keys but need authentication - do it automatically
       try {
         await authenticateWeb(oauth2Client);

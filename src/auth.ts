@@ -487,6 +487,40 @@ export async function debugAuth(): Promise<void> {
     console.error('\n=== Debug Complete ===');
 }
 
+/**
+ * Write tokens to disk, merged over whatever is already stored.
+ *
+ * Google only returns a refresh_token on the first consent, and silent refreshes
+ * return an access_token alone. Writing the response verbatim therefore erased the
+ * refresh_token and made the connector need a full re-auth every time.
+ */
+export function persistTokens(credentialsPath: string, tokens: Record<string, any>): void {
+    try {
+        const dir = path.dirname(credentialsPath);
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+
+        let existing: Record<string, any> = {};
+        if (fs.existsSync(credentialsPath)) {
+            try {
+                existing = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
+            } catch {
+                // Corrupt file - treat as empty rather than losing the new tokens
+            }
+        }
+
+        const merged = { ...existing, ...tokens };
+        if (!merged.refresh_token && existing.refresh_token) {
+            merged.refresh_token = existing.refresh_token;
+        }
+
+        fs.writeFileSync(credentialsPath, JSON.stringify(merged, null, 2), { mode: 0o600 });
+    } catch (error) {
+        console.error(`Could not save Gmail credentials to ${credentialsPath}:`, error instanceof Error ? error.message : error);
+    }
+}
+
 export async function getCredentials(): Promise<OAuth2Client | null> {
     // Use OAuth keys from environment variable or project root
     const oauthPath = process.env.GMAIL_OAUTH_PATH || 
@@ -524,7 +558,11 @@ export async function getCredentials(): Promise<OAuth2Client | null> {
     if (fs.existsSync(credentialsPath)) {
         const credentials = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
         oauth2Client.setCredentials(credentials);
-        
+
+        // Write refreshed access tokens straight back to disk. Without this every
+        // process start burned a refresh round-trip and the stored token stayed stale.
+        oauth2Client.on('tokens', (tokens) => persistTokens(credentialsPath, tokens as Record<string, any>));
+
         // Try to refresh the token if it's expired
         try {
             await oauth2Client.getAccessToken();
@@ -598,14 +636,45 @@ export async function hasValidCredentials(oauth2Client: OAuth2Client): Promise<b
     }
 }
 
-export async function authenticateWeb(oauth2Client: OAuth2Client, credentialsPath?: string): Promise<void> {
+export async function authenticateWeb(
+    oauth2Client: OAuth2Client,
+    credentialsPath?: string,
+    timeoutMs: number = Number(process.env.GMAIL_AUTH_TIMEOUT_MS) || 45_000
+): Promise<void> {
     const creds = credentialsPath || path.join(CONFIG_DIR, 'credentials.json');
-    
+
     return new Promise((resolve, reject) => {
         let server: http.Server;
         let port: number;
         let redirectUri: string;
-        
+        let pendingAuthUrl: string | undefined;
+
+        // Settle exactly once, always tearing down the timer and the local server.
+        // Without this the promise can hang forever waiting on a browser callback
+        // that never arrives, which an MCP client only ever sees as a timeout.
+        let settled = false;
+        let timer: NodeJS.Timeout;
+        const finish = (error?: Error) => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timer);
+            try { server?.close(); } catch { /* already closed */ }
+            error ? reject(error) : resolve();
+        };
+
+        timer = setTimeout(() => {
+            finish(new Error(
+                `Gmail authentication timed out after ${Math.round(timeoutMs / 1000)}s waiting for the browser callback.\n\n` +
+                `This happens when the MCP server runs without a browser (headless, remote, or a background service).\n\n` +
+                `Fix: run this in a terminal on the machine with your browser, then restart the client:\n` +
+                `  npx @spark-apps/gmail-manager-mcp@latest auth\n` +
+                (pendingAuthUrl ? `\nOr open this URL manually:\n  ${pendingAuthUrl}\n` : '') +
+                `\nRaise the limit with GMAIL_AUTH_TIMEOUT_MS if you need longer.`
+            ));
+        }, timeoutMs);
+        // Don't let the timer alone hold the process open.
+        if (typeof timer.unref === 'function') timer.unref();
+
         server = http.createServer(async (req, res) => {
             try {
                 // Get the actual server address for URL parsing
@@ -626,26 +695,18 @@ export async function authenticateWeb(oauth2Client: OAuth2Client, credentialsPat
                         
                         const { tokens } = await currentWebOAuth2Client.getToken(code);
                         oauth2Client.setCredentials(tokens);
-                        
-                        // Ensure the directory exists
-                        const credsDir = path.dirname(creds);
-                        if (!fs.existsSync(credsDir)) {
-                            fs.mkdirSync(credsDir, { recursive: true });
-                        }
-                        
-                        // Save credentials
-                        fs.writeFileSync(creds, JSON.stringify(tokens, null, 2));
-                        
+
+                        // Save credentials, keeping any refresh_token this response omitted
+                        persistTokens(creds, tokens as Record<string, any>);
+
                         res.writeHead(200, { 'Content-Type': 'text/html' });
                         res.end(getAuthSuccessHTML());
-                        
-                        server.close();
-                        resolve();
+
+                        finish();
                     } else {
                         res.writeHead(400, { 'Content-Type': 'text/html' });
                         res.end(getAuthFailedHTML());
-                        server.close();
-                        reject(new Error('No authorization code received'));
+                        finish(new Error('No authorization code received'));
                     }
                 } else if (url.pathname === '/') {
                     // Landing page - redirect to Google OAuth
@@ -743,16 +804,15 @@ export async function authenticateWeb(oauth2Client: OAuth2Client, credentialsPat
                     res.writeHead(500, { 'Content-Type': 'text/html' });
                     res.end(`<h1>Authentication Error</h1><p>${error instanceof Error ? error.message : 'Unknown error'}</p>`);
                 }
-                server.close();
-                reject(error);
+                finish(error);
             }
         });
-        
+
         server.listen(0, async () => {
             // Get the actual port that was assigned
             const address = server.address();
             if (!address || typeof address === 'string') {
-                reject(new Error('Failed to start OAuth server'));
+                finish(new Error('Failed to start OAuth server'));
                 return;
             }
             
@@ -770,7 +830,8 @@ export async function authenticateWeb(oauth2Client: OAuth2Client, credentialsPat
                 access_type: 'offline',
                 scope: ['https://mail.google.com/']
             });
-            
+            pendingAuthUrl = authUrl;
+
             console.error(`\nOpening authentication in your browser...`);
             console.error(`\nIf the browser doesn't open automatically, please visit:`);
             console.error(`\n${authUrl}\n`);
@@ -822,10 +883,7 @@ export async function authenticateWeb(oauth2Client: OAuth2Client, credentialsPat
         });
         
         server.on('error', (error) => {
-            if ((error as any).code === 'EADDRINUSE') {
-                // Port 3000 is in use
-            }
-            reject(error);
+            finish(error);
         });
     });
 }
