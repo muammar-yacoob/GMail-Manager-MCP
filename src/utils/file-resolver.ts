@@ -45,8 +45,17 @@ export function getPossibleBasePaths(): string[] {
 
 /**
  * Find OAuth keys file
+ *
+ * GMAIL_OAUTH_PATH may point directly at the keys file under any filename.
+ * Honour it as a full path first (symmetric with findCredentials), then fall
+ * back to searching for the conventional gcp-oauth.keys.json name.
  */
 export function findOAuthKeys(): string | null {
+    const envPath = process.env.GMAIL_OAUTH_PATH;
+    if (envPath && fs.existsSync(envPath) && fs.statSync(envPath).isFile()) {
+        return envPath;
+    }
+
     const possiblePaths = getPossibleBasePaths();
     return findFileInPaths('gcp-oauth.keys.json', possiblePaths);
 }
