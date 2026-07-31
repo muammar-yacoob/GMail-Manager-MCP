@@ -487,6 +487,40 @@ export async function debugAuth(): Promise<void> {
     console.error('\n=== Debug Complete ===');
 }
 
+/**
+ * Write tokens to disk, merged over whatever is already stored.
+ *
+ * Google only returns a refresh_token on the first consent, and silent refreshes
+ * return an access_token alone. Writing the response verbatim therefore erased the
+ * refresh_token and made the connector need a full re-auth every time.
+ */
+export function persistTokens(credentialsPath: string, tokens: Record<string, any>): void {
+    try {
+        const dir = path.dirname(credentialsPath);
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+
+        let existing: Record<string, any> = {};
+        if (fs.existsSync(credentialsPath)) {
+            try {
+                existing = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
+            } catch {
+                // Corrupt file - treat as empty rather than losing the new tokens
+            }
+        }
+
+        const merged = { ...existing, ...tokens };
+        if (!merged.refresh_token && existing.refresh_token) {
+            merged.refresh_token = existing.refresh_token;
+        }
+
+        fs.writeFileSync(credentialsPath, JSON.stringify(merged, null, 2), { mode: 0o600 });
+    } catch (error) {
+        console.error(`Could not save Gmail credentials to ${credentialsPath}:`, error instanceof Error ? error.message : error);
+    }
+}
+
 export async function getCredentials(): Promise<OAuth2Client | null> {
     // Use OAuth keys from environment variable or project root
     const oauthPath = process.env.GMAIL_OAUTH_PATH || 
@@ -524,7 +558,11 @@ export async function getCredentials(): Promise<OAuth2Client | null> {
     if (fs.existsSync(credentialsPath)) {
         const credentials = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
         oauth2Client.setCredentials(credentials);
-        
+
+        // Write refreshed access tokens straight back to disk. Without this every
+        // process start burned a refresh round-trip and the stored token stayed stale.
+        oauth2Client.on('tokens', (tokens) => persistTokens(credentialsPath, tokens as Record<string, any>));
+
         // Try to refresh the token if it's expired
         try {
             await oauth2Client.getAccessToken();
@@ -657,16 +695,10 @@ export async function authenticateWeb(
                         
                         const { tokens } = await currentWebOAuth2Client.getToken(code);
                         oauth2Client.setCredentials(tokens);
-                        
-                        // Ensure the directory exists
-                        const credsDir = path.dirname(creds);
-                        if (!fs.existsSync(credsDir)) {
-                            fs.mkdirSync(credsDir, { recursive: true });
-                        }
-                        
-                        // Save credentials
-                        fs.writeFileSync(creds, JSON.stringify(tokens, null, 2));
-                        
+
+                        // Save credentials, keeping any refresh_token this response omitted
+                        persistTokens(creds, tokens as Record<string, any>);
+
                         res.writeHead(200, { 'Content-Type': 'text/html' });
                         res.end(getAuthSuccessHTML());
 
