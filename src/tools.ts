@@ -29,6 +29,23 @@ const schemas = {
         messageId: z.string().describe("Email message ID to reply to"),
         replyMessage: z.string().describe("The reply message content to create as a draft")
     }),
+    send_email: z.object({
+        to: z.string().describe("Recipient address, or a comma-separated list"),
+        subject: z.string().describe("Subject line"),
+        body: z.string().describe("Plain-text message body"),
+        html: z.string().optional().describe("Optional HTML body, sent as an alternative alongside the plain text"),
+        cc: z.string().optional().describe("Cc address, or a comma-separated list"),
+        bcc: z.string().optional().describe("Bcc address, or a comma-separated list"),
+        threadId: z.string().optional().describe("Thread ID to send into, so the message threads with an existing conversation")
+    }),
+    resend_email: z.object({
+        messageId: z.string().describe("ID of the already-sent message to send a fresh copy of"),
+        to: z.string().optional().describe("Override the recipient (defaults to the original To)"),
+        subject: z.string().optional().describe("Override the subject (defaults to the original)"),
+        body: z.string().optional().describe("Override the body (defaults to the original text body)"),
+        cc: z.string().optional().describe("Cc address, or a comma-separated list"),
+        bcc: z.string().optional().describe("Bcc address, or a comma-separated list")
+    }),
     authenticate_gmail: z.object({})
 };
 
@@ -44,6 +61,8 @@ const toolDescriptions: Record<string, string> = {
     remove_label: "Remove a label from an email",
     batch_apply_labels: "Apply labels to multiple emails at once",
     create_reply: "Generate a brief, natural reply draft and provide Gmail compose URL",
+    send_email: "Send a new email immediately. This delivers straight away and cannot be recalled afterwards.",
+    resend_email: "Send a fresh copy of an already-sent email, carrying its attachments over, optionally editing the recipient, subject or body. This does NOT recall or replace the original: SMTP has no recall, so the first message stays delivered and the recipient ends up with both.",
     authenticate_gmail: "Authenticate Gmail access via web browser (opens browser automatically)"
 };
 
@@ -141,6 +160,22 @@ export async function handleToolCall(gmailService: GmailService, name: string, a
                 };
             }
             
+            case "send_email": {
+                const v = validated as z.infer<typeof schemas.send_email>;
+                const sent = await gmailService.sendEmail(v);
+                return { content: [{ type: "text",
+                    text: `Sent to ${v.to}\nSubject: ${v.subject}\nMessage ID: ${sent.id}\nGmail URL: ${gmailService.getEmailUrl(sent.id)}` }] };
+            }
+
+            case "resend_email": {
+                const v = validated as z.infer<typeof schemas.resend_email>;
+                const sent = await gmailService.resendEmail(v.messageId, {
+                    to: v.to, subject: v.subject, body: v.body, cc: v.cc, bcc: v.bcc
+                });
+                return { content: [{ type: "text",
+                    text: `Re-sent a copy to ${sent.to}\nSubject: ${sent.subject}\nAttachments carried over: ${sent.attachments}\nNew message ID: ${sent.id}\nGmail URL: ${gmailService.getEmailUrl(sent.id)}\n\nNote: the original message ${v.messageId} is still delivered. This did not recall it.` }] };
+            }
+
             case "authenticate_gmail": {
                 // This is a special case - handled in index.ts
                 throw new Error("Authentication should be handled by the main server");
