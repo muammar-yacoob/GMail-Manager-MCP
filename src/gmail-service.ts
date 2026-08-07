@@ -1,6 +1,50 @@
 import { randomBytes } from 'node:crypto';
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { basename, extname, dirname, resolve } from 'node:path';
+import { homedir } from 'node:os';
 import { google } from 'googleapis';
 import { OAuth2Client } from 'google-auth-library';
+
+/** Enough of the common types that attachments arrive with a sensible icon. */
+const MIME_BY_EXT: Record<string, string> = {
+    '.pdf': 'application/pdf',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.gif': 'image/gif',
+    '.webp': 'image/webp',
+    '.svg': 'image/svg+xml',
+    '.txt': 'text/plain',
+    '.md': 'text/markdown',
+    '.csv': 'text/csv',
+    '.json': 'application/json',
+    '.zip': 'application/zip',
+    '.doc': 'application/msword',
+    '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    '.xls': 'application/vnd.ms-excel',
+    '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    '.ppt': 'application/vnd.ms-powerpoint',
+    '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+};
+
+/** `~/foo` is what a user types; Node will not expand it, so do it here. */
+function expandHome(filePath: string): string {
+    return filePath.startsWith('~/') ? resolve(homedir(), filePath.slice(2)) : resolve(filePath);
+}
+
+/** Read local files into the shape `buildRaw` wants. */
+export async function loadAttachments(paths: string[]): Promise<OutgoingAttachment[]> {
+    return Promise.all(
+        paths.map(async (p) => {
+            const full = expandHome(p);
+            return {
+                filename: basename(full),
+                mimeType: MIME_BY_EXT[extname(full).toLowerCase()] || 'application/octet-stream',
+                content: await readFile(full)
+            };
+        })
+    );
+}
 
 export interface OutgoingAttachment {
     filename: string;
@@ -136,6 +180,106 @@ export class GmailService {
         return Buffer.from(data.data || '', 'base64url');
     }
     
+    /** Save an attachment to disk and return where it landed. */
+    async downloadAttachment(messageId: string, attachmentId: string, destination: string): Promise<string> {
+        const full = expandHome(destination);
+        await mkdir(dirname(full), { recursive: true });
+        await writeFile(full, await this.getAttachment(messageId, attachmentId));
+        return full;
+    }
+
+    /**
+     * Every message in a conversation, oldest first.
+     *
+     * Reading a thread one message at a time costs a round trip each and loses
+     * the ordering; this is the whole exchange in one call.
+     */
+    async getThread(threadId: string): Promise<EmailDetails[]> {
+        const { data } = await this.gmail.users.threads.get({ userId: 'me', id: threadId, format: 'full' });
+        return (data.messages || []).map((msg) => {
+            const h = msg.payload?.headers || [];
+            const findHeader = (name: string) =>
+                h.find((x) => x.name?.toLowerCase() === name.toLowerCase())?.value || '';
+            return {
+                id: msg.id || '',
+                threadId: msg.threadId || '',
+                subject: findHeader('subject'),
+                from: findHeader('from'),
+                to: findHeader('to'),
+                date: findHeader('date'),
+                messageIdHeader: findHeader('message-id'),
+                body: this.extractBody(msg.payload),
+                attachments: this.collectAttachments(msg.payload)
+            };
+        });
+    }
+
+    /**
+     * Save a message to Drafts without sending it.
+     *
+     * The counterpart to `sendEmail`: same fields, same attachment handling, but
+     * it lands in Gmail for the user to read and send themselves. Prefer this
+     * over `sendEmail` for anything the user has not explicitly asked to go out.
+     */
+    async createDraft(fields: SendFields & { threadId?: string }): Promise<{ id: string; url: string }> {
+        const raw = this.buildRaw(fields);
+        const { data } = await this.gmail.users.drafts.create({
+            userId: 'me',
+            requestBody: { message: fields.threadId ? { raw, threadId: fields.threadId } : { raw } }
+        });
+        return { id: data.id || '', url: this.getDraftUrl(data.id || '') };
+    }
+
+    async listDrafts(maxResults = 20): Promise<Array<{ id: string; subject: string; to: string; snippet: string; url: string }>> {
+        const { data } = await this.gmail.users.drafts.list({ userId: 'me', maxResults });
+        if (!data.drafts?.length) return [];
+
+        return Promise.all(
+            data.drafts.map(async (d) => {
+                const { data: detail } = await this.gmail.users.drafts.get({
+                    userId: 'me',
+                    id: d.id!,
+                    format: 'metadata'
+                });
+                const h = detail.message?.payload?.headers || [];
+                const findHeader = (name: string) =>
+                    h.find((x) => x.name?.toLowerCase() === name.toLowerCase())?.value || '';
+                return {
+                    id: d.id!,
+                    subject: findHeader('subject'),
+                    to: findHeader('to'),
+                    snippet: detail.message?.snippet || '',
+                    url: this.getDraftUrl(d.id!)
+                };
+            })
+        );
+    }
+
+    /** Replace a draft's contents. Gmail has no partial update, so pass every field. */
+    async updateDraft(draftId: string, fields: SendFields & { threadId?: string }): Promise<{ id: string; url: string }> {
+        const raw = this.buildRaw(fields);
+        const { data } = await this.gmail.users.drafts.update({
+            userId: 'me',
+            id: draftId,
+            requestBody: { message: fields.threadId ? { raw, threadId: fields.threadId } : { raw } }
+        });
+        return { id: data.id || draftId, url: this.getDraftUrl(data.id || draftId) };
+    }
+
+    async deleteDraft(draftId: string): Promise<void> {
+        await this.gmail.users.drafts.delete({ userId: 'me', id: draftId });
+    }
+
+    /** Send an existing draft as-is. Delivers immediately and cannot be recalled. */
+    async sendDraft(draftId: string): Promise<{ id: string; threadId: string }> {
+        const { data } = await this.gmail.users.drafts.send({ userId: 'me', requestBody: { id: draftId } });
+        return { id: data.id || '', threadId: data.threadId || '' };
+    }
+
+    getDraftUrl(draftId: string): string {
+        return `https://mail.google.com/mail/u/0/#drafts/${draftId}`;
+    }
+
     async deleteEmail(id: string): Promise<void> {
         await this.gmail.users.messages.delete({ userId: 'me', id });
     }
