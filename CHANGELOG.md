@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.8.0](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.7.4...v1.8.0) (2026-08-07)
+
+
+### Features
+
+* **drafts:** compose without sending — `create_draft`, `list_drafts`, `update_draft`, `send_draft`, `delete_draft`. Agents can now write mail into Gmail for the user to review and send, instead of only being able to fire it off or hand back a compose URL
+* **attachments:** `list_attachments` and `download_attachment` to pull files out of received mail, plus an `attachments` field on `send_email` and `create_draft` that takes local file paths (`~` is expanded)
+* **threads:** `get_thread` returns every message in a conversation in one call, oldest first, instead of one round trip per message
+
+
+### Notes
+
+* No re-authentication required. All of the above are covered by the existing `https://mail.google.com/` scope
+
+---
+
 ## [1.7.4](https://github.com/muammar-yacoob/GMail-Manager-MCP/compare/v1.7.3...v1.7.4) (2025-09-12)
 
 
