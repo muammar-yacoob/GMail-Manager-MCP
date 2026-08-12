@@ -2,6 +2,8 @@
 
 *Last updated: January 2025*
 
+_Published by [Spark Games Ltd](https://spark-apps.co) · company no. 15379140_
+
 ## Acceptance of Terms
 
 By using Gmail Manager MCP, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use this software.
@@ -108,8 +110,9 @@ To the maximum extent permitted by law, the developers of Gmail Manager MCP shal
 
 ## Support and Contact
 
+Questions? Visit [spark-apps.co](https://spark-apps.co/contact).
+
 ### Community Support
-- Support is provided on a best-effort basis through GitHub Issues
 - Community contributions and help are encouraged
 - Documentation and examples are provided in the repository
 

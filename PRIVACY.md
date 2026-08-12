@@ -1,5 +1,7 @@
 # Privacy Policy for Gmail Manager MCP
 
+_Published by [Spark Games Ltd](https://spark-apps.co) · company no. 15379140_
+
 ## Overview
 
 Gmail Manager MCP is a Model Context Protocol (MCP) server that helps you manage your Gmail inbox. This privacy policy explains how we handle your data when you use our application.
@@ -56,9 +58,7 @@ You have the right to:
 
 ## Contact
 
-If you have questions about this privacy policy or our data practices:
-- **GitHub Issues**: [Report issues or ask questions](https://github.com/muammar-yacoob/GMail-Manager-MCP/issues)
-- **Email**: Contact the project maintainers through GitHub
+Questions? Visit [spark-apps.co](https://spark-apps.co/contact).
 
 ## Changes to This Policy
 
