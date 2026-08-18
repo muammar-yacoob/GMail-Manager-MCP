@@ -42,8 +42,15 @@ Gmail Manager MCP provides **direct access** to your Gmail inbox through the Mod
 | ![](https://img.shields.io/badge/📖%20-1a5e3a?style=for-the-badge)![Read & Draft Replies](https://img.shields.io/badge/Read%20%26%20Draft%20Replies%20-28a745?style=for-the-badge) | Read the full content of an email |
 | ![](https://img.shields.io/badge/🏷️%20-cc6600?style=for-the-badge)![Smart Organization](https://img.shields.io/badge/Smart%20Organization%20-ff9500?style=for-the-badge) | Create and apply labels to categorize emails automatically |
 | ![](https://img.shields.io/badge/🗑️%20-c41e3a?style=for-the-badge)![Bulk Cleanup](https://img.shields.io/badge/Bulk%20Cleanup%20-ff073a?style=for-the-badge) | Remove old newsletters, notifications, and spam efficiently |
+| ![](https://img.shields.io/badge/📅%20-4b2e83?style=for-the-badge)![Google Calendar](https://img.shields.io/badge/Google%20Calendar%20-7b4fc9?style=for-the-badge) | List, search, create and update events, RSVP, and find times everyone is free |
 
 
+
+> [!IMPORTANT]
+> **Upgrading from a version before calendar support?** Google cannot add scopes to a token it has already issued, so your saved credentials keep working for mail while every calendar call fails with a permissions error. Enable the Calendar API and add the calendar scope as below, then re-authenticate once:
+> ```bash
+> npx @spark-apps/gmail-manager-mcp@latest auth
+> ```
 
 ## 🚀 Quick Setup 
 
@@ -53,10 +60,10 @@ Gmail Manager MCP provides **direct access** to your Gmail inbox through the Mod
 <summary><strong>🔑 Required before any installation</strong></summary>
 
 1. [Create New Project](https://console.cloud.google.com/projectcreate) 📁
-2. [Enable Gmail API](https://console.cloud.google.com/apis/api/gmail.googleapis.com/metrics) 📧
+2. Enable both APIs: [Gmail](https://console.cloud.google.com/apis/api/gmail.googleapis.com/metrics) 📧 and [Calendar](https://console.cloud.google.com/apis/api/calendar-json.googleapis.com/metrics) 📅
 3. Create [OAuth client ID](https://console.cloud.google.com/auth/clients) (Desktop app type) 🔐
 4. Download as `gcp-oauth.keys.json` 📥
-5. Navigate to [Data access](https://console.cloud.google.com/auth/scopes) → **Add or remove scopes** → Enter: `https://mail.google.com/` 🔓
+5. Navigate to [Data access](https://console.cloud.google.com/auth/scopes) → **Add or remove scopes** → add **both**: `https://mail.google.com/` and `https://www.googleapis.com/auth/calendar` 🔓
 6. Navigate to [Test users](https://console.cloud.google.com/auth/audience) → Add your Google email 👤
 
 **📁 Where to put `gcp-oauth.keys.json`:**
@@ -162,20 +169,75 @@ Add to your MCP client config file (Claude Desktop example):
 <details>
 <summary><strong>🔧 View All Available Tools</strong></summary>
 
-| <div align="left">Tool</div> | <div align="left">Description</div> |
-|:------|:-------------|
-| ![](https://img.shields.io/badge/🔐%20-1a365d?style=for-the-badge)![Authenticate Gmail](https://img.shields.io/badge/Authenticate%20Gmail%20-007bff?style=for-the-badge) | Authenticate Gmail access via web browser |
-| ![](https://img.shields.io/badge/🔍%20-1a365d?style=for-the-badge)![Search Emails](https://img.shields.io/badge/Search%20Emails%20-007bff?style=for-the-badge) | Search emails using Gmail query syntax |
-| ![](https://img.shields.io/badge/📖%20-1a5e3a?style=for-the-badge)![Read Email](https://img.shields.io/badge/Read%20Email%20-28a745?style=for-the-badge) | Read the full content of an email |
-| ![](https://img.shields.io/badge/💬%20-1a5e3a?style=for-the-badge)![Create Reply](https://img.shields.io/badge/Create%20Reply%20-28a745?style=for-the-badge) | Create a draft reply to an email with a smart, context-aware response |
-| ![](https://img.shields.io/badge/📋%20-1a5e3a?style=for-the-badge)![List Labels](https://img.shields.io/badge/List%20Labels%20-28a745?style=for-the-badge) | List all Gmail labels |
-| ![](https://img.shields.io/badge/➕%20-cc6600?style=for-the-badge)![Create Label](https://img.shields.io/badge/Create%20Label%20-ff9500?style=for-the-badge) | Create a new Gmail label |
-| ![](https://img.shields.io/badge/🏷️%20-cc6600?style=for-the-badge)![Apply Label](https://img.shields.io/badge/Apply%20Label%20-ff9500?style=for-the-badge) | Apply a label to an email |
-| ![](https://img.shields.io/badge/⚡%20-cc6600?style=for-the-badge)![Batch Apply Labels](https://img.shields.io/badge/Batch%20Apply%20Labels%20-ff9500?style=for-the-badge) | Apply labels to multiple emails |
-| ![](https://img.shields.io/badge/🚫%20-cc6600?style=for-the-badge)![Remove Label](https://img.shields.io/badge/Remove%20Label%20-ff9500?style=for-the-badge) | Remove a label from an email |
-| ![](https://img.shields.io/badge/❌%20-c41e3a?style=for-the-badge)![Delete Label](https://img.shields.io/badge/Delete%20Label%20-ff073a?style=for-the-badge) | Delete a Gmail label |
-| ![](https://img.shields.io/badge/🗑️%20-c41e3a?style=for-the-badge)![Delete Email](https://img.shields.io/badge/Delete%20Email%20-ff073a?style=for-the-badge) | Permanently delete an email |
-| ![](https://img.shields.io/badge/💥%20-c41e3a?style=for-the-badge)![Batch Delete Emails](https://img.shields.io/badge/Batch%20Delete%20Emails%20-ff073a?style=for-the-badge) | Delete multiple emails at once |
+### 📬 Reading
+
+| Tool | Description |
+|:-----|:------------|
+| `search_emails` | Search using Gmail query syntax |
+| `read_email` | Full content of one email |
+| `get_thread` | Every message in a conversation, oldest first |
+| `list_attachments` | Attachments on an email, with download IDs |
+| `download_attachment` | Save an attachment to a local path |
+
+### 🧹 Cleaning up
+
+| Tool | Description |
+|:-----|:------------|
+| `trash_emails` | Move to Trash — recoverable for 30 days. **Prefer this** |
+| `untrash_emails` | Pull messages back out of Trash |
+| `archive_emails` | Remove from inbox, keep everything else |
+| `mark_emails` | Mark read or unread |
+| `delete_email` / `batch_delete_emails` | Permanent, bypasses Trash, cannot be undone |
+
+### 🏷️ Labels
+
+| Tool | Description |
+|:-----|:------------|
+| `list_labels` | List all labels |
+| `create_label` | Create a label, or return the existing one if the name is taken |
+| `delete_label` | Delete a label |
+| `apply_label` / `remove_label` | One message |
+| `batch_apply_labels` / `batch_remove_labels` | Many messages, throttled and retried |
+
+### ⚙️ Rules & unsubscribing
+
+| Tool | Description |
+|:-----|:------------|
+| `list_filters` | Filters (rules) currently on the account |
+| `create_filter` | Set a rule that applies to mail arriving from now on |
+| `delete_filter` | Remove a filter |
+| `get_unsubscribe_info` | Read a sender's List-Unsubscribe link, without clicking it |
+
+### ✍️ Composing
+
+| Tool | Description |
+|:-----|:------------|
+| `create_draft` | Write to Drafts without sending. **The safe default** |
+| `list_drafts` / `update_draft` / `delete_draft` | Manage drafts |
+| `send_draft` | Send an existing draft |
+| `send_email` | Compose and send immediately |
+| `create_reply` | Draft a threaded reply |
+| `resend_email` | Send a fresh copy of a sent message (does not recall the original) |
+
+### 📅 Calendar
+
+| Tool | Description |
+|:-----|:------------|
+| `list_calendars` | Calendars this account can access |
+| `list_events` | Events on a calendar, optionally in a time range |
+| `search_events` | Find events by keyword |
+| `get_event` | One event in full, including RSVPs |
+| `create_event` | Create an event, optionally with Meet link and guests |
+| `update_event` | Change an event; only the fields you pass are altered |
+| `delete_event` | Delete an event |
+| `respond_to_event` | RSVP as yourself |
+| `suggest_time` | Find slots where everyone is free, via free/busy |
+
+### 🔐 Auth
+
+| Tool | Description |
+|:-----|:------------|
+| `authenticate_gmail` | Authenticate via browser. Covers Gmail **and** Calendar |
 
 </details>
 
@@ -212,6 +274,26 @@ Add to your MCP client config file (Claude Desktop example):
 - *"Find all unread emails older than 1 week"*
 - *"Show my busiest email days this month"*
 - *"Find emails I starred but never replied to"*
+
+</details>
+
+<details>
+<summary><strong>📅 Calendar</strong></summary>
+
+- *"What's on my calendar this week?"*
+- *"Find a 45-minute slot next week when Sam and I are both free, weekdays 9-5"*
+- *"Move Thursday's standup to 10am and add a Meet link"*
+- *"Decline the Friday review, comment that I'm on leave"*
+- *"Search my calendar for anything about the tax deadline"*
+
+</details>
+
+<details>
+<summary><strong>🛡️ Rules &amp; Unsubscribing</strong></summary>
+
+- *"Show me the rules currently on my account"*
+- *"Rule: anything from noreply@ skips the inbox and gets labelled Noise"*
+- *"Get the unsubscribe link for this sender so I can check it before clicking"*
 
 </details>
 

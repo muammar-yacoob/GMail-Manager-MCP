@@ -1,7 +1,7 @@
 {
   "name": "@spark-apps/gmail-manager-mcp",
   "version": "1.8.0",
-  "description": "A minimal MCP server for Gmail to help you manage, organize, and clean up your inbox",
+  "description": "An MCP server for Gmail and Google Calendar: manage, organise and clean up your inbox, and run your calendar, from one server",
   "type": "module",
   "main": "dist/index.js",
   "module": "./src/index.ts",
@@ -15,9 +15,9 @@
     "clean": "rm -rf dist",
     "start": "node dist/index.js",
     "auth": "node dist/index.js auth",
-    "debug-auth": "node debug-auth.js",
     "prepare": "npm run clean && npm run build",
-    "prepublishOnly": "npm run clean && npm run build"
+    "prepublishOnly": "npm run clean && npm run build",
+    "test": "node --test test/*.test.mjs"
   },
   "files": [
     "dist",
@@ -33,9 +33,13 @@
     "organize",
     "clean",
     "inbox",
-    "model-context-protocol"
+    "model-context-protocol",
+    "calendar",
+    "google-calendar",
+    "events",
+    "scheduling"
   ],
-  "author": "Gmail Manager MCP",
+  "author": "Muammar Yacoob",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
@@ -46,8 +50,6 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.5",
-    "@types/express": "^5.0.3",
-    "express": "^5.1.0",
     "google-auth-library": "^9.4.1",
     "googleapis": "^129.0.0",
     "open": "^10.0.0",

@@ -10,7 +10,8 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { getCredentials, authenticateWeb, getOAuthClient, hasValidCredentials } from "./auth.js";
 import { GmailService } from "./gmail-service.js";
-import { getToolDefinitions, handleToolCall } from "./tools.js";
+import { CalendarService } from "./calendar-service.js";
+import { getToolDefinitions, handleToolCall, type ToolContext } from "./tools/index.js";
 import { readFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
@@ -27,12 +28,60 @@ const SERVER_VERSION: string = (() => {
   }
 })();
 
+/**
+ * The setup walkthrough shown when no OAuth client is configured.
+ *
+ * Written once. It previously existed as two verbatim copies a few dozen lines
+ * apart, which is exactly the kind of thing that drifts: the scope line here
+ * has to match what auth actually requests, and keeping that true in two
+ * places by hand is a losing game.
+ */
+function oauthSetupInstructions(): string {
+  return `Google OAuth Setup Required
+
+Please complete the following steps:
+
+1. Create Google Cloud Project
+   Visit: https://console.cloud.google.com/projectcreate
+
+2. Enable the Gmail and Calendar APIs
+   Gmail:    https://console.cloud.google.com/apis/api/gmail.googleapis.com/metrics
+   Calendar: https://console.cloud.google.com/apis/api/calendar-json.googleapis.com/metrics
+
+3. Create OAuth Credentials
+   Visit: https://console.cloud.google.com/auth/clients
+   Choose "Desktop app" type
+   Download as gcp-oauth.keys.json
+
+4. Add Required Scopes
+   Visit: https://console.cloud.google.com/auth/scopes
+   Add: https://mail.google.com/
+   Add: https://www.googleapis.com/auth/calendar
+
+5. Add Test User
+   Visit: https://console.cloud.google.com/auth/audience
+   Add your Google email as test user
+
+6. Save the file to project directory and restart your MCP client
+
+Expected OAuth file location: ${process.env.GMAIL_OAUTH_PATH || 'project directory/gcp-oauth.keys.json'}`;
+}
+
 /** Whether this process could realistically hand the user a browser consent screen. */
 function canOpenBrowser(): boolean {
   if (process.env.GMAIL_ASSUME_BROWSER === '1') return true;
   if (process.platform === 'darwin' || process.platform === 'win32') return true;
   return Boolean(process.env.DISPLAY || process.env.WAYLAND_DISPLAY);
 }
+
+const AUTH_SUCCESS_MESSAGE = `Authentication Successful!
+
+Gmail Manager is now connected to your Google account.
+
+Mail:     search, read, label, archive, trash, draft and send
+Calendar: list, search, create, update, delete events, RSVP and find free slots
+
+Ready to start.`;
 
 /**
  * Create and configure the Gmail Manager MCP server
@@ -70,111 +119,20 @@ export function createGmailManagerServer(): Server {
   server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: getToolDefinitions() }));
 
   server.setRequestHandler(CallToolRequestSchema, async (req) => {
-    // Handle authentication tool specially
-    if (req.params.name === 'authenticate_gmail') {
-      // Always get fresh OAuth client
-      let oauth2Client = await getOAuthClient();
-      
-      if (!oauth2Client) {
-        throw new Error(`Gmail OAuth Setup Required
-
-Please complete the following steps:
-
-1. Create Google Cloud Project
-   Visit: https://console.cloud.google.com/projectcreate
-
-2. Enable Gmail API
-   Visit: https://console.cloud.google.com/apis/api/gmail.googleapis.com/metrics
-
-3. Create OAuth Credentials
-   Visit: https://console.cloud.google.com/auth/clients
-   Choose "Desktop app" type
-   Download as gcp-oauth.keys.json
-
-4. Add Required Scope
-   Visit: https://console.cloud.google.com/auth/scopes
-   Add: https://mail.google.com/
-
-5. Add Test User
-   Visit: https://console.cloud.google.com/auth/audience
-   Add your Google email as test user
-
-6. Save the file to project directory and restart Claude Desktop
-
-Expected OAuth file location: ${process.env.GMAIL_OAUTH_PATH || 'project directory/gcp-oauth.keys.json'}`);
-      }
-      
-      try {
-        await authenticateWeb(oauth2Client);
-        // Reinitialize Gmail service after successful authentication
-        let gmailService = new GmailService(oauth2Client);
-        
-        return { 
-          content: [{ 
-            type: "text", 
-            text: `Authentication Successful!
-
-Gmail Manager is now connected to your Gmail account!
-
-You can now use all Gmail tools:
-- Search and filter emails
-- Delete emails in bulk
-- Create and manage labels
-- Organize your inbox
-
-Ready to start managing your inbox!` 
-          }] 
-        };
-      } catch (error) {
-        throw new Error(`Authentication failed: ${error instanceof Error ? error.message : String(error)}`);
-      }
-    }
-    
-    // For all other tools, check if we need authentication
-    // Always check credentials fresh on each request
+    // Credentials are re-read per request: the file on disk is the source of
+    // truth, and a re-auth in another process should take effect here without
+    // a restart.
     let oauth2Client = await getCredentials();
-    let gmailService = oauth2Client && await hasValidCredentials(oauth2Client) 
-      ? new GmailService(oauth2Client) 
-      : null;
-    
-    if (!gmailService) {
-      // If we don't have valid credentials, get OAuth client for authentication
+    const authed = oauth2Client && await hasValidCredentials(oauth2Client);
+
+    if (!authed) {
       oauth2Client = await getOAuthClient();
-      
-      if (!oauth2Client) {
-        // No OAuth keys found at all
-        throw new Error(`Gmail OAuth Setup Required
+      if (!oauth2Client) throw new Error(oauthSetupInstructions());
 
-Please complete the following steps:
-
-1. Create Google Cloud Project
-   Visit: https://console.cloud.google.com/projectcreate
-
-2. Enable Gmail API
-   Visit: https://console.cloud.google.com/apis/api/gmail.googleapis.com/metrics
-
-3. Create OAuth Credentials
-   Visit: https://console.cloud.google.com/auth/clients
-   Choose "Desktop app" type
-   Download as gcp-oauth.keys.json
-
-4. Add Required Scope
-   Visit: https://console.cloud.google.com/auth/scopes
-   Add: https://mail.google.com/
-
-5. Add Test User
-   Visit: https://console.cloud.google.com/auth/audience
-   Add your Google email as test user
-
-6. Save the file to project directory and restart Claude Desktop
-
-Expected OAuth file location: ${process.env.GMAIL_OAUTH_PATH || 'project directory/gcp-oauth.keys.json'}`);
-      }
-      
       // Nothing can answer the OAuth callback without a browser, so don't make the
       // caller wait out the auth timeout to be told that.
       if (!canOpenBrowser()) {
-        throw new Error(`Gmail re-authentication required.
+        throw new Error(`Google re-authentication required.
 
 No browser is available in this environment, so authentication cannot complete here.
 
@@ -182,21 +140,32 @@ Run this in a terminal on a machine with a browser, then restart the client:
   npx @spark-apps/gmail-manager-mcp@latest auth`);
       }
 
-      // We have OAuth keys but need authentication - do it automatically
       try {
         await authenticateWeb(oauth2Client);
-        gmailService = new GmailService(oauth2Client);
-        return await handleToolCall(gmailService, req.params.name, req.params.arguments);
       } catch (error) {
         throw new Error(`Authentication failed: ${error instanceof Error ? error.message : String(error)}
 
 Please try one of these alternatives:
-1. Use the authenticate_gmail tool in Claude Desktop
+1. Use the authenticate_gmail tool in your MCP client
 2. Run npm run auth in terminal`);
       }
     }
-    
-    return await handleToolCall(gmailService!, req.params.name, req.params.arguments);
+
+    const ctx: ToolContext = {
+      gmail: new GmailService(oauth2Client!),
+      calendar: new CalendarService(oauth2Client!),
+      // Supplied here rather than imported by the tool module, so the auth tool
+      // is an ordinary registry entry instead of a name the dispatcher has to
+      // special-case before it ever reaches the tool layer.
+      authenticate: async () => {
+        const client = await getOAuthClient();
+        if (!client) throw new Error(oauthSetupInstructions());
+        await authenticateWeb(client);
+        return AUTH_SUCCESS_MESSAGE;
+      }
+    };
+
+    return await handleToolCall(ctx, req.params.name, req.params.arguments);
   });
 
   return server;
@@ -214,4 +183,6 @@ export async function startGmailManagerServer(): Promise<void> {
 // Export other useful functions
 export { getCredentials, authenticateWeb, getOAuthClient, hasValidCredentials } from "./auth.js";
 export { GmailService } from "./gmail-service.js";
-export { getToolDefinitions, handleToolCall } from "./tools.js";
+export { CalendarService } from "./calendar-service.js";
+export { SCOPES, hasCalendarScope } from "./scopes.js";
+export { getToolDefinitions, handleToolCall } from "./tools/index.js";

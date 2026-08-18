@@ -7,6 +7,7 @@ import http from 'http';
 import { URL } from 'url';
 import { exec } from 'child_process';
 import { fileURLToPath } from 'url';
+import { SCOPES } from './scopes.js';
 
 // Get directory path for ES modules - robust cross-platform resolution
 const currentDir = (() => {
@@ -191,7 +192,7 @@ export async function setupAuth(): Promise<OAuth2Client> {
 
 // Authenticate user with browser flow
 async function authenticateUser(oauth2Client: OAuth2Client): Promise<OAuth2Client> {
-    const scopes = ['https://mail.google.com/'];
+    const scopes = SCOPES;
     
     return new Promise((resolve, reject) => {
         const server = http.createServer(async (req, res) => {
@@ -719,7 +720,7 @@ export async function authenticateWeb(
                     
                     const currentAuthUrl = currentWebOAuth2Client.generateAuthUrl({
                         access_type: 'offline',
-                        scope: ['https://mail.google.com/']
+                        scope: SCOPES
                     });
                     
                     res.writeHead(302, { 'Location': currentAuthUrl });
@@ -828,7 +829,7 @@ export async function authenticateWeb(
             
             const authUrl = webOAuth2Client.generateAuthUrl({
                 access_type: 'offline',
-                scope: ['https://mail.google.com/']
+                scope: SCOPES
             });
             pendingAuthUrl = authUrl;
 

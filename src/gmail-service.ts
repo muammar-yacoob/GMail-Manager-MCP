@@ -4,6 +4,7 @@ import { basename, extname, dirname, resolve } from 'node:path';
 import { homedir } from 'node:os';
 import { google } from 'googleapis';
 import { OAuth2Client } from 'google-auth-library';
+import { runBatch, type BatchResult } from './batch.js';
 
 /** Enough of the common types that attachments arrive with a sensible icon. */
 const MIME_BY_EXT: Record<string, string> = {
@@ -283,9 +284,31 @@ export class GmailService {
     async deleteEmail(id: string): Promise<void> {
         await this.gmail.users.messages.delete({ userId: 'me', id });
     }
-    
-    async batchDeleteEmails(ids: string[]): Promise<{ successes: number; failures: number }> {
-        return this.batchOperation(ids, (id) => this.deleteEmail(id));
+
+    /**
+     * Move a message to Trash, where it sits for 30 days before Gmail clears it.
+     *
+     * The recoverable counterpart to `deleteEmail`, which is immediate and
+     * permanent. Inbox tidying wants this one: a mistake stays fixable.
+     */
+    async trashEmail(id: string): Promise<void> {
+        await this.gmail.users.messages.trash({ userId: 'me', id });
+    }
+
+    async untrashEmail(id: string): Promise<void> {
+        await this.gmail.users.messages.untrash({ userId: 'me', id });
+    }
+
+    async batchDeleteEmails(ids: string[]): Promise<BatchResult> {
+        return runBatch(ids, (id) => this.deleteEmail(id));
+    }
+
+    async batchTrashEmails(ids: string[]): Promise<BatchResult> {
+        return runBatch(ids, (id) => this.trashEmail(id));
+    }
+
+    async batchUntrashEmails(ids: string[]): Promise<BatchResult> {
+        return runBatch(ids, (id) => this.untrashEmail(id));
     }
     
     async listLabels(): Promise<Label[]> {
@@ -313,26 +336,29 @@ export class GmailService {
         await this.modifyMessage(messageId, { removeLabelIds: [labelId] });
     }
     
-    async batchApplyLabels(messageIds: string[], labelIds: string[]): Promise<{ successes: number; failures: number }> {
-        return this.batchOperation(messageIds, (id) => this.modifyMessage(id, { addLabelIds: labelIds }));
+    async batchApplyLabels(messageIds: string[], labelIds: string[]): Promise<BatchResult> {
+        return runBatch(messageIds, (id) => this.modifyMessage(id, { addLabelIds: labelIds }));
     }
-    
+
+    async batchRemoveLabels(messageIds: string[], labelIds: string[]): Promise<BatchResult> {
+        return runBatch(messageIds, (id) => this.modifyMessage(id, { removeLabelIds: labelIds }));
+    }
+
+    /** Archive: drop INBOX but keep everything else about the message. */
+    async batchArchive(messageIds: string[]): Promise<BatchResult> {
+        return runBatch(messageIds, (id) => this.modifyMessage(id, { removeLabelIds: ['INBOX'] }));
+    }
+
+    async batchMarkRead(messageIds: string[], read: boolean): Promise<BatchResult> {
+        const body = read ? { removeLabelIds: ['UNREAD'] } : { addLabelIds: ['UNREAD'] };
+        return runBatch(messageIds, (id) => this.modifyMessage(id, body));
+    }
+
     private async modifyMessage(id: string, requestBody: any): Promise<void> {
         await this.gmail.users.messages.modify({ userId: 'me', id, requestBody });
     }
-    
-    private async batchOperation<T>(items: T[], operation: (item: T) => Promise<any>): Promise<{ successes: number; failures: number }> {
-        let successes = 0, failures = 0;
-        const batchSize = 50;
-        
-        for (let i = 0; i < items.length; i += batchSize) {
-            const results = await Promise.allSettled(items.slice(i, i + batchSize).map(operation));
-            results.forEach(r => r.status === 'fulfilled' ? successes++ : failures++);
-        }
-        
-        return { successes, failures };
-    }
-    
+
+
     getEmailUrl(messageId: string): string {
         // `#all/` rather than `#inbox/`: the id may belong to a sent, archived or
         // labelled message, and `#inbox/<id>` renders those as though they were
@@ -480,30 +506,58 @@ export class GmailService {
         return { ...sent, to, subject, attachments: attachments.length };
     }
     
+    /**
+     * The readable body of a message.
+     *
+     * Two things this has to get right. Gmail returns base64**url**, so decoding
+     * as plain base64 corrupts any part containing `-` or `_`. And a normal
+     * message carries the same content twice, as text/plain and text/html
+     * alternatives: concatenating them yields the message followed by its own
+     * markup, so the plain-text side is preferred and HTML is only a fallback.
+     */
     private extractBody(payload: any): string {
-        if (!payload) return '';
-        let text = '', html = '';
-        
-        if (payload.body?.data) {
-            const content = Buffer.from(payload.body.data, 'base64').toString('utf8');
-            if (payload.mimeType === 'text/plain') text = content;
-            else if (payload.mimeType === 'text/html') html = content;
-        }
-        
-        if (payload.parts) {
-            for (const part of payload.parts) {
-                const extracted = this.extractBody(part);
-                if (extracted) text = text ? `${text}\n${extracted}` : extracted;
+        const text: string[] = [];
+        const html: string[] = [];
+
+        const walk = (part: any) => {
+            if (!part) return;
+            // Attachments carry a filename and live behind attachmentId; they are
+            // never body text.
+            const isAttachment = Boolean(part.filename) && Boolean(part.body?.attachmentId);
+            if (!isAttachment && part.body?.data) {
+                const content = Buffer.from(part.body.data, 'base64url').toString('utf8');
+                if (part.mimeType === 'text/plain') text.push(content);
+                else if (part.mimeType === 'text/html') html.push(content);
             }
-        }
-        
-        return text || html || '';
+            for (const child of part.parts || []) walk(child);
+        };
+        walk(payload);
+
+        if (text.length) return text.join('\n').trim();
+        if (html.length) return this.htmlToText(html.join('\n'));
+        return '';
+    }
+
+    /** Crude but adequate: enough to read an HTML-only message as prose. */
+    private htmlToText(html: string): string {
+        return html
+            .replace(/<(script|style)[\s\S]*?<\/\1>/gi, '')
+            .replace(/<br\s*\/?>/gi, '\n')
+            .replace(/<\/(p|div|tr|h[1-6]|li)>/gi, '\n')
+            .replace(/<[^>]+>/g, '')
+            .replace(/&nbsp;/g, ' ')
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&quot;/g, '"')
+            .replace(/&#39;/g, "'")
+            .replace(/\n{3,}/g, '\n\n')
+            .trim();
     }
 
     async createReply(messageId: string, replyMessage: string): Promise<{message: string, to: string, subject: string, replyMessage: string}> {
         const email = await this.readEmail(messageId);
 
-        // Create email message for draft
         const subject = email.subject.startsWith('Re: ') ? email.subject : `Re: ${email.subject}`;
         const to = email.from;
         // In-Reply-To / References must carry the RFC Message-ID header, not
@@ -512,43 +566,109 @@ export class GmailService {
         // instead of threading under the message it answers.
         const inReplyTo = email.messageIdHeader || undefined;
 
-        const encodedMessage = this.buildRaw({
-            to,
-            subject,
-            body: replyMessage,
-            inReplyTo,
-            references: inReplyTo
-        });
-
         try {
-            const { data: draft } = await this.gmail.users.drafts.create({
-                userId: 'me',
-                requestBody: {
-                    message: {
-                        threadId: email.threadId,
-                        raw: encodedMessage
-                    }
-                }
+            const draft = await this.createDraft({
+                to,
+                subject,
+                body: replyMessage,
+                inReplyTo,
+                references: inReplyTo,
+                threadId: email.threadId || undefined
             });
 
-            const draftUrl = `https://mail.google.com/mail/u/0/#drafts/${draft.id}`;
-            
             return {
-                message: `Reply draft created and saved to Gmail drafts.\n\n**Gmail draft URL:** ${draftUrl}`,
+                message: `Reply draft created and saved to Gmail drafts.\n\n**Gmail draft URL:** ${draft.url}`,
                 to,
                 subject,
                 replyMessage
             };
         } catch (error) {
             console.error('Failed to create draft:', error);
-            // Fallback to compose URL
+            // Fall back to a compose URL so the reply is not simply lost.
             const gmailComposeUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(replyMessage)}`;
             return {
                 message: `Failed to create draft. Gmail compose URL: ${gmailComposeUrl}`,
                 to,
-                subject, 
+                subject,
                 replyMessage
             };
         }
     }
+
+    // --- Filters -----------------------------------------------------------
+    // Server-side rules. Unlike labelling a batch by hand these keep applying
+    // to mail that has not arrived yet, which is what "set up a rule" means.
+
+    async listFilters(): Promise<GmailFilter[]> {
+        const { data } = await this.gmail.users.settings.filters.list({ userId: 'me' });
+        return (data.filter || []) as GmailFilter[];
+    }
+
+    async createFilter(criteria: FilterCriteria, action: FilterAction): Promise<GmailFilter> {
+        if (!Object.values(criteria).some((v) => v !== undefined && v !== '')) {
+            throw new Error('A filter needs at least one criterion, otherwise it would match every message.');
+        }
+        if (!Object.values(action).some((v) => v !== undefined && (!Array.isArray(v) || v.length))) {
+            throw new Error('A filter needs at least one action, otherwise it would do nothing.');
+        }
+        const { data } = await this.gmail.users.settings.filters.create({
+            userId: 'me',
+            requestBody: { criteria, action }
+        });
+        return data as GmailFilter;
+    }
+
+    async deleteFilter(id: string): Promise<void> {
+        await this.gmail.users.settings.filters.delete({ userId: 'me', id });
+    }
+
+    /**
+     * The List-Unsubscribe target for a message, if the sender published one.
+     *
+     * RFC 2369 lets senders advertise a mailto: or https: opt-out. Surfacing it
+     * is useful; acting on it is deliberately left to the caller, since a POST
+     * to an unknown URL on the user's behalf is not something to do silently.
+     */
+    async getUnsubscribeInfo(messageId: string): Promise<{ subject: string; from: string; mailto?: string; url?: string }> {
+        const { data } = await this.gmail.users.messages.get({
+            userId: 'me',
+            id: messageId,
+            format: 'metadata',
+            metadataHeaders: ['List-Unsubscribe', 'Subject', 'From']
+        });
+        const headers = data.payload?.headers || [];
+        const pick = (n: string) => headers.find((h) => h.name?.toLowerCase() === n)?.value || '';
+        const raw = pick('list-unsubscribe');
+
+        const targets = [...raw.matchAll(/<([^>]+)>/g)].map((m) => m[1]);
+        return {
+            subject: pick('subject'),
+            from: pick('from'),
+            mailto: targets.find((t) => t.startsWith('mailto:')),
+            url: targets.find((t) => t.startsWith('http'))
+        };
+    }
+}
+
+export interface FilterCriteria {
+    from?: string;
+    to?: string;
+    subject?: string;
+    query?: string;
+    negatedQuery?: string;
+    hasAttachment?: boolean;
+    size?: number;
+    sizeComparison?: 'smaller' | 'larger';
+}
+
+export interface FilterAction {
+    addLabelIds?: string[];
+    removeLabelIds?: string[];
+    forward?: string;
+}
+
+export interface GmailFilter {
+    id?: string | null;
+    criteria?: FilterCriteria;
+    action?: FilterAction;
 }
