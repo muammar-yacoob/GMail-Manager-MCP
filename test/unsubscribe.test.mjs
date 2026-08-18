@@ -94,14 +94,20 @@ test('refuses to POST anywhere but a public https endpoint', () => {
  * missed that entirely, so these go in through the front door instead.
  */
 test('vets the hostname in the form a parsed URL actually produces', () => {
-    for (const url of ['https://[::1]/u', 'https://[fd00::1]/u', 'https://[fe80::1]/u']) {
+    // Loopback and private ranges, plus the aliases that make an allow-list of
+    // v6 ranges unworkable: `::` and the IPv4-mapped spellings of 127.0.0.1.
+    for (const url of ['https://[::1]/u', 'https://[fd00::1]/u', 'https://[fe80::1]/u',
+        'https://[::]/u', 'https://[::ffff:127.0.0.1]/u', 'https://[::ffff:7f00:1]/u']) {
         assert.throws(() => assertPostable(url), /private address/, url);
     }
     // Decimal and hex literals are normalised to a dotted quad before the check.
     for (const url of ['https://2130706433/u', 'https://0x7f000001/u']) {
         assert.throws(() => assertPostable(url), /private address/, url);
     }
-    assert.equal(assertPostable('https://[2606:4700::1111]/u').hostname, '[2606:4700::1111]');
+    // Even a routable v6 literal is refused. Senders publish hostnames, so the
+    // cost of that is nil and it is what keeps the check default-deny.
+    assert.throws(() => assertPostable('https://[2606:4700::1111]/u'), /private address/);
+    assert.equal(assertPostable('https://news.example/u').hostname, 'news.example');
 });
 
 test('sends exactly the request RFC 8058 specifies', async () => {

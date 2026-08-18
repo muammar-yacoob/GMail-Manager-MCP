@@ -104,12 +104,12 @@ export function isPrivateHost(hostname: string): boolean {
             || (a === 100 && b >= 64 && b <= 127); // carrier-grade NAT
     }
 
-    // URL.hostname keeps the brackets on an IPv6 literal ("[::1]"), so they come
-    // off first. A colon is then what distinguishes an address from an ordinary
-    // name like "fdmail.example.com".
-    const v6 = hostname.replace(/^\[|\]$/g, '').toLowerCase();
-    if (!v6.includes(':')) return false;
-    return v6 === '::1' || v6.startsWith('fe80:') || /^f[cd][0-9a-f]{2}:/.test(v6);
+    // Any IPv6 literal at all, which URL.hostname hands over in brackets. Listing
+    // the private ranges the way the v4 check does would be default-allow, and
+    // v6 has too many ways to write the same address for that to hold: `::`,
+    // `::ffff:127.0.0.1` and `::ffff:7f00:1` are all loopback in different
+    // clothes. A mailing list publishes a hostname, so refuse the whole form.
+    return /^\[|:/.test(hostname);
 }
 
 /** Parse and vet an opt-out URL, or explain why it will not be requested. */
