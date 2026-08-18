@@ -26,9 +26,21 @@ export const projectRoot = path.dirname(currentDir);
 
 export const CONFIG_DIR = path.join(os.homedir(), '.gmail-mcp');
 
-/** The OAuth client file this process will read. */
+/**
+ * The OAuth client file this process will read.
+ *
+ * The project root is checked first so a checkout keeps working, then
+ * ~/.gmail-mcp, which is where the setup instructions tell people to put the
+ * file. Only the project root used to be consulted, which was survivable while
+ * a keys file was committed; once that was removed as a leaked secret, every
+ * install without GMAIL_OAUTH_PATH set reported "OAuth Setup Required" against
+ * a file that was sitting in ~/.gmail-mcp the whole time.
+ */
 export function oauthKeysPath(): string {
-    return process.env.GMAIL_OAUTH_PATH || path.join(projectRoot, 'gcp-oauth.keys.json');
+    if (process.env.GMAIL_OAUTH_PATH) return process.env.GMAIL_OAUTH_PATH;
+
+    const candidates = [path.join(projectRoot, 'gcp-oauth.keys.json'), path.join(CONFIG_DIR, 'gcp-oauth.keys.json')];
+    return candidates.find(p => fs.existsSync(p)) || candidates[0];
 }
 
 /** The token file this process will read and write. */
