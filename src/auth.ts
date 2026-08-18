@@ -1,492 +1,56 @@
 import { OAuth2Client } from 'google-auth-library';
 import fs from 'fs';
 import path from 'path';
-import os from 'os';
-import readline from 'readline';
 import http from 'http';
 import { URL } from 'url';
-import { exec } from 'child_process';
-import { fileURLToPath } from 'url';
 import { SCOPES } from './scopes.js';
 import { reauthCommand } from './reauth.js';
+import { openBrowser } from './browser.js';
+import { getAuthSuccessHTML, getAuthFailedHTML, serveStaticAsset } from './auth-pages.js';
+import {
+    CONFIG_DIR,
+    OOB_REDIRECT,
+    credentialsPath,
+    getPossibleBasePaths,
+    oauthKeysPath,
+    readOAuthKeys
+} from './auth-paths.js';
 
-// Get directory path for ES modules - robust cross-platform resolution
-const currentDir = (() => {
-    try {
-        // Use fileURLToPath for proper cross-platform path resolution
-        return path.dirname(fileURLToPath(import.meta.url));
-    } catch {
-        // Fallback to process.cwd() if import.meta.url is not available
-        return process.cwd();
-    }
-})();
+/**
+ * Build an OAuth client from the configured keys file, or null when there is none.
+ *
+ * The redirect URI here is a placeholder: every browser flow replaces it with a
+ * localhost callback on whichever port the OS hands out.
+ */
+export async function getOAuthClient(): Promise<OAuth2Client | null> {
+    const keys = readOAuthKeys();
+    if (!keys) return null;
 
-// Get project root directory (one level up from src/)
-const projectRoot = path.dirname(currentDir);
-
-function getAuthSuccessHTML(): string {
-    const htmlPath = path.join(projectRoot, 'public', 'auth-pages', 'auth-success.html');
-    const cssPath = path.join(projectRoot, 'public', 'css', 'auth-success.css');
-    const jsPath = path.join(projectRoot, 'public', 'js', 'auth-success.js');
-    const commandsPath = path.join(projectRoot, 'public', 'data', 'commands.json');
-    
-    let html = fs.readFileSync(htmlPath, 'utf8');
-    
-    // If CSS file exists, inject it inline
-    if (fs.existsSync(cssPath)) {
-        const css = fs.readFileSync(cssPath, 'utf8');
-        html = html.replace(
-            '<link rel="stylesheet" href="/css/auth-success.css">',
-            `<style>\n${css}\n    </style>`
-        );
-    }
-    
-    // If JavaScript file exists, inject it inline
-    if (fs.existsSync(jsPath)) {
-        let js = fs.readFileSync(jsPath, 'utf8');
-        
-        // If commands.json exists, inject the data inline to avoid fetch issues
-        if (fs.existsSync(commandsPath)) {
-            const commandsData = fs.readFileSync(commandsPath, 'utf8');
-            
-            // Replace the fetch call with inline data
-            js = js.replace(
-                /const response = await fetch\('\/data\/commands\.json'\);[\s\S]*?const data = await response\.json\(\);/,
-                `const data = ${commandsData};`
-            );
-            
-            // Remove the console logs related to fetch since we're using inline data
-            js = js.replace(/console\.log\('🔄 Loading commands from \/data\/commands\.json\.\.\.'\);/, '');
-            js = js.replace(/console\.log\('Current URL:', window\.location\.href\);/, '');
-            js = js.replace(/console\.log\('Fetch URL will be:', new URL\('\/data\/commands\.json', window\.location\.origin\)\.href\);/, '');
-            js = js.replace(/console\.log\('📡 Response received:', \{[\s\S]*?\}\);/, '');
-            js = js.replace(/if \(!response\.ok\) \{[\s\S]*?\}/, '');
-        }
-        
-        html = html.replace(
-            '<script src="/js/auth-success.js"></script>',
-            `<script>\n${js}\n    </script>`
-        );
-    }
-    
-    return html;
+    return new OAuth2Client(keys.client_id, keys.client_secret, keys.redirect_uris?.[0] || OOB_REDIRECT);
 }
 
-function getAuthFailedHTML(): string {
-    const htmlPath = path.join(projectRoot, 'public', 'auth-pages', 'auth-failed.html');
-    const cssPath = path.join(projectRoot, 'public', 'css', 'auth-failed.css');
-    const jsPath = path.join(projectRoot, 'public', 'js', 'auth-failed.js');
-    
-    let html = fs.readFileSync(htmlPath, 'utf8');
-    
-    // If CSS file exists, inject it inline
-    if (fs.existsSync(cssPath)) {
-        const css = fs.readFileSync(cssPath, 'utf8');
-        html = html.replace(
-            '<link rel="stylesheet" href="/css/auth-failed.css">',
-            `<style>\n${css}\n    </style>`
-        );
-    }
-    
-    // If JavaScript file exists, inject it inline
-    if (fs.existsSync(jsPath)) {
-        const js = fs.readFileSync(jsPath, 'utf8');
-        html = html.replace(
-            '<script src="/js/auth-failed.js"></script>',
-            `<script>\n${js}\n    </script>`
-        );
-    }
-    
-    return html;
-}
-
-function getAuthErrorHTML(): string {
-    const htmlPath = path.join(projectRoot, 'public', 'auth-pages', 'auth-failed.html');
-    return fs.readFileSync(htmlPath, 'utf8');
-}
-
-const CONFIG_DIR = path.join(os.homedir(), '.gmail-mcp');
-
-function findFileInPaths(filename: string, possiblePaths: string[]): string | null {
-    for (const basePath of possiblePaths) {
-        if (!basePath) continue;
-        
-        const filePath = path.join(basePath, filename);
-        if (fs.existsSync(filePath)) {
-            return filePath;
-        }
-    }
-    return null;
-}
-
-// Get all possible base paths for file resolution
-function getPossibleBasePaths(): string[] {
-    const paths = [
-        process.cwd(),
-        currentDir, // src/
-        projectRoot, // project root
-        path.dirname(projectRoot), // parent of project root
-        CONFIG_DIR
-    ];
-    
-    // Add environment variable paths
-    if (process.env.GMAIL_OAUTH_PATH) {
-        paths.unshift(path.dirname(process.env.GMAIL_OAUTH_PATH));
-    }
-    if (process.env.GMAIL_CREDENTIALS_PATH) {
-        paths.unshift(path.dirname(process.env.GMAIL_CREDENTIALS_PATH));
-    }
-    
-    // Remove duplicates and non-existent paths
-    return [...new Set(paths)].filter(p => p && fs.existsSync(p));
-}
-
-// Find OAuth keys file
-function findOAuthKeys(): string | null {
-    const possiblePaths = getPossibleBasePaths();
-    return findFileInPaths('gcp-oauth.keys.json', possiblePaths);
-}
-
-// Find credentials file
-function findCredentials(): string | null {
-    if (process.env.GMAIL_CREDENTIALS_PATH) {
-        return fs.existsSync(process.env.GMAIL_CREDENTIALS_PATH) ? process.env.GMAIL_CREDENTIALS_PATH : null;
-    }
-    
-    const defaultPath = path.join(CONFIG_DIR, 'credentials.json');
-    return fs.existsSync(defaultPath) ? defaultPath : null;
-}
-
-// Setup authentication
+/**
+ * Run the browser consent flow from a terminal.
+ *
+ * This is what `... auth` invokes, and it deliberately shares one implementation
+ * with the in-server re-auth path. The two used to be separate flows, and the
+ * terminal one had fallen behind: it wrote the token response verbatim (erasing
+ * any refresh_token Google omitted) and could not open a browser under WSL.
+ */
 export async function setupAuth(): Promise<OAuth2Client> {
     console.error('Setting up Gmail authentication...');
-    
-    const oauthKeysPath = findOAuthKeys();
-    if (!oauthKeysPath) {
-        console.error('\nError: gcp-oauth.keys.json not found!');
-        console.error('Please ensure the OAuth keys file is in one of these locations:');
+
+    const oauth2Client = await getOAuthClient();
+    if (!oauth2Client) {
+        console.error(`\nError: OAuth client not found at ${oauthKeysPath()}`);
+        console.error('Looked for gcp-oauth.keys.json in:');
         getPossibleBasePaths().forEach(p => console.error(`  - ${p}/gcp-oauth.keys.json`));
-        console.error('\nOr set the GMAIL_OAUTH_PATH environment variable to point to the file.');
+        console.error('\nOr set GMAIL_OAUTH_PATH to point at the file directly.');
         throw new Error('OAuth keys file not found');
     }
 
-    try {
-        const credentials = JSON.parse(fs.readFileSync(oauthKeysPath, 'utf8'));
-        
-        if (!credentials.web && !credentials.installed) {
-            throw new Error('Invalid OAuth credentials file format');
-        }
-        
-        const clientConfig = credentials.web || credentials.installed;
-        const oauth2Client = new OAuth2Client(
-            clientConfig.client_id,
-            clientConfig.client_secret,
-            clientConfig.redirect_uris[0]
-        );
-
-        return authenticateUser(oauth2Client);
-    } catch (error) {
-        console.error('Error reading OAuth keys:', error);
-        throw error;
-    }
-}
-
-// Authenticate user with browser flow
-async function authenticateUser(oauth2Client: OAuth2Client): Promise<OAuth2Client> {
-    const scopes = SCOPES;
-    
-    return new Promise((resolve, reject) => {
-        const server = http.createServer(async (req, res) => {
-            try {
-                const url = new URL(req.url!, `http://${req.headers.host}`);
-                
-                if (url.pathname === '/') {
-                    if (url.searchParams.has('code')) {
-                        const code = url.searchParams.get('code')!;
-                        const { tokens } = await oauth2Client.getToken(code);
-                        oauth2Client.setCredentials(tokens);
-                        
-                        // Save credentials
-                        if (!fs.existsSync(CONFIG_DIR)) {
-                            fs.mkdirSync(CONFIG_DIR, { recursive: true });
-                        }
-                        
-                        const credentialsPath = process.env.GMAIL_CREDENTIALS_PATH || path.join(CONFIG_DIR, 'credentials.json');
-                        fs.writeFileSync(credentialsPath, JSON.stringify(tokens, null, 2));
-                        console.error(`Credentials saved to: ${credentialsPath}`);
-                        
-                        res.writeHead(200, { 'Content-Type': 'text/html' });
-                        res.end(getAuthSuccessHTML());
-                        
-                        server.close(() => {
-                            resolve(oauth2Client);
-                        });
-                    } else if (url.searchParams.has('error')) {
-                        res.writeHead(200, { 'Content-Type': 'text/html' });
-                        res.end(getAuthFailedHTML());
-                        
-                        server.close(() => {
-                            reject(new Error('Authentication failed: ' + url.searchParams.get('error')));
-                        });
-                    } else {
-                        res.writeHead(400, { 'Content-Type': 'text/html' });
-                        res.end(getAuthErrorHTML());
-                    }
-                } else if (url.pathname.startsWith('/images/')) {
-                    // Serve static images
-                    const imagePath = path.join(projectRoot, 'public', url.pathname);
-                    try {
-                        if (fs.existsSync(imagePath)) {
-                            const imageData = fs.readFileSync(imagePath);
-                            const ext = path.extname(imagePath).toLowerCase();
-                            let contentType = 'application/octet-stream';
-                            if (ext === '.gif') contentType = 'image/gif';
-                            else if (ext === '.png') contentType = 'image/png';
-                            else if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
-                            
-                            res.writeHead(200, { 'Content-Type': contentType });
-                            res.end(imageData);
-                        } else {
-                            res.writeHead(404, { 'Content-Type': 'text/plain' });
-                            res.end('Image not found');
-                        }
-                    } catch (error) {
-                        res.writeHead(500, { 'Content-Type': 'text/plain' });
-                        res.end('Error serving image');
-                    }
-                } else if (url.pathname.startsWith('/css/')) {
-                    // Serve CSS files
-                    const cssPath = path.join(projectRoot, 'public', url.pathname);
-                    try {
-                        if (fs.existsSync(cssPath) && path.extname(cssPath).toLowerCase() === '.css') {
-                            const cssData = fs.readFileSync(cssPath, 'utf8');
-                            res.writeHead(200, { 'Content-Type': 'text/css' });
-                            res.end(cssData);
-                        } else {
-                            res.writeHead(404, { 'Content-Type': 'text/plain' });
-                            res.end('CSS file not found');
-                        }
-                    } catch (error) {
-                        res.writeHead(500, { 'Content-Type': 'text/plain' });
-                        res.end('Error serving CSS file');
-                    }
-                } else if (url.pathname.startsWith('/data/')) {
-                    // Serve JSON data files
-                    const dataPath = path.join(projectRoot, 'public', url.pathname);
-                    try {
-                        if (fs.existsSync(dataPath) && path.extname(dataPath).toLowerCase() === '.json') {
-                            const jsonData = fs.readFileSync(dataPath, 'utf8');
-                            res.writeHead(200, { 'Content-Type': 'application/json' });
-                            res.end(jsonData);
-                        } else {
-                            res.writeHead(404, { 'Content-Type': 'text/plain' });
-                            res.end('Data file not found');
-                        }
-                    } catch (error) {
-                        res.writeHead(500, { 'Content-Type': 'text/plain' });
-                        res.end('Error serving data file');
-                    }
-                } else if (url.pathname.startsWith('/js/')) {
-                    // Serve JavaScript files
-                    const jsPath = path.join(projectRoot, 'public', url.pathname);
-                    try {
-                        if (fs.existsSync(jsPath) && path.extname(jsPath).toLowerCase() === '.js') {
-                            const jsData = fs.readFileSync(jsPath, 'utf8');
-                            res.writeHead(200, { 'Content-Type': 'application/javascript' });
-                            res.end(jsData);
-                        } else {
-                            res.writeHead(404, { 'Content-Type': 'text/plain' });
-                            res.end('JavaScript file not found');
-                        }
-                    } catch (error) {
-                        res.writeHead(500, { 'Content-Type': 'text/plain' });
-                        res.end('Error serving JavaScript file');
-                    }
-                } else {
-                    res.writeHead(404);
-                    res.end('Not found');
-                }
-            } catch (error) {
-                console.error('Error in OAuth callback:', error);
-                // Only send error response if headers haven't been sent yet
-                if (!res.headersSent) {
-                    res.writeHead(500, { 'Content-Type': 'text/html' });
-                    res.end(getAuthErrorHTML());
-                }
-                
-                server.close(() => {
-                    reject(error);
-                });
-            }
-        });
-        
-        server.listen(0, () => {
-            const address = server.address();
-            if (!address || typeof address === 'string') {
-                reject(new Error('Failed to start OAuth server'));
-                return;
-            }
-            
-            const port = address.port;
-            const redirectUri = `http://localhost:${port}`;
-            
-            // Update the OAuth client with the dynamic redirect URI
-            const clientConfig = oauth2Client._clientId ? {
-                client_id: oauth2Client._clientId,
-                client_secret: oauth2Client._clientSecret,
-                redirect_uris: [redirectUri]
-            } : null;
-            
-            if (clientConfig) {
-                oauth2Client = new OAuth2Client(
-                    clientConfig.client_id,
-                    clientConfig.client_secret,
-                    redirectUri
-                );
-            }
-            
-            const authUrl = oauth2Client.generateAuthUrl({
-                access_type: 'offline',
-                scope: scopes,
-                prompt: 'consent'
-            });
-            
-            console.error(`\nPlease visit this URL to authorize the application:`);
-            console.error(`${authUrl}\n`);
-            console.error(`Waiting for authorization...`);
-            
-            // Try to open the URL automatically
-            const platform = process.platform;
-            let command = '';
-            
-            if (platform === 'darwin') {
-                command = `open "${authUrl}"`;
-            } else if (platform === 'win32') {
-                command = `start "" "${authUrl}"`;
-            } else {
-                command = `xdg-open "${authUrl}"`;
-            }
-            
-            exec(command, (error: any) => {
-                if (error) {
-                    console.error('Could not automatically open browser. Please manually visit the URL above.');
-                }
-            });
-        });
-        
-        // Add timeout
-        const timeout = setTimeout(() => {
-            server.close();
-            reject(new Error('Authentication timeout (5 minutes)'));
-        }, 5 * 60 * 1000); // 5 minutes
-        
-        server.on('close', () => {
-            clearTimeout(timeout);
-        });
-    });
-}
-
-// Load existing credentials
-export function loadCredentials(): OAuth2Client | null {
-    try {
-        const credentialsPath = findCredentials();
-        if (!credentialsPath) {
-            return null;
-        }
-        
-        const oauthKeysPath = findOAuthKeys();
-        if (!oauthKeysPath) {
-            console.error('OAuth keys file not found, cannot load credentials');
-            return null;
-        }
-        
-        const credentials = JSON.parse(fs.readFileSync(oauthKeysPath, 'utf8'));
-        const clientConfig = credentials.web || credentials.installed;
-        
-        const oauth2Client = new OAuth2Client(
-            clientConfig.client_id,
-            clientConfig.client_secret,
-            clientConfig.redirect_uris[0]
-        );
-        
-        const tokens = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
-        oauth2Client.setCredentials(tokens);
-        
-        return oauth2Client;
-    } catch (error) {
-        console.error('Error loading credentials:', error);
-        return null;
-    }
-}
-
-// Get authenticated client (load existing or setup new)
-export async function getAuthenticatedClient(): Promise<OAuth2Client> {
-    const existingClient = loadCredentials();
-    if (existingClient) {
-        return existingClient;
-    }
-    
-    return setupAuth();
-}
-
-// Debug authentication
-export async function debugAuth(): Promise<void> {
-    console.error('=== Gmail MCP Authentication Debug ===\n');
-    
-    // Check OAuth keys
-    const oauthKeysPath = findOAuthKeys();
-    console.error('OAuth Keys File:');
-    if (oauthKeysPath) {
-        console.error(`  Found: ${oauthKeysPath}`);
-        try {
-            const credentials = JSON.parse(fs.readFileSync(oauthKeysPath, 'utf8'));
-            const clientConfig = credentials.web || credentials.installed;
-            console.error(`  Client ID: ${clientConfig.client_id.substring(0, 10)}...`);
-            console.error(`  Redirect URIs: ${clientConfig.redirect_uris.length} configured`);
-        } catch (error) {
-            console.error(`  Error reading file: ${error}`);
-        }
-    } else {
-        console.error('  Not found in any of these locations:');
-        getPossibleBasePaths().forEach(p => console.error(`    - ${p}/gcp-oauth.keys.json`));
-    }
-    
-    console.error('\nSaved Credentials:');
-    const credentialsPath = findCredentials();
-    if (credentialsPath) {
-        console.error(`  Found: ${credentialsPath}`);
-        try {
-            const tokens = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
-            console.error(`  Access token: ${tokens.access_token ? 'Present' : 'Missing'}`);
-            console.error(`  Refresh token: ${tokens.refresh_token ? 'Present' : 'Missing'}`);
-            console.error(`  Expiry: ${tokens.expiry_date ? new Date(tokens.expiry_date).toISOString() : 'Not set'}`);
-        } catch (error) {
-            console.error(`  Error reading file: ${error}`);
-        }
-    } else {
-        console.error('  Not found');
-    }
-    
-    console.error('\nEnvironment Variables:');
-    console.error(`  GMAIL_OAUTH_PATH: ${process.env.GMAIL_OAUTH_PATH || 'Not set'}`);
-    console.error(`  GMAIL_CREDENTIALS_PATH: ${process.env.GMAIL_CREDENTIALS_PATH || 'Not set'}`);
-    
-    console.error('\nTesting Authentication:');
-    try {
-        const client = await getAuthenticatedClient();
-        console.error('  Authentication successful!');
-        
-        // Test API access
-        const { google } = await import('googleapis');
-        const gmail = google.gmail({ version: 'v1', auth: client });
-        const profile = await gmail.users.getProfile({ userId: 'me' });
-        console.error(`  Gmail API access successful for: ${profile.data.emailAddress}`);
-        
-    } catch (error) {
-        console.error(`  Authentication failed: ${error}`);
-    }
-    
-    console.error('\n=== Debug Complete ===');
+    await authenticateWeb(oauth2Client);
+    return oauth2Client;
 }
 
 /**
@@ -496,17 +60,17 @@ export async function debugAuth(): Promise<void> {
  * return an access_token alone. Writing the response verbatim therefore erased the
  * refresh_token and made the connector need a full re-auth every time.
  */
-export function persistTokens(credentialsPath: string, tokens: Record<string, any>): void {
+export function persistTokens(credsPath: string, tokens: Record<string, any>): void {
     try {
-        const dir = path.dirname(credentialsPath);
+        const dir = path.dirname(credsPath);
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });
         }
 
         let existing: Record<string, any> = {};
-        if (fs.existsSync(credentialsPath)) {
+        if (fs.existsSync(credsPath)) {
             try {
-                existing = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
+                existing = JSON.parse(fs.readFileSync(credsPath, 'utf8'));
             } catch {
                 // Corrupt file - treat as empty rather than losing the new tokens
             }
@@ -517,86 +81,43 @@ export function persistTokens(credentialsPath: string, tokens: Record<string, an
             merged.refresh_token = existing.refresh_token;
         }
 
-        fs.writeFileSync(credentialsPath, JSON.stringify(merged, null, 2), { mode: 0o600 });
+        fs.writeFileSync(credsPath, JSON.stringify(merged, null, 2), { mode: 0o600 });
     } catch (error) {
-        console.error(`Could not save Gmail credentials to ${credentialsPath}:`, error instanceof Error ? error.message : error);
+        console.error(`Could not save Gmail credentials to ${credsPath}:`, error instanceof Error ? error.message : error);
     }
 }
 
+/** Load the saved tokens into a client, or null when re-authentication is needed. */
 export async function getCredentials(): Promise<OAuth2Client | null> {
-    // Use OAuth keys from environment variable or project root
-    const oauthPath = process.env.GMAIL_OAUTH_PATH || 
-                     path.join(projectRoot, 'gcp-oauth.keys.json');
-    
-    if (!fs.existsSync(oauthPath)) {
-        return null; // Return null instead of throwing
-    }
-    
-    // Find credentials file - only use the configured location
-    const credentialsPath = process.env.GMAIL_CREDENTIALS_PATH || 
-                           path.join(CONFIG_DIR, 'credentials.json');
-    
-    
-    // Create config directory if needed
-    if (!process.env.GMAIL_OAUTH_PATH && !fs.existsSync(path.join(process.cwd(), 'gcp-oauth.keys.json')) && !fs.existsSync(CONFIG_DIR)) {
-        try {
-            fs.mkdirSync(CONFIG_DIR, { recursive: true });
-        } catch (error) {
-            // Ignore mkdir errors in read-only environments
-        }
-    }
-    
-    const keysContent = JSON.parse(fs.readFileSync(oauthPath, 'utf8'));
-    const keys = keysContent.installed || keysContent.web;
-    
-    if (!keys) {
-        throw new Error('Invalid OAuth keys file format. Expected "installed" or "web" key in OAuth file.');
-    }
-    
-    // For desktop apps, use the redirect URI from the keys file or OOB flow
-    const redirectUri = keys.redirect_uris?.[0] || "urn:ietf:wg:oauth:2.0:oob";
-    const oauth2Client = new OAuth2Client(keys.client_id, keys.client_secret, redirectUri);
-    
-    if (fs.existsSync(credentialsPath)) {
-        const credentials = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
-        oauth2Client.setCredentials(credentials);
+    const oauth2Client = await getOAuthClient();
+    if (!oauth2Client) return null;
 
-        // Write refreshed access tokens straight back to disk. Without this every
-        // process start burned a refresh round-trip and the stored token stayed stale.
-        oauth2Client.on('tokens', (tokens) => persistTokens(credentialsPath, tokens as Record<string, any>));
+    const credsPath = credentialsPath();
+    if (!fs.existsSync(credsPath)) return null;
 
-        // Try to refresh the token if it's expired
-        try {
-            await oauth2Client.getAccessToken();
-        } catch (error) {
-            // If token refresh fails, return null to force re-authentication
-            return null;
-        }
-    } else {
-        // No credentials file exists, return null to indicate authentication needed
-        return null;
+    oauth2Client.setCredentials(JSON.parse(fs.readFileSync(credsPath, 'utf8')));
+
+    // Write refreshed access tokens straight back to disk. Without this every
+    // process start burned a refresh round-trip and the stored token stayed stale.
+    oauth2Client.on('tokens', tokens => persistTokens(credsPath, tokens as Record<string, any>));
+
+    try {
+        await oauth2Client.getAccessToken();
+    } catch {
+        return null; // Refresh failed - the caller should re-authenticate
     }
-    
+
     return oauth2Client;
 }
 
-export async function checkAuthStatus(): Promise<{hasOAuthKeys: boolean, hasCredentials: boolean, credentialsValid: boolean}> {
-    // Use OAuth keys from environment variable or project root
-    const oauthPath = process.env.GMAIL_OAUTH_PATH || 
-                     path.join(projectRoot, 'gcp-oauth.keys.json');
-    
-    // Find credentials file - only use the configured location
-    const credentialsPath = process.env.GMAIL_CREDENTIALS_PATH || 
-                           path.join(CONFIG_DIR, 'credentials.json');
-    
-    const hasOAuthKeys = oauthPath ? fs.existsSync(oauthPath) : false;
-    const hasCredentials = credentialsPath ? fs.existsSync(credentialsPath) : false;
+export async function checkAuthStatus(): Promise<{ hasOAuthKeys: boolean; hasCredentials: boolean; credentialsValid: boolean }> {
+    const hasOAuthKeys = fs.existsSync(oauthKeysPath());
+    const hasCredentials = fs.existsSync(credentialsPath());
     let credentialsValid = false;
 
     if (hasOAuthKeys && hasCredentials) {
         try {
-            const client = await getCredentials();
-            credentialsValid = client !== null;
+            credentialsValid = (await getCredentials()) !== null;
         } catch {
             credentialsValid = false;
         }
@@ -605,32 +126,9 @@ export async function checkAuthStatus(): Promise<{hasOAuthKeys: boolean, hasCred
     return { hasOAuthKeys, hasCredentials, credentialsValid };
 }
 
-export async function getOAuthClient(): Promise<OAuth2Client | null> {
-    // Use OAuth keys from environment variable or project root
-    const oauthPath = process.env.GMAIL_OAUTH_PATH || 
-                     path.join(projectRoot, 'gcp-oauth.keys.json');
-    
-    if (!fs.existsSync(oauthPath)) {
-        return null;
-    }
-    
-    const keysContent = JSON.parse(fs.readFileSync(oauthPath, 'utf8'));
-    const keys = keysContent.installed || keysContent.web;
-    
-    if (!keys) {
-        throw new Error('Invalid OAuth keys file format. Expected "installed" or "web" key in OAuth file.');
-    }
-    
-    const redirectUri = keys.redirect_uris?.[0] || "urn:ietf:wg:oauth:2.0:oob";
-    return new OAuth2Client(keys.client_id, keys.client_secret, redirectUri);
-}
-
 export async function hasValidCredentials(oauth2Client: OAuth2Client): Promise<boolean> {
     try {
-        const credentials = oauth2Client.credentials;
-        if (!credentials || !credentials.refresh_token) {
-            return false;
-        }
+        if (!oauth2Client.credentials?.refresh_token) return false;
         await oauth2Client.getAccessToken();
         return true;
     } catch {
@@ -638,18 +136,31 @@ export async function hasValidCredentials(oauth2Client: OAuth2Client): Promise<b
     }
 }
 
+/**
+ * Consent flow served from a throwaway localhost port.
+ *
+ * `prompt: 'consent'` is not optional here. Every caller reaches this function
+ * because the stored token is unusable, and a silent re-approval returns an
+ * access_token with no refresh_token - which is the state we are trying to
+ * leave.
+ */
 export async function authenticateWeb(
     oauth2Client: OAuth2Client,
-    credentialsPath?: string,
+    credsPathOverride?: string,
     timeoutMs: number = Number(process.env.GMAIL_AUTH_TIMEOUT_MS) || 45_000
 ): Promise<void> {
-    const creds = credentialsPath || path.join(CONFIG_DIR, 'credentials.json');
+    const creds = credsPathOverride || path.join(CONFIG_DIR, 'credentials.json');
+    const clientId = (oauth2Client as any)._clientId;
+    const clientSecret = (oauth2Client as any)._clientSecret;
 
     return new Promise((resolve, reject) => {
-        let server: http.Server;
-        let port: number;
-        let redirectUri: string;
+        let redirectUri = '';
         let pendingAuthUrl: string | undefined;
+
+        /** A client bound to the callback URL, which is only known once the port is assigned. */
+        const boundClient = () => new OAuth2Client(clientId, clientSecret, redirectUri);
+        const authUrlFor = (client: OAuth2Client) =>
+            client.generateAuthUrl({ access_type: 'offline', scope: SCOPES, prompt: 'consent' });
 
         // Settle exactly once, always tearing down the timer and the local server.
         // Without this the promise can hang forever waiting on a browser callback
@@ -677,131 +188,34 @@ export async function authenticateWeb(
         // Don't let the timer alone hold the process open.
         if (typeof timer.unref === 'function') timer.unref();
 
-        server = http.createServer(async (req, res) => {
+        const server = http.createServer(async (req, res) => {
             try {
-                // Get the actual server address for URL parsing
-                const serverAddress = server.address();
-                const currentPort = serverAddress && typeof serverAddress === 'object' ? serverAddress.port : port;
-                const url = new URL(req.url!, `http://localhost:${currentPort}`);
-                
+                const url = new URL(req.url!, 'http://localhost');
+
                 if (url.pathname === '/oauth/callback') {
                     const code = url.searchParams.get('code');
-                    
-                    if (code) {
-                        // Create OAuth client with current redirect URI
-                        const currentWebOAuth2Client = new OAuth2Client(
-                            (oauth2Client as any)._clientId,
-                            (oauth2Client as any)._clientSecret,
-                            redirectUri
-                        );
-                        
-                        const { tokens } = await currentWebOAuth2Client.getToken(code);
-                        oauth2Client.setCredentials(tokens);
-
-                        // Save credentials, keeping any refresh_token this response omitted
-                        persistTokens(creds, tokens as Record<string, any>);
-
-                        res.writeHead(200, { 'Content-Type': 'text/html' });
-                        res.end(getAuthSuccessHTML());
-
-                        finish();
-                    } else {
+                    if (!code) {
                         res.writeHead(400, { 'Content-Type': 'text/html' });
                         res.end(getAuthFailedHTML());
-                        finish(new Error('No authorization code received'));
+                        finish(new Error(url.searchParams.get('error') || 'No authorization code received'));
+                        return;
                     }
+
+                    const { tokens } = await boundClient().getToken(code);
+                    oauth2Client.setCredentials(tokens);
+                    persistTokens(creds, tokens as Record<string, any>);
+
+                    res.writeHead(200, { 'Content-Type': 'text/html' });
+                    res.end(getAuthSuccessHTML());
+                    finish();
                 } else if (url.pathname === '/') {
-                    // Landing page - redirect to Google OAuth
-                    // Create OAuth client with current redirect URI for auth URL generation
-                    const currentWebOAuth2Client = new OAuth2Client(
-                        (oauth2Client as any)._clientId,
-                        (oauth2Client as any)._clientSecret,
-                        redirectUri
-                    );
-                    
-                    const currentAuthUrl = currentWebOAuth2Client.generateAuthUrl({
-                        access_type: 'offline',
-                        scope: SCOPES
-                    });
-                    
-                    res.writeHead(302, { 'Location': currentAuthUrl });
+                    res.writeHead(302, { Location: authUrlFor(boundClient()) });
                     res.end();
-                } else if (url.pathname.startsWith('/images/')) {
-                    // Serve static images
-                    const imagePath = path.join(projectRoot, 'public', url.pathname);
-                    try {
-                        if (fs.existsSync(imagePath)) {
-                            const imageData = fs.readFileSync(imagePath);
-                            const ext = path.extname(imagePath).toLowerCase();
-                            let contentType = 'application/octet-stream';
-                            if (ext === '.gif') contentType = 'image/gif';
-                            else if (ext === '.png') contentType = 'image/png';
-                            else if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
-                            
-                            res.writeHead(200, { 'Content-Type': contentType });
-                            res.end(imageData);
-                        } else {
-                            res.writeHead(404, { 'Content-Type': 'text/plain' });
-                            res.end('Image not found');
-                        }
-                    } catch (error) {
-                        res.writeHead(500, { 'Content-Type': 'text/plain' });
-                        res.end('Error serving image');
-                    }
-                } else if (url.pathname.startsWith('/css/')) {
-                    // Serve CSS files
-                    const cssPath = path.join(projectRoot, 'public', url.pathname);
-                    try {
-                        if (fs.existsSync(cssPath) && path.extname(cssPath).toLowerCase() === '.css') {
-                            const cssData = fs.readFileSync(cssPath, 'utf8');
-                            res.writeHead(200, { 'Content-Type': 'text/css' });
-                            res.end(cssData);
-                        } else {
-                            res.writeHead(404, { 'Content-Type': 'text/plain' });
-                            res.end('CSS file not found');
-                        }
-                    } catch (error) {
-                        res.writeHead(500, { 'Content-Type': 'text/plain' });
-                        res.end('Error serving CSS file');
-                    }
-                } else if (url.pathname.startsWith('/data/')) {
-                    // Serve JSON data files
-                    const dataPath = path.join(projectRoot, 'public', url.pathname);
-                    try {
-                        if (fs.existsSync(dataPath) && path.extname(dataPath).toLowerCase() === '.json') {
-                            const jsonData = fs.readFileSync(dataPath, 'utf8');
-                            res.writeHead(200, { 'Content-Type': 'application/json' });
-                            res.end(jsonData);
-                        } else {
-                            res.writeHead(404, { 'Content-Type': 'text/plain' });
-                            res.end('Data file not found');
-                        }
-                    } catch (error) {
-                        res.writeHead(500, { 'Content-Type': 'text/plain' });
-                        res.end('Error serving data file');
-                    }
-                } else if (url.pathname.startsWith('/js/')) {
-                    // Serve JavaScript files
-                    const jsPath = path.join(projectRoot, 'public', url.pathname);
-                    try {
-                        if (fs.existsSync(jsPath) && path.extname(jsPath).toLowerCase() === '.js') {
-                            const jsData = fs.readFileSync(jsPath, 'utf8');
-                            res.writeHead(200, { 'Content-Type': 'application/javascript' });
-                            res.end(jsData);
-                        } else {
-                            res.writeHead(404, { 'Content-Type': 'text/plain' });
-                            res.end('JavaScript file not found');
-                        }
-                    } catch (error) {
-                        res.writeHead(500, { 'Content-Type': 'text/plain' });
-                        res.end('Error serving JavaScript file');
-                    }
-                } else {
+                } else if (!serveStaticAsset(url.pathname, res)) {
                     res.writeHead(404, { 'Content-Type': 'text/plain' });
                     res.end('Not Found');
                 }
             } catch (error: any) {
-                // Only send error response if headers haven't been sent yet
                 if (!res.headersSent) {
                     res.writeHead(500, { 'Content-Type': 'text/html' });
                     res.end(`<h1>Authentication Error</h1><p>${error instanceof Error ? error.message : 'Unknown error'}</p>`);
@@ -810,82 +224,23 @@ export async function authenticateWeb(
             }
         });
 
-        server.listen(0, async () => {
-            // Get the actual port that was assigned
+        server.on('error', error => finish(error));
+
+        server.listen(0, () => {
             const address = server.address();
             if (!address || typeof address === 'string') {
                 finish(new Error('Failed to start OAuth server'));
                 return;
             }
-            
-            port = address.port;
-            redirectUri = `http://localhost:${port}/oauth/callback`;
-            
-            // Update the OAuth client with the dynamic redirect URI
-            const webOAuth2Client = new OAuth2Client(
-                (oauth2Client as any)._clientId,
-                (oauth2Client as any)._clientSecret,
-                redirectUri
-            );
-            
-            const authUrl = webOAuth2Client.generateAuthUrl({
-                access_type: 'offline',
-                scope: SCOPES
-            });
-            pendingAuthUrl = authUrl;
+
+            redirectUri = `http://localhost:${address.port}/oauth/callback`;
+            pendingAuthUrl = authUrlFor(boundClient());
 
             console.error(`\nOpening authentication in your browser...`);
             console.error(`\nIf the browser doesn't open automatically, please visit:`);
-            console.error(`\n${authUrl}\n`);
-            
-            // Open browser (platform-agnostic)
-            const platform = os.platform();
-            
-            // Check if we're in WSL
-            const isWSL = fs.existsSync('/proc/version') && 
-                         fs.readFileSync('/proc/version', 'utf8').toLowerCase().includes('microsoft');
-            
-            if (isWSL) {
-                // In WSL, use Windows' cmd.exe to open the browser
-                exec(`cmd.exe /c start "${authUrl}"`, (error: any) => {
-                    if (error) {
-                        // Try PowerShell as fallback
-                        exec(`powershell.exe -Command "Start-Process '${authUrl}'"`, (error2: any) => {
-                            if (error2) {
-                                console.error('Could not open browser automatically. Please open the URL manually.');
-                            }
-                        });
-                    }
-                });
-            } else if (platform === 'darwin') {
-                exec(`open "${authUrl}"`, (error: any) => {
-                    if (error) {
-                        console.error('Could not open browser automatically. Please open the URL manually.');
-                    }
-                });
-            } else if (platform === 'win32') {
-                exec(`cmd.exe /c start "" "${authUrl}"`, (error: any) => {
-                    if (error) {
-                        console.error('Could not open browser automatically. Please open the URL manually.');
-                    }
-                });
-            } else {
-                // Linux
-                exec(`xdg-open "${authUrl}"`, (error: any) => {
-                    if (error) {
-                        // Try alternative methods
-                        exec(`sensible-browser "${authUrl}"`, (error2: any) => {
-                            if (error2) {
-                                console.error('Could not open browser automatically. Please open the URL manually.');
-                            }
-                        });
-                    }
-                });
-            }
-        });
-        
-        server.on('error', (error) => {
-            finish(error);
+            console.error(`\n${pendingAuthUrl}\n`);
+
+            openBrowser(pendingAuthUrl);
         });
     });
 }
