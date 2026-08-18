@@ -8,6 +8,7 @@ import { URL } from 'url';
 import { exec } from 'child_process';
 import { fileURLToPath } from 'url';
 import { SCOPES } from './scopes.js';
+import { reauthCommand } from './reauth.js';
 
 // Get directory path for ES modules - robust cross-platform resolution
 const currentDir = (() => {
@@ -668,7 +669,7 @@ export async function authenticateWeb(
                 `Gmail authentication timed out after ${Math.round(timeoutMs / 1000)}s waiting for the browser callback.\n\n` +
                 `This happens when the MCP server runs without a browser (headless, remote, or a background service).\n\n` +
                 `Fix: run this in a terminal on the machine with your browser, then restart the client:\n` +
-                `  npx @spark-apps/gmail-manager-mcp@latest auth\n` +
+                `  ${reauthCommand()}\n` +
                 (pendingAuthUrl ? `\nOr open this URL manually:\n  ${pendingAuthUrl}\n` : '') +
                 `\nRaise the limit with GMAIL_AUTH_TIMEOUT_MS if you need longer.`
             ));

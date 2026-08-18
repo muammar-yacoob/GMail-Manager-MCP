@@ -51,6 +51,10 @@ Gmail Manager MCP provides **direct access** to your Gmail inbox through the Mod
 > ```bash
 > npx @spark-apps/gmail-manager-mcp@latest auth
 > ```
+> Running a local checkout instead of the published package? Re-authenticate with the build your client actually loads, or you will re-consent against whichever version npm is serving and see the same error:
+> ```bash
+> node /path/to/GMail-Manager-MCP/dist/index.js auth
+> ```
 
 ## 🚀 Quick Setup 
 

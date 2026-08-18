@@ -12,6 +12,7 @@ import { getCredentials, authenticateWeb, getOAuthClient, hasValidCredentials } 
 import { GmailService } from "./gmail-service.js";
 import { CalendarService } from "./calendar-service.js";
 import { getToolDefinitions, handleToolCall, type ToolContext } from "./tools/index.js";
+import { reauthCommand } from "./reauth.js";
 import { readFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
@@ -137,7 +138,7 @@ export function createGmailManagerServer(): Server {
 No browser is available in this environment, so authentication cannot complete here.
 
 Run this in a terminal on a machine with a browser, then restart the client:
-  npx @spark-apps/gmail-manager-mcp@latest auth`);
+  ${reauthCommand()}`);
       }
 
       try {

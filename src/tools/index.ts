@@ -3,6 +3,7 @@ import { gmailTools } from './gmail.js';
 import { calendarTools } from './calendar.js';
 import { describeError } from '../batch.js';
 import { hasCalendarScope } from '../scopes.js';
+import { reauthCommand } from '../reauth.js';
 import type { ToolContext, ToolMap, ToolResult } from './registry.js';
 
 export type { ToolContext, ToolResult } from './registry.js';
@@ -54,7 +55,7 @@ function explain(error: any, toolName: string): string {
             `This usually means the saved credentials predate Calendar support. Google cannot add ` +
             `scopes to a token it already issued, so mail keeps working while calendar access does not.\n` +
             `Fix it by re-running authentication once:\n` +
-            `  npx @spark-apps/gmail-manager-mcp@latest auth`;
+            `  ${reauthCommand()}`;
     }
 
     if (status === 429) {
