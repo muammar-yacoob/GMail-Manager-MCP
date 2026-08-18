@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { loadAttachments } from '../gmail-service.js';
 import { formatBatchResult } from '../batch.js';
+import { canOneClick, oneClickUnsubscribe, parseMailto } from '../unsubscribe.js';
 import { defineTools, text } from './registry.js';
 
 const composeFields = {
@@ -255,7 +256,7 @@ export const gmailTools = defineTools({
     },
 
     get_unsubscribe_info: {
-        description: "Read the List-Unsubscribe details a sender published for a message, returning the opt-out link or address. Reports what is on offer; it deliberately does not click it, so the user stays in control of what gets sent or visited on their behalf.",
+        description: "Read the List-Unsubscribe details a sender published for a message, and report which opt-out routes are on offer without using any of them. Use unsubscribe_email to actually opt out.",
         schema: z.object({ messageId: z.string().describe("Email message ID") }),
         handler: async ({ gmail }, v) => {
             const info = await gmail.getUnsubscribeInfo(v.messageId);
@@ -268,8 +269,45 @@ export const gmailTools = defineTools({
                 info.url ? `Unsubscribe link: ${info.url}` : null,
                 info.mailto ? `Unsubscribe by email: ${info.mailto}` : null,
                 '',
-                'Open the link yourself, or ask to have a filter set up for this sender instead.'
+                canOneClick(info)
+                    ? 'One-click (RFC 8058) is available: unsubscribe_email can complete this on its own.'
+                    : 'No one-click declaration. unsubscribe_email will need permission to send the email opt-out, or hand you the link to open yourself.'
             ].filter(Boolean).join('\n'));
+        }
+    },
+
+    unsubscribe_email: {
+        description: "Opt out of the mailing list a message came from, using the route its sender published. Prefers RFC 8058 one-click, a single HTTPS POST the sender has declared safe to automate. When only a mailto: opt-out exists it stops and says so, unless sendEmail is true, because that sends mail from the user's account. A plain link with no one-click declaration is handed back for the user to open; this never visits arbitrary URLs found in mail.",
+        schema: z.object({
+            messageId: z.string().describe("ID of a message from the list you want off"),
+            sendEmail: z.boolean().optional().describe("Permission to send the mailto: opt-out from the user's account when one-click is unavailable. Ask the user before setting this.")
+        }),
+        handler: async ({ gmail }, v) => {
+            const info = await gmail.getUnsubscribeInfo(v.messageId);
+            const who = `From: ${info.from}\nSubject: ${info.subject}\n`;
+            const fallback = 'Ask to have a filter created for this sender instead, which works whether or not they honour the opt-out.';
+
+            if (canOneClick(info)) {
+                const { status, ok } = await oneClickUnsubscribe(info.url!);
+                return text(ok
+                    ? `${who}\nUnsubscribed by one-click POST (HTTP ${status}). Removal can take a few days to take effect at the sender's end.`
+                    : `${who}\nThe sender's one-click endpoint returned HTTP ${status}, so the opt-out did not go through.\n${fallback}`);
+            }
+
+            if (info.mailto) {
+                const mail = parseMailto(info.mailto);
+                if (!v.sendEmail) {
+                    return text(`${who}\nThe only machine-readable opt-out here is by email, to ${mail.to} with subject "${mail.subject}".\nThat sends a message from your account, so say the word and I will call this again with sendEmail: true.`);
+                }
+                const sent = await gmail.sendEmail({ to: mail.to, subject: mail.subject, body: mail.body });
+                return text(`${who}\nOpt-out emailed to ${mail.to} (message ${sent.id}). Removal can take a few days to take effect at the sender's end.`);
+            }
+
+            if (info.url) {
+                return text(`${who}\nThe sender published an unsubscribe link but did not mark it one-click safe, so it needs a browser and possibly a confirmation step:\n${info.url}\n\nOpen it yourself. ${fallback}`);
+            }
+
+            return text(`${who}\nNo List-Unsubscribe header, so there is no opt-out to perform. ${fallback}`);
         }
     },
 

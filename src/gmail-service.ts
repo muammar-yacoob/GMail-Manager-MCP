@@ -5,6 +5,7 @@ import { homedir } from 'node:os';
 import { google } from 'googleapis';
 import { OAuth2Client } from 'google-auth-library';
 import { runBatch, type BatchResult } from './batch.js';
+import { parseUnsubscribeTargets, type UnsubscribeTargets } from './unsubscribe.js';
 
 /** Enough of the common types that attachments arrive with a sensible icon. */
 const MIME_BY_EXT: Record<string, string> = {
@@ -623,29 +624,27 @@ export class GmailService {
     }
 
     /**
-     * The List-Unsubscribe target for a message, if the sender published one.
+     * The List-Unsubscribe targets for a message, if the sender published any.
      *
-     * RFC 2369 lets senders advertise a mailto: or https: opt-out. Surfacing it
-     * is useful; acting on it is deliberately left to the caller, since a POST
-     * to an unknown URL on the user's behalf is not something to do silently.
+     * RFC 2369 lets senders advertise a mailto: or https: opt-out, and RFC 8058
+     * lets them add a List-Unsubscribe-Post header marking the https one safe to
+     * fire without a human. That second header is what separates an opt-out we
+     * can perform from a link we should only report, so it is fetched too.
      */
-    async getUnsubscribeInfo(messageId: string): Promise<{ subject: string; from: string; mailto?: string; url?: string }> {
+    async getUnsubscribeInfo(messageId: string): Promise<UnsubscribeTargets & { subject: string; from: string }> {
         const { data } = await this.gmail.users.messages.get({
             userId: 'me',
             id: messageId,
             format: 'metadata',
-            metadataHeaders: ['List-Unsubscribe', 'Subject', 'From']
+            metadataHeaders: ['List-Unsubscribe', 'List-Unsubscribe-Post', 'Subject', 'From']
         });
         const headers = data.payload?.headers || [];
         const pick = (n: string) => headers.find((h) => h.name?.toLowerCase() === n)?.value || '';
-        const raw = pick('list-unsubscribe');
 
-        const targets = [...raw.matchAll(/<([^>]+)>/g)].map((m) => m[1]);
         return {
             subject: pick('subject'),
             from: pick('from'),
-            mailto: targets.find((t) => t.startsWith('mailto:')),
-            url: targets.find((t) => t.startsWith('http'))
+            ...parseUnsubscribeTargets(pick('list-unsubscribe'), pick('list-unsubscribe-post'))
         };
     }
 }

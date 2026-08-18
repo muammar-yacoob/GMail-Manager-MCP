@@ -211,6 +211,7 @@ Add to your MCP client config file (Claude Desktop example):
 | `create_filter` | Set a rule that applies to mail arriving from now on |
 | `delete_filter` | Remove a filter |
 | `get_unsubscribe_info` | Read a sender's List-Unsubscribe link, without clicking it |
+| `unsubscribe_email` | Opt out of a mailing list via the sender's own one-click endpoint |
 
 ### ✍️ Composing
 
@@ -298,6 +299,13 @@ Add to your MCP client config file (Claude Desktop example):
 - *"Show me the rules currently on my account"*
 - *"Rule: anything from noreply@ skips the inbox and gets labelled Noise"*
 - *"Get the unsubscribe link for this sender so I can check it before clicking"*
+- *"Unsubscribe me from this newsletter"*
+
+Unsubscribing uses the sender's own published opt-out. Where they support one-click
+(RFC 8058) it completes on its own; where the only route is emailing them, it asks
+first, since that sends mail from your account. A plain link with no one-click
+declaration is handed back for you to open — arbitrary URLs found in mail are never
+visited, and no response body from a sender is ever read back into the conversation.
 
 </details>
 
