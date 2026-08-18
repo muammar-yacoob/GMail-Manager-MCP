@@ -67,8 +67,13 @@ export function parseMailto(uri: string): MailtoUnsubscribe {
     const [address, query = ''] = uri.replace(/^mailto:/i, '').split('?');
     const params = new URLSearchParams(query);
 
+    // A sender can write "%ZZ" here, which throws rather than decoding. The raw
+    // address is the better answer then: the send will fail loudly on a bad one.
+    let to = address;
+    try { to = decodeURIComponent(address); } catch { /* keep it as written */ }
+
     return {
-        to: decodeURIComponent(address),
+        to,
         subject: params.get('subject') || 'unsubscribe',
         body: params.get('body') || 'Please unsubscribe this address from your mailing list.'
     };
@@ -99,10 +104,11 @@ export function isPrivateHost(hostname: string): boolean {
             || (a === 100 && b >= 64 && b <= 127); // carrier-grade NAT
     }
 
-    // URL.hostname strips the brackets from an IPv6 literal, so a colon is what
-    // distinguishes one from an ordinary name like "fdmail.example.com".
-    if (!hostname.includes(':')) return false;
-    const v6 = hostname.toLowerCase();
+    // URL.hostname keeps the brackets on an IPv6 literal ("[::1]"), so they come
+    // off first. A colon is then what distinguishes an address from an ordinary
+    // name like "fdmail.example.com".
+    const v6 = hostname.replace(/^\[|\]$/g, '').toLowerCase();
+    if (!v6.includes(':')) return false;
     return v6 === '::1' || v6.startsWith('fe80:') || /^f[cd][0-9a-f]{2}:/.test(v6);
 }
 

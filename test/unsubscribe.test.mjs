@@ -65,6 +65,12 @@ test('falls back to a sane subject and body when the mailto carries none', () =>
     assert.ok(m.body.length > 0);
 });
 
+test('survives a mailto the sender encoded badly', () => {
+    const m = parseMailto('mailto:leave%ZZ@news.example?subject=unsub-9f3a');
+    assert.equal(m.to, 'leave%ZZ@news.example');
+    assert.equal(m.subject, 'unsub-9f3a');
+});
+
 test('recognises addresses that point back inside the network', () => {
     for (const host of ['localhost', 'router.local', 'db.internal', '127.0.0.1', '10.1.2.3', '192.168.0.1',
         '172.16.0.1', '172.31.255.255', '169.254.169.254', '100.64.0.1', '0.0.0.0', '::1', 'fd00:1::1', 'fe80::1']) {
@@ -80,6 +86,22 @@ test('refuses to POST anywhere but a public https endpoint', () => {
     assert.throws(() => assertPostable('https://169.254.169.254/latest/meta-data/'), /private address/);
     assert.throws(() => assertPostable('not a url'), /valid URL/);
     assert.equal(assertPostable('https://news.example/u').hostname, 'news.example');
+});
+
+/**
+ * isPrivateHost is only ever reached through a parsed URL, and URL.hostname
+ * keeps the brackets on an IPv6 literal. Testing the helper on bare strings
+ * missed that entirely, so these go in through the front door instead.
+ */
+test('vets the hostname in the form a parsed URL actually produces', () => {
+    for (const url of ['https://[::1]/u', 'https://[fd00::1]/u', 'https://[fe80::1]/u']) {
+        assert.throws(() => assertPostable(url), /private address/, url);
+    }
+    // Decimal and hex literals are normalised to a dotted quad before the check.
+    for (const url of ['https://2130706433/u', 'https://0x7f000001/u']) {
+        assert.throws(() => assertPostable(url), /private address/, url);
+    }
+    assert.equal(assertPostable('https://[2606:4700::1111]/u').hostname, '[2606:4700::1111]');
 });
 
 test('sends exactly the request RFC 8058 specifies', async () => {
