@@ -498,54 +498,57 @@ export const gmailTools = defineTools({
     // --- Attachments -------------------------------------------------------
 
     list_attachments: {
-        description: "List the attachments on an email, with the IDs needed to download them",
+        description: "List the attachments on an email. Use the filename to refer to one in download_attachment or save_attachment_to_drive.",
         schema: z.object({ messageId: z.string().describe("Email message ID") }),
         handler: async ({ gmail }, v) => {
             const email = await gmail.readEmail(v.messageId);
-            return text(email.attachments.length
-                ? email.attachments.map(a =>
-                      `Filename: ${a.filename}\nAttachment ID: ${a.attachmentId}\nType: ${a.mimeType}\nSize: ${a.size} bytes\n`
-                  ).join('---\n')
-                : "This email has no attachments.");
+            if (!email.attachments.length) return text("This email has no attachments.");
+
+            // Filenames, not IDs. Gmail mints a fresh attachmentId on every read
+            // of the message, so an ID printed here is stale as an identifier
+            // the moment anything re-reads the message — it would only invite
+            // callers to match on something that never matches.
+            return text(
+                `${email.attachments.length} attachment(s) on "${email.subject || '(no subject)'}":\n\n` +
+                email.attachments.map(a =>
+                    `Filename: ${a.filename}\nType: ${a.mimeType}\nSize: ${a.size} bytes\n`
+                ).join('---\n')
+            );
         }
     },
 
     download_attachment: {
-        description: "Save an email attachment to a local file path",
+        description: "Save an email attachment to a local file path. Identify it by 'filename' from list_attachments; an attachmentId still works but cannot pick between several attachments, because Gmail issues a different one on every read.",
         schema: z.object({
             messageId: z.string().describe("Email message ID"),
-            attachmentId: z.string().describe("Attachment ID, from list_attachments"),
+            filename: z.string().optional().describe("Which attachment to take, by its filename. Optional when the message has only one"),
+            attachmentId: z.string().optional().describe("Attachment ID from list_attachments. Prefer 'filename'"),
             destination: z.string().describe("Where to save it, e.g. '~/Downloads/form.pdf'. Directories are created as needed")
         }),
         handler: async ({ gmail }, v) => {
-            const saved = await gmail.downloadAttachment(v.messageId, v.attachmentId, v.destination);
-            return text(`Attachment saved to ${saved}`);
+            const ref = await gmail.resolveAttachment(v.messageId, {
+                filename: v.filename,
+                attachmentId: v.attachmentId
+            });
+            const saved = await gmail.downloadAttachment(v.messageId, ref.attachmentId, v.destination);
+            return text(`Attachment saved to ${saved}\nFilename: ${ref.filename}\nType: ${ref.mimeType}\nSize: ${ref.size} bytes`);
         }
     },
 
     save_attachment_to_drive: {
-        description: "Copy an email attachment straight into Google Drive, without leaving it on the local disk. Optionally into a specific folder. Needs the Drive scope, which is granted by re-running authentication.",
+        description: "Copy an email attachment straight into Google Drive, without leaving it on the local disk. Optionally into a specific folder, and optionally renamed. Identify the attachment by 'filename' — Gmail's attachment IDs change between reads. Needs the Drive scope, granted by re-running authentication.",
         schema: z.object({
             messageId: z.string().describe("Email message ID"),
-            attachmentId: z.string().describe("Attachment ID, from list_attachments"),
+            filename: z.string().optional().describe("Which attachment to take, by its filename as shown by list_attachments. Optional when the message has only one attachment"),
             folderId: z.string().optional().describe("Drive folder ID to file it under. Omit to put it in My Drive"),
-            name: z.string().optional().describe("Override the filename in Drive. Defaults to the attachment's own name")
+            name: z.string().optional().describe("Rename the file in Drive. Defaults to the attachment's own name")
         }),
         handler: async ({ gmail, drive }, v) => {
-            // Take the name and type from the message itself rather than making
-            // the caller supply them: they are already recorded against the
-            // attachment, and guessing them produces files called "untitled".
-            const email = await gmail.readEmail(v.messageId);
-            const ref = email.attachments.find((a) => a.attachmentId === v.attachmentId);
-            if (!ref) {
-                const known = email.attachments.map((a) => `  ${a.filename} — ${a.attachmentId}`).join('\n');
-                throw new Error(
-                    `No attachment with that ID on message ${v.messageId}.` +
-                        (known ? `\nThis message has:\n${known}` : ' This message has no attachments.')
-                );
-            }
-
-            const content = await gmail.getAttachment(v.messageId, v.attachmentId);
+            // Name and type come from the message rather than the caller: they
+            // are already recorded against the attachment, and guessing them
+            // produces files called "untitled".
+            const ref = await gmail.resolveAttachment(v.messageId, { filename: v.filename });
+            const content = await gmail.getAttachment(v.messageId, ref.attachmentId);
             const saved = await drive.uploadFile(v.name || ref.filename, ref.mimeType, content, v.folderId);
 
             return text([
@@ -554,7 +557,7 @@ export const gmailTools = defineTools({
                 `Size: ${saved.size} bytes`,
                 `Drive file ID: ${saved.id}`,
                 `Open it: ${saved.webViewLink}`,
-                `From: ${email.subject || '(no subject)'} — ${email.from}`,
+                `From: ${ref.subject || '(no subject)'} — ${ref.from}`,
                 saved.fellBackToRoot ? `\nNOTE: ${saved.fellBackToRoot}` : null
             ].filter(Boolean).join('\n'));
         }

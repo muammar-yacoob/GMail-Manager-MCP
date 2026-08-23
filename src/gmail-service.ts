@@ -306,6 +306,61 @@ export class GmailService {
         return found;
     }
 
+    /**
+     * Work out which attachment the caller means, and get a usable id for it.
+     *
+     * Gmail hands back a *different* attachmentId every time a message is
+     * fetched. The tokens stay valid for `attachments.get` — several live ones
+     * can exist at once — but they are not comparable, so looking up "the
+     * attachment whose id equals the one you gave me" never matches and reports
+     * a file that is plainly right there. The filename is the only stable
+     * handle, so that is what selects, and the id is only ever used to fetch.
+     */
+    async resolveAttachment(
+        messageId: string,
+        selector: { filename?: string; attachmentId?: string }
+    ): Promise<AttachmentRef & { subject: string; from: string }> {
+        const email = await this.readEmail(messageId);
+        const context = { subject: email.subject, from: email.from };
+
+        if (!email.attachments.length) {
+            throw new Error(`Message ${messageId} has no attachments.`);
+        }
+
+        if (selector.filename) {
+            const wanted = selector.filename.toLowerCase();
+            const hit =
+                email.attachments.find((a) => a.filename.toLowerCase() === wanted) ??
+                email.attachments.find((a) => a.filename.toLowerCase().includes(wanted));
+            if (!hit) {
+                throw new Error(
+                    `No attachment called "${selector.filename}" on message ${messageId}.\nThis message has:\n` +
+                        email.attachments.map((a) => `  ${a.filename} (${a.size} bytes)`).join('\n')
+                );
+            }
+            return { ...hit, ...context };
+        }
+
+        if (selector.attachmentId) {
+            // Trust the id for fetching, but do not try to match it: take the
+            // metadata from the sole attachment, or make the caller name one.
+            if (email.attachments.length === 1) {
+                return { ...email.attachments[0], attachmentId: selector.attachmentId, ...context };
+            }
+            throw new Error(
+                `Message ${messageId} has ${email.attachments.length} attachments, and Gmail's attachment IDs ` +
+                    `change between reads, so an ID cannot pick one out. Pass "filename" instead:\n` +
+                    email.attachments.map((a) => `  ${a.filename} (${a.size} bytes)`).join('\n')
+            );
+        }
+
+        if (email.attachments.length === 1) return { ...email.attachments[0], ...context };
+        throw new Error(
+            `Message ${messageId} has ${email.attachments.length} attachments. Pass "filename" to choose one:\n` +
+                email.attachments.map((a) => `  ${a.filename} (${a.size} bytes)`).join('\n')
+        );
+    }
+
     async getAttachment(messageId: string, attachmentId: string): Promise<Buffer> {
         const { data } = await this.gmail.users.messages.attachments.get({
             userId: 'me',
