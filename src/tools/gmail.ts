@@ -1,5 +1,11 @@
 import { z } from 'zod';
-import { loadAttachments } from '../gmail-service.js';
+import {
+    addressesOf,
+    loadAttachments,
+    type DraftResult,
+    type GmailService,
+    type OutgoingAttachment
+} from '../gmail-service.js';
 import { formatBatchResult } from '../batch.js';
 import { canOneClick, oneClickUnsubscribe, parseMailto } from '../unsubscribe.js';
 import { defineTools, text } from './registry.js';
@@ -11,11 +17,58 @@ const composeFields = {
     html: z.string().optional().describe("Optional HTML body, sent as an alternative alongside the plain text"),
     cc: z.string().optional().describe("Cc address, or a comma-separated list"),
     bcc: z.string().optional().describe("Bcc address, or a comma-separated list"),
-    attachments: z.array(z.string()).optional().describe("Local file paths to attach. '~' is expanded, e.g. '~/Downloads/form.pdf'"),
+    attachments: z.array(z.string()).optional().describe("Local file paths to attach. '~' is expanded, e.g. '~/Downloads/form.pdf'. Gmail's limit is 25 MB for the whole encoded message, roughly 18 MB of actual files"),
     threadId: z.string().optional().describe("Thread ID to attach to, so the message threads with an existing conversation")
 };
 
 const messageIds = z.array(z.string()).min(1).describe("Array of email message IDs");
+
+/**
+ * The block every draft-writing tool ends with.
+ *
+ * One shared formatter because the recipient line is a hard requirement rather
+ * than a nicety: a draft the user cannot check before sending is how mail goes
+ * to the wrong person. The addresses come from `DraftResult`, which Gmail
+ * populated, so this reports what is genuinely saved rather than echoing the
+ * arguments back.
+ */
+async function draftReport(
+    gmail: GmailService,
+    draft: DraftResult,
+    opening: string,
+    extras: string[] = []
+): Promise<string> {
+    const me = await gmail.myAddress();
+    const recipients = addressesOf(draft.to);
+    const selfAddressed = Boolean(me) && recipients.length > 0 && recipients.every((a) => a === me);
+
+    const lines = [
+        opening,
+        '',
+        `To: ${draft.to || '(none — Gmail recorded no recipient)'}`,
+        draft.cc ? `Cc: ${draft.cc}` : null,
+        draft.bcc ? `Bcc: ${draft.bcc}` : null,
+        `Subject: ${draft.subject || '(none)'}`,
+        ...extras,
+        `Draft ID: ${draft.id}`,
+        `Open it: ${draft.url}`
+    ].filter((l): l is string => l !== null);
+
+    if (!draft.to) {
+        lines.push(
+            '',
+            'WARNING: this draft has no recipient. It cannot be sent as it stands. Set one with update_draft.'
+        );
+    } else if (selfAddressed) {
+        lines.push(
+            '',
+            `WARNING: the only recipient is your own address (${me}). Sending this delivers it back to your own ` +
+                `inbox and nobody else sees it. If that is not what you meant, fix it with update_draft before sending.`
+        );
+    }
+
+    return lines.join('\n');
+}
 
 export const gmailTools = defineTools({
     search_emails: {
@@ -314,93 +367,131 @@ export const gmailTools = defineTools({
     // --- Composing ---------------------------------------------------------
 
     create_reply: {
-        description: "Generate a brief, natural reply draft and provide Gmail compose URL",
+        description: "Draft a threaded reply to a message, saved to Gmail Drafts and not sent. Replies to the original sender by default; pass 'to' to redirect it, or 'cc'/'bcc' to widen it. Replying to a message you sent yourself answers its original recipients rather than looping the draft back to your own address. Always check the To line it reports back before sending.",
         schema: z.object({
             messageId: z.string().describe("Email message ID to reply to"),
-            replyMessage: z.string().describe("The reply message content to create as a draft")
+            replyMessage: z.string().describe("The reply message content to create as a draft"),
+            to: z.string().optional().describe("Override the recipient. Defaults to the original sender, or to the original recipients when replying to your own sent message"),
+            cc: z.string().optional().describe("Cc address, or a comma-separated list"),
+            bcc: z.string().optional().describe("Bcc address, or a comma-separated list"),
+            subject: z.string().optional().describe("Override the subject. Defaults to the original prefixed with 'Re: '"),
+            attachments: z.array(z.string()).optional().describe("Local file paths to attach. '~' is expanded")
         }),
         handler: async ({ gmail }, v) => {
-            const result = await gmail.createReply(v.messageId, v.replyMessage);
-            return text(`${result.message}\n\n**Draft Preview:**\n\n**To:** ${result.to}\n**Subject:** ${result.subject}\n\n**Message:**\n\`\`\`\n${result.replyMessage}\n\`\`\``);
-        }
-    },
-
-    send_email: {
-        description: "Send a new email immediately, optionally with local file attachments. This delivers straight away and cannot be recalled afterwards. Prefer create_draft unless the user has explicitly asked for it to be sent.",
-        schema: z.object(composeFields),
-        handler: async ({ gmail }, v) => {
             const attachments = v.attachments?.length ? await loadAttachments(v.attachments) : undefined;
-            const sent = await gmail.sendEmail({ ...v, attachments });
-            return text(`Sent to ${v.to}\nSubject: ${v.subject}\nAttachments: ${attachments?.length || 0}\nMessage ID: ${sent.id}\nGmail URL: ${gmail.getEmailUrl(sent.id)}`);
+            const { draft, recipientSource } = await gmail.createReply(v.messageId, v.replyMessage, {
+                to: v.to, cc: v.cc, bcc: v.bcc, subject: v.subject, attachments
+            });
+            return text(await draftReport(gmail, draft, 'Reply draft saved to Gmail. Not sent.', [
+                `Attachments: ${attachments?.length || 0}`,
+                `Recipient taken from: ${recipientSource}`,
+                `Threaded under: ${draft.threadId || '(new conversation)'}`
+            ]));
         }
     },
 
     create_draft: {
-        description: "Write a new email into Gmail Drafts without sending it, optionally with local file attachments. Returns a draft URL the user can open, review and send themselves. This is the safe default for composing mail on the user's behalf.",
+        description: "Compose a new email into Gmail Drafts without sending it: arbitrary To/Cc/Bcc, subject, body and optional local file attachments. Not tied to any thread. Returns a draft URL the user can open, review and send themselves. This is the safe default for composing mail on the user's behalf.",
         schema: z.object(composeFields),
         handler: async ({ gmail }, v) => {
             const attachments = v.attachments?.length ? await loadAttachments(v.attachments) : undefined;
             const draft = await gmail.createDraft({ ...v, attachments });
-            return text(`Draft saved to Gmail. Not sent.\n\nTo: ${v.to}\nSubject: ${v.subject}\nAttachments: ${attachments?.length || 0}\nDraft ID: ${draft.id}\nOpen it: ${draft.url}`);
+            return text(await draftReport(gmail, draft, 'Draft saved to Gmail. Not sent.', [
+                `Attachments: ${attachments?.length || 0}`
+            ]));
         }
     },
 
     list_drafts: {
-        description: "List drafts currently sitting in Gmail, with their IDs and URLs",
+        description: "List the drafts currently sitting in Gmail, with their IDs, recipients, subjects and snippets. Use this before update_draft or delete_draft, and to spot superseded drafts worth clearing out.",
         schema: z.object({
             maxResults: z.number().optional().default(20).describe("Maximum number of drafts to return (default: 20)")
         }),
         handler: async ({ gmail }, v) => {
             const drafts = await gmail.listDrafts(v.maxResults);
-            return text(drafts.length
-                ? drafts.map(d => `Draft ID: ${d.id}\nTo: ${d.to}\nSubject: ${d.subject}\nSnippet: ${d.snippet}\nURL: ${d.url}\n`).join('---\n')
-                : "No drafts found.");
+            if (!drafts.length) return text("No drafts found.");
+
+            const me = await gmail.myAddress();
+            const flag = (to: string) => {
+                if (!to) return '  <- no recipient; this draft cannot be sent as it stands';
+                const addrs = addressesOf(to);
+                return me && addrs.length && addrs.every((a) => a === me)
+                    ? '  <- addressed only to yourself; sending it would reach nobody else'
+                    : '';
+            };
+
+            return text(
+                `${drafts.length} draft(s):\n\n` +
+                drafts.map(d =>
+                    `Draft ID: ${d.id}\nTo: ${d.to || '(none)'}${flag(d.to)}\nSubject: ${d.subject || '(none)'}\n` +
+                    `Snippet: ${d.snippet}\nURL: ${d.url}\n`
+                ).join('---\n')
+            );
         }
     },
 
     update_draft: {
-        description: "Replace the contents of an existing draft. Gmail has no partial update, so every field is rewritten",
-        schema: z.object({ draftId: z.string().describe("Draft ID to replace"), ...composeFields }),
+        description: "Edit an existing draft in place, keeping the same draft ID and URL. Pass only the fields you want to change; anything omitted keeps its current value, and existing attachments are carried over unless 'attachments' is supplied. Use this to correct a draft rather than creating a second one.",
+        schema: z.object({
+            draftId: z.string().describe("Draft ID to edit, from list_drafts"),
+            to: z.string().optional().describe("Replace the recipients. Omit to keep the current ones"),
+            subject: z.string().optional().describe("Replace the subject. Omit to keep the current one"),
+            body: z.string().optional().describe("Replace the plain-text body. Omit to keep the current one"),
+            html: z.string().optional().describe("Optional HTML body, sent as an alternative alongside the plain text"),
+            cc: z.string().optional().describe("Replace the Cc list. Pass an empty string to clear it"),
+            bcc: z.string().optional().describe("Replace the Bcc list. Pass an empty string to clear it"),
+            attachments: z.array(z.string()).optional().describe("Replace the attachments with these local file paths. Omit to keep the existing ones; pass an empty array to strip them all"),
+            threadId: z.string().optional().describe("Thread to attach to. Omit to keep the draft where it is")
+        }),
         handler: async ({ gmail }, v) => {
-            const attachments = v.attachments?.length ? await loadAttachments(v.attachments) : undefined;
-            const draft = await gmail.updateDraft(v.draftId, { ...v, attachments });
-            return text(`Draft updated. Not sent.\n\nTo: ${v.to}\nSubject: ${v.subject}\nAttachments: ${attachments?.length || 0}\nOpen it: ${draft.url}`);
-        }
-    },
+            // Gmail's drafts.update is a whole-message replace with no partial
+            // form, so a caller who only wanted to fix a typo would blank the
+            // recipients and lose the attachments. Read the draft first and
+            // merge, which is what "edit" is understood to mean.
+            const current = await gmail.getDraft(v.draftId);
 
-    send_draft: {
-        description: "Send a draft that is already in Gmail. This delivers immediately and cannot be recalled.",
-        schema: z.object({ draftId: z.string().describe("Draft ID to send") }),
-        handler: async ({ gmail }, v) => {
-            const sent = await gmail.sendDraft(v.draftId);
-            return text(`Draft ${v.draftId} sent.\nMessage ID: ${sent.id}\nGmail URL: ${gmail.getEmailUrl(sent.id)}`);
+            let attachments: OutgoingAttachment[] | undefined;
+            if (v.attachments === undefined) {
+                attachments = current.attachments.length ? await gmail.draftAttachments(current) : undefined;
+            } else if (v.attachments.length) {
+                attachments = await loadAttachments(v.attachments);
+            }
+
+            const draft = await gmail.updateDraft(v.draftId, {
+                to: v.to ?? current.to,
+                subject: v.subject ?? current.subject,
+                body: v.body ?? current.body,
+                html: v.html,
+                cc: v.cc ?? current.cc,
+                bcc: v.bcc ?? current.bcc,
+                threadId: v.threadId ?? current.threadId,
+                attachments
+            });
+
+            const carried = v.attachments === undefined && current.attachments.length;
+            return text(await draftReport(gmail, draft, 'Draft updated in place. Not sent.', [
+                `Attachments: ${attachments?.length || 0}${carried ? ' (carried over from the previous version)' : ''}`
+            ]));
         }
     },
 
     delete_draft: {
-        description: "Delete a draft without sending it",
-        schema: z.object({ draftId: z.string().describe("Draft ID to delete") }),
+        description: "Delete a draft without sending it. Use this to clear superseded drafts so the wrong version cannot be sent by mistake.",
+        schema: z.object({ draftId: z.string().describe("Draft ID to delete, from list_drafts") }),
         handler: async ({ gmail }, v) => {
-            await gmail.deleteDraft(v.draftId);
-            return text(`Draft ${v.draftId} deleted.`);
-        }
-    },
+            // Read it first, purely so the confirmation names what went. "Draft
+            // r-123 deleted" is unverifiable after the fact; the recipient and
+            // subject let the user see whether it was the one they meant.
+            let wasAddressed = '';
+            try {
+                const doomed = await gmail.getDraft(v.draftId);
+                wasAddressed = `\nIt was addressed to: ${doomed.to || '(no recipient)'}\nSubject: ${doomed.subject || '(none)'}`;
+            } catch {
+                // Gone or unreadable; the delete below will report the real problem.
+            }
 
-    resend_email: {
-        description: "Send a fresh copy of an already-sent email, carrying its attachments over, optionally editing the recipient, subject or body. This does NOT recall or replace the original: SMTP has no recall, so the first message stays delivered and the recipient ends up with both.",
-        schema: z.object({
-            messageId: z.string().describe("ID of the already-sent message to send a fresh copy of"),
-            to: z.string().optional().describe("Override the recipient (defaults to the original To)"),
-            subject: z.string().optional().describe("Override the subject (defaults to the original)"),
-            body: z.string().optional().describe("Override the body (defaults to the original text body)"),
-            cc: z.string().optional().describe("Cc address, or a comma-separated list"),
-            bcc: z.string().optional().describe("Bcc address, or a comma-separated list")
-        }),
-        handler: async ({ gmail }, v) => {
-            const sent = await gmail.resendEmail(v.messageId, {
-                to: v.to, subject: v.subject, body: v.body, cc: v.cc, bcc: v.bcc
-            });
-            return text(`Re-sent a copy to ${sent.to}\nSubject: ${sent.subject}\nAttachments carried over: ${sent.attachments}\nNew message ID: ${sent.id}\nGmail URL: ${gmail.getEmailUrl(sent.id)}\n\nNote: the original message ${v.messageId} is still delivered. This did not recall it.`);
+            await gmail.deleteDraft(v.draftId);
+            return text(`Draft ${v.draftId} deleted. It was not sent.${wasAddressed}`);
         }
     },
 
@@ -432,11 +523,108 @@ export const gmailTools = defineTools({
         }
     },
 
+    save_attachment_to_drive: {
+        description: "Copy an email attachment straight into Google Drive, without leaving it on the local disk. Optionally into a specific folder. Needs the Drive scope, which is granted by re-running authentication.",
+        schema: z.object({
+            messageId: z.string().describe("Email message ID"),
+            attachmentId: z.string().describe("Attachment ID, from list_attachments"),
+            folderId: z.string().optional().describe("Drive folder ID to file it under. Omit to put it in My Drive"),
+            name: z.string().optional().describe("Override the filename in Drive. Defaults to the attachment's own name")
+        }),
+        handler: async ({ gmail, drive }, v) => {
+            // Take the name and type from the message itself rather than making
+            // the caller supply them: they are already recorded against the
+            // attachment, and guessing them produces files called "untitled".
+            const email = await gmail.readEmail(v.messageId);
+            const ref = email.attachments.find((a) => a.attachmentId === v.attachmentId);
+            if (!ref) {
+                const known = email.attachments.map((a) => `  ${a.filename} — ${a.attachmentId}`).join('\n');
+                throw new Error(
+                    `No attachment with that ID on message ${v.messageId}.` +
+                        (known ? `\nThis message has:\n${known}` : ' This message has no attachments.')
+                );
+            }
+
+            const content = await gmail.getAttachment(v.messageId, v.attachmentId);
+            const saved = await drive.uploadFile(v.name || ref.filename, ref.mimeType, content, v.folderId);
+
+            return text([
+                `Saved to Google Drive: ${saved.name}`,
+                `Type: ${ref.mimeType}`,
+                `Size: ${saved.size} bytes`,
+                `Drive file ID: ${saved.id}`,
+                `Open it: ${saved.webViewLink}`,
+                `From: ${email.subject || '(no subject)'} — ${email.from}`,
+                saved.fellBackToRoot ? `\nNOTE: ${saved.fellBackToRoot}` : null
+            ].filter(Boolean).join('\n'));
+        }
+    },
+
     // --- Auth --------------------------------------------------------------
 
     authenticate_gmail: {
-        description: "Authenticate Google access via web browser (opens browser automatically). Covers both Gmail and Calendar.",
+        description: "Authenticate Google access via web browser (opens browser automatically). Covers Gmail, Calendar and Drive.",
         schema: z.object({}),
         handler: async ({ authenticate }) => text(await authenticate())
     }
 });
+
+/**
+ * Tools that put mail on the wire. Off unless GMAIL_ENABLE_SEND is set.
+ *
+ * Composing is safe to automate and delivery is not: a draft can be read,
+ * corrected or thrown away, whereas SMTP has no recall and an assistant that
+ * can send is one mistake away from mailing the wrong person. The default is
+ * therefore that this server writes drafts and a human presses send.
+ *
+ * These are kept as working tools rather than deleted so the capability is one
+ * environment variable away for anyone who wants it:
+ *
+ *   "env": { "GMAIL_ENABLE_SEND": "1" }
+ *
+ * in the MCP client config, then restart the client.
+ */
+export const sendTools = defineTools({
+    send_email: {
+        description: "Send a new email immediately, optionally with local file attachments. This delivers straight away and cannot be recalled afterwards. Prefer create_draft unless the user has explicitly asked for it to be sent.",
+        schema: z.object(composeFields),
+        handler: async ({ gmail }, v) => {
+            const attachments = v.attachments?.length ? await loadAttachments(v.attachments) : undefined;
+            const sent = await gmail.sendEmail({ ...v, attachments });
+            return text(`Sent to ${v.to}\nSubject: ${v.subject}\nAttachments: ${attachments?.length || 0}\nMessage ID: ${sent.id}\nGmail URL: ${gmail.getEmailUrl(sent.id)}`);
+        }
+    },
+
+    send_draft: {
+        description: "Send a draft that is already in Gmail. This delivers immediately and cannot be recalled.",
+        schema: z.object({ draftId: z.string().describe("Draft ID to send") }),
+        handler: async ({ gmail }, v) => {
+            const sent = await gmail.sendDraft(v.draftId);
+            return text(`Draft ${v.draftId} sent.\nMessage ID: ${sent.id}\nGmail URL: ${gmail.getEmailUrl(sent.id)}`);
+        }
+    },
+
+    resend_email: {
+        description: "Send a fresh copy of an already-sent email, carrying its attachments over, optionally editing the recipient, subject or body. This does NOT recall or replace the original: SMTP has no recall, so the first message stays delivered and the recipient ends up with both.",
+        schema: z.object({
+            messageId: z.string().describe("ID of the already-sent message to send a fresh copy of"),
+            to: z.string().optional().describe("Override the recipient (defaults to the original To)"),
+            subject: z.string().optional().describe("Override the subject (defaults to the original)"),
+            body: z.string().optional().describe("Override the body (defaults to the original text body)"),
+            cc: z.string().optional().describe("Cc address, or a comma-separated list"),
+            bcc: z.string().optional().describe("Bcc address, or a comma-separated list")
+        }),
+        handler: async ({ gmail }, v) => {
+            const sent = await gmail.resendEmail(v.messageId, {
+                to: v.to, subject: v.subject, body: v.body, cc: v.cc, bcc: v.bcc
+            });
+            return text(`Re-sent a copy to ${sent.to}\nSubject: ${sent.subject}\nAttachments carried over: ${sent.attachments}\nNew message ID: ${sent.id}\nGmail URL: ${gmail.getEmailUrl(sent.id)}\n\nNote: the original message ${v.messageId} is still delivered. This did not recall it.`);
+        }
+    }
+});
+
+/** Whether the client has opted in to letting this server deliver mail. */
+export function sendingEnabled(): boolean {
+    const flag = (process.env.GMAIL_ENABLE_SEND || '').toLowerCase();
+    return flag === '1' || flag === 'true' || flag === 'yes';
+}

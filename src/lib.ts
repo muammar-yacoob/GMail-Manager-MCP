@@ -11,6 +11,7 @@ import {
 import { getCredentials, authenticateWeb, getOAuthClient, hasValidCredentials } from "./auth.js";
 import { GmailService } from "./gmail-service.js";
 import { CalendarService } from "./calendar-service.js";
+import { DriveService } from "./drive-service.js";
 import { getToolDefinitions, handleToolCall, type ToolContext } from "./tools/index.js";
 import { reauthCommand } from "./reauth.js";
 import { readFileSync } from "fs";
@@ -45,9 +46,10 @@ Please complete the following steps:
 1. Create Google Cloud Project
    Visit: https://console.cloud.google.com/projectcreate
 
-2. Enable the Gmail and Calendar APIs
+2. Enable the Gmail, Calendar and Drive APIs
    Gmail:    https://console.cloud.google.com/apis/api/gmail.googleapis.com/metrics
    Calendar: https://console.cloud.google.com/apis/api/calendar-json.googleapis.com/metrics
+   Drive:    https://console.cloud.google.com/apis/api/drive.googleapis.com/metrics
 
 3. Create OAuth Credentials
    Visit: https://console.cloud.google.com/auth/clients
@@ -58,6 +60,7 @@ Please complete the following steps:
    Visit: https://console.cloud.google.com/auth/scopes
    Add: https://mail.google.com/
    Add: https://www.googleapis.com/auth/calendar
+   Add: https://www.googleapis.com/auth/drive.file
 
 5. Add Test User
    Visit: https://console.cloud.google.com/auth/audience
@@ -79,8 +82,12 @@ const AUTH_SUCCESS_MESSAGE = `Authentication Successful!
 
 Gmail Manager is now connected to your Google account.
 
-Mail:     search, read, label, archive, trash, draft and send
+Mail:     search, read, label, archive, trash, and manage drafts
 Calendar: list, search, create, update, delete events, RSVP and find free slots
+Drive:    file mail attachments straight into Drive
+
+Drafts are written for you to review; sending stays a manual step unless
+GMAIL_ENABLE_SEND is set in this server's environment.
 
 Ready to start.`;
 
@@ -155,6 +162,7 @@ Please try one of these alternatives:
     const ctx: ToolContext = {
       gmail: new GmailService(oauth2Client!),
       calendar: new CalendarService(oauth2Client!),
+      drive: new DriveService(oauth2Client!),
       // Supplied here rather than imported by the tool module, so the auth tool
       // is an ordinary registry entry instead of a name the dispatcher has to
       // special-case before it ever reaches the tool layer.
@@ -185,5 +193,6 @@ export async function startGmailManagerServer(): Promise<void> {
 export { getCredentials, authenticateWeb, getOAuthClient, hasValidCredentials } from "./auth.js";
 export { GmailService } from "./gmail-service.js";
 export { CalendarService } from "./calendar-service.js";
-export { SCOPES, hasCalendarScope } from "./scopes.js";
+export { DriveService } from "./drive-service.js";
+export { SCOPES, hasCalendarScope, hasDriveScope } from "./scopes.js";
 export { getToolDefinitions, handleToolCall } from "./tools/index.js";

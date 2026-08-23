@@ -43,11 +43,12 @@ Gmail Manager MCP provides **direct access** to your Gmail inbox through the Mod
 | ![](https://img.shields.io/badge/🏷️%20-cc6600?style=for-the-badge)![Smart Organization](https://img.shields.io/badge/Smart%20Organization%20-ff9500?style=for-the-badge) | Create and apply labels to categorize emails automatically |
 | ![](https://img.shields.io/badge/🗑️%20-c41e3a?style=for-the-badge)![Bulk Cleanup](https://img.shields.io/badge/Bulk%20Cleanup%20-ff073a?style=for-the-badge) | Remove old newsletters, notifications, and spam efficiently |
 | ![](https://img.shields.io/badge/📅%20-4b2e83?style=for-the-badge)![Google Calendar](https://img.shields.io/badge/Google%20Calendar%20-7b4fc9?style=for-the-badge) | List, search, create and update events, RSVP, and find times everyone is free |
+| ![](https://img.shields.io/badge/📎%20-1a365d?style=for-the-badge)![Attachments](https://img.shields.io/badge/Attachments%20-007bff?style=for-the-badge) | Attach local files to drafts, download attachments, or file them into Drive |
 
 
 
 > [!IMPORTANT]
-> **Upgrading from a version before calendar support?** Google cannot add scopes to a token it has already issued, so your saved credentials keep working for mail while every calendar call fails with a permissions error. Enable the Calendar API and add the calendar scope as below, then re-authenticate once:
+> **Upgrading from a version before calendar or Drive support?** Google cannot add scopes to a token it has already issued, so your saved credentials keep working for mail while calendar calls and `save_attachment_to_drive` fail with a permissions error. Enable the Calendar and Drive APIs and add their scopes as below, then re-authenticate once:
 > ```bash
 > npx @spark-apps/gmail-manager-mcp@latest auth
 > ```
@@ -64,10 +65,10 @@ Gmail Manager MCP provides **direct access** to your Gmail inbox through the Mod
 <summary><strong>🔑 Required before any installation</strong></summary>
 
 1. [Create New Project](https://console.cloud.google.com/projectcreate) 📁
-2. Enable both APIs: [Gmail](https://console.cloud.google.com/apis/api/gmail.googleapis.com/metrics) 📧 and [Calendar](https://console.cloud.google.com/apis/api/calendar-json.googleapis.com/metrics) 📅
+2. Enable all three APIs: [Gmail](https://console.cloud.google.com/apis/api/gmail.googleapis.com/metrics) 📧, [Calendar](https://console.cloud.google.com/apis/api/calendar-json.googleapis.com/metrics) 📅 and [Drive](https://console.cloud.google.com/apis/api/drive.googleapis.com/metrics) 📁
 3. Create [OAuth client ID](https://console.cloud.google.com/auth/clients) (Desktop app type) 🔐
 4. Download as `gcp-oauth.keys.json` 📥
-5. Navigate to [Data access](https://console.cloud.google.com/auth/scopes) → **Add or remove scopes** → add **both**: `https://mail.google.com/` and `https://www.googleapis.com/auth/calendar` 🔓
+5. Navigate to [Data access](https://console.cloud.google.com/auth/scopes) → **Add or remove scopes** → add **all three**: `https://mail.google.com/`, `https://www.googleapis.com/auth/calendar` and `https://www.googleapis.com/auth/drive.file` 🔓
 6. Navigate to [Test users](https://console.cloud.google.com/auth/audience) → Add your Google email 👤
 
 **📁 Where to put `gcp-oauth.keys.json`:**
@@ -180,8 +181,6 @@ Add to your MCP client config file (Claude Desktop example):
 | `search_emails` | Search using Gmail query syntax |
 | `read_email` | Full content of one email |
 | `get_thread` | Every message in a conversation, oldest first |
-| `list_attachments` | Attachments on an email, with download IDs |
-| `download_attachment` | Save an attachment to a local path |
 
 ### 🧹 Cleaning up
 
@@ -213,15 +212,70 @@ Add to your MCP client config file (Claude Desktop example):
 | `get_unsubscribe_info` | Read a sender's List-Unsubscribe link, without clicking it |
 | `unsubscribe_email` | Opt out of a mailing list via the sender's own one-click endpoint |
 
-### ✍️ Composing
+### ✍️ Drafts
+
+Everything here writes to Drafts. Nothing is delivered — see [Sending](#-sending) below.
 
 | Tool | Description |
 |:-----|:------------|
-| `create_draft` | Write to Drafts without sending. **The safe default** |
-| `list_drafts` / `update_draft` / `delete_draft` | Manage drafts |
-| `send_draft` | Send an existing draft |
+| `create_draft` | Compose to any To/Cc/Bcc with subject, body and attachments. Not tied to a thread |
+| `create_reply` | Draft a threaded reply. Recipient can be overridden with `to`/`cc`/`bcc` |
+| `update_draft` | Edit a draft **in place**, keeping its ID and URL. Pass only the fields you are changing |
+| `delete_draft` | Throw a draft away, so a superseded version cannot be sent by mistake |
+| `list_drafts` | Every draft with its ID, recipients, subject and snippet |
+
+Three things these do that are worth knowing about:
+
+**Every draft reports the recipient Gmail actually stored**, read back from the
+saved message rather than echoed from the request. A wrong address is visible
+before anyone presses send, which is the only moment it can still be fixed.
+
+**A draft addressed only to yourself is called out.** `create_reply` used to
+answer the `From` header unconditionally, so replying to your own sent mail
+resolved the recipient to your own address: the draft looked perfectly correct
+and would have gone nowhere. Replying to a message you sent now answers its
+original recipients instead, and says which rule it applied.
+
+**`update_draft` merges rather than replaces.** Gmail's API has no partial
+update, so the underlying call rewrites the whole message; the tool reads the
+draft first and keeps every field you did not pass, attachments included.
+
+### 📎 Attachments
+
+| Tool | Description |
+|:-----|:------------|
+| `list_attachments` | Attachments on a message, with the IDs needed to fetch them |
+| `download_attachment` | Save one to a local path. Missing directories are created |
+| `save_attachment_to_drive` | Upload one straight to Google Drive, optionally into a folder |
+
+Outgoing attachments are local file paths — `~` is expanded — assembled into a
+proper MIME multipart message and sent base64url-encoded via `raw`.
+
+Gmail's 25 MB ceiling applies to the *encoded* message, and base64 adds about a
+third, so the real limit is roughly **18 MB of actual files**. Oversized
+attachments are refused up front, with the per-file arithmetic, rather than
+being uploaded and rejected by Google with an opaque 400.
+
+`save_attachment_to_drive` needs the Drive scope — see [Scopes](#-scopes).
+
+### 📤 Sending
+
+**Off by default.** This server composes; a human sends. A draft can be read,
+corrected or thrown away; a sent message cannot, because SMTP has no recall.
+
+To enable delivery, set `GMAIL_ENABLE_SEND=1` in the server's environment and
+restart your MCP client:
+
+```json
+"env": { "GMAIL_ENABLE_SEND": "1" }
+```
+
+That adds three tools:
+
+| Tool | Description |
+|:-----|:------------|
 | `send_email` | Compose and send immediately |
-| `create_reply` | Draft a threaded reply |
+| `send_draft` | Send an existing draft |
 | `resend_email` | Send a fresh copy of a sent message (does not recall the original) |
 
 ### 📅 Calendar
@@ -242,9 +296,36 @@ Add to your MCP client config file (Claude Desktop example):
 
 | Tool | Description |
 |:-----|:------------|
-| `authenticate_gmail` | Authenticate via browser. Covers Gmail **and** Calendar |
+| `authenticate_gmail` | Authenticate via browser. Covers Gmail, Calendar **and** Drive |
 
 </details>
+
+## 🔑 Scopes
+
+| Scope | Why |
+|:------|:----|
+| `https://mail.google.com/` | Read, label, draft, trash and permanently delete mail |
+| `https://www.googleapis.com/auth/calendar` | Calendar tools |
+| `https://www.googleapis.com/auth/drive.file` | `save_attachment_to_drive` |
+
+Drive is requested as `drive.file`, not the full `drive` scope: it grants rights
+over the files this app creates and nothing else, so the server cannot read,
+list or alter anything already in your Drive.
+
+The trade-off is worth knowing. Because the app never gains rights over folders
+it did not create, passing a `folderId` for a folder you made in the Drive web
+UI can come back as "not found" even though it plainly exists. When that
+happens the file is uploaded to My Drive instead and the result says so, rather
+than the upload being lost.
+
+**Changing this list invalidates existing credentials.** Google will not add
+scopes to a refresh token it has already issued, so a token predating a scope
+keeps working for everything else while the new feature returns a bare 403. The
+tools detect that case and tell you to re-run authentication:
+
+```bash
+npx @spark-apps/gmail-manager-mcp@latest auth
+```
 
 ## 💬 Example Commands
 

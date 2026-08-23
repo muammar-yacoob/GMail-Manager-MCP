@@ -34,18 +34,117 @@ function expandHome(filePath: string): string {
     return filePath.startsWith('~/') ? resolve(homedir(), filePath.slice(2)) : resolve(filePath);
 }
 
-/** Read local files into the shape `buildRaw` wants. */
+/**
+ * Gmail's ceiling for a whole outgoing message, attachments included.
+ *
+ * This is measured on the *encoded* message, not on the files as they sit on
+ * disk, which is the part that catches people out: see `encodedSize`.
+ */
+export const MAX_MESSAGE_BYTES = 25 * 1024 * 1024;
+
+/**
+ * What a buffer costs once it is inside a MIME message.
+ *
+ * base64 turns every 3 bytes into 4, and RFC 2045 line wrapping adds a CRLF
+ * every 76 characters. So a 20 MB file is a little over 27 MB on the wire and
+ * Gmail rejects it, despite 20 being comfortably under the advertised 25 MB
+ * limit. Checking the raw size would let those through to a 400 from Google
+ * whose text does not mention encoding at all.
+ */
+function encodedSize(bytes: number): number {
+    const base64 = Math.ceil(bytes / 3) * 4;
+    return base64 + Math.floor(base64 / 76) * 2;
+}
+
+const mb = (bytes: number) => `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+
+/**
+ * The bare addresses in a header, lower-cased.
+ *
+ * `To:` is display-name soup — `Foo Bar <a@b.com>, c@d.com` — and comparing it
+ * as a string is how a self-addressed draft slips through. Only the part inside
+ * the angle brackets is the address; when there are no brackets the whole token
+ * is.
+ *
+ * Splitting on every comma is not good enough, because a quoted display name is
+ * allowed to contain one: `"Yacoob, M" <me@x.com>` is a single recipient, and
+ * naive splitting turns it into two, one of which is the nonsense `"yacoob`.
+ * That extra entry is enough to defeat an every()-based self-address check, so
+ * commas inside quotes and inside angle brackets are stepped over.
+ */
+export function addressesOf(header: string | undefined | null): string[] {
+    if (!header) return [];
+
+    const parts: string[] = [];
+    let current = '';
+    let inQuotes = false;
+    let inAngles = false;
+
+    for (const ch of header) {
+        if (ch === '"' && !inAngles) inQuotes = !inQuotes;
+        else if (ch === '<' && !inQuotes) inAngles = true;
+        else if (ch === '>' && !inQuotes) inAngles = false;
+
+        if (ch === ',' && !inQuotes && !inAngles) {
+            parts.push(current);
+            current = '';
+        } else {
+            current += ch;
+        }
+    }
+    parts.push(current);
+
+    return parts
+        .map((part) => {
+            const angled = part.match(/<([^>]+)>/);
+            return (angled ? angled[1] : part).trim().toLowerCase();
+        })
+        .filter(Boolean);
+}
+
+/**
+ * Read local files into the shape `buildRaw` wants, refusing anything Gmail
+ * would reject.
+ *
+ * The check happens here rather than at send time so the caller is told which
+ * file is the problem, and told it before a large upload is attempted.
+ */
 export async function loadAttachments(paths: string[]): Promise<OutgoingAttachment[]> {
-    return Promise.all(
+    const files = await Promise.all(
         paths.map(async (p) => {
             const full = expandHome(p);
+            let content: Buffer;
+            try {
+                content = await readFile(full);
+            } catch (error: any) {
+                if (error?.code === 'ENOENT') throw new Error(`Attachment not found: ${full}`);
+                if (error?.code === 'EISDIR') throw new Error(`Attachment is a directory, not a file: ${full}`);
+                throw error;
+            }
             return {
                 filename: basename(full),
                 mimeType: MIME_BY_EXT[extname(full).toLowerCase()] || 'application/octet-stream',
-                content: await readFile(full)
+                content
             };
         })
     );
+
+    const totalRaw = files.reduce((sum, f) => sum + f.content.length, 0);
+    const totalEncoded = files.reduce((sum, f) => sum + encodedSize(f.content.length), 0);
+
+    if (totalEncoded > MAX_MESSAGE_BYTES) {
+        const breakdown = files
+            .map((f) => `  ${f.filename} — ${mb(f.content.length)} on disk, ${mb(encodedSize(f.content.length))} encoded`)
+            .join('\n');
+        throw new Error(
+            `Attachments exceed Gmail's 25 MB message limit.\n${breakdown}\n` +
+                `Total: ${mb(totalRaw)} on disk, ${mb(totalEncoded)} once base64-encoded, and Gmail measures the ` +
+                `encoded size. The practical ceiling is roughly ${mb(MAX_MESSAGE_BYTES * 0.73)} of actual files.\n` +
+                `Upload the large ones to Drive and link them instead.`
+        );
+    }
+
+    return files;
 }
 
 export interface OutgoingAttachment {
@@ -86,6 +185,8 @@ export interface AttachmentRef {
 }
 
 export interface EmailDetails extends EmailInfo {
+    /** Carbon copies, needed so a reply can keep the same people in the loop. */
+    cc: string;
     body: string;
     /**
      * The RFC 2822 Message-ID header, e.g. `<abc@mail.gmail.com>`.
@@ -104,13 +205,44 @@ export interface Label {
     type?: string | null;
 }
 
+/**
+ * A draft, described by what Gmail is actually holding.
+ *
+ * The recipient fields are read back from the stored message rather than
+ * carried over from the request, so callers can print a To: line that is a
+ * fact about the mailbox instead of a restatement of their own input.
+ */
+export interface DraftResult {
+    id: string;
+    url: string;
+    to: string;
+    cc?: string;
+    bcc?: string;
+    subject: string;
+    threadId?: string;
+}
+
 export class GmailService {
     private gmail;
-    
+    /** Cached for the life of the request; the address does not change under us. */
+    private ownAddress?: string;
+
     constructor(auth: OAuth2Client) {
         this.gmail = google.gmail({ version: 'v1', auth });
     }
-    
+
+    /** The signed-in account's own address, used to catch self-addressed drafts. */
+    async myAddress(): Promise<string> {
+        if (this.ownAddress !== undefined) return this.ownAddress;
+        try {
+            const { data } = await this.gmail.users.getProfile({ userId: 'me' });
+            this.ownAddress = (data.emailAddress || '').toLowerCase();
+        } catch {
+            this.ownAddress = '';
+        }
+        return this.ownAddress;
+    }
+
     async searchEmails(query: string, maxResults = 10): Promise<EmailInfo[]> {
         const { data } = await this.gmail.users.messages.list({ userId: 'me', q: query, maxResults });
         if (!data.messages?.length) return [];
@@ -147,6 +279,7 @@ export class GmailService {
             subject: findHeader('subject'),
             from: findHeader('from'),
             to: findHeader('to'),
+            cc: findHeader('cc'),
             date: findHeader('date'),
             messageIdHeader: findHeader('message-id'),
             body: this.extractBody(data.payload),
@@ -208,6 +341,7 @@ export class GmailService {
                 subject: findHeader('subject'),
                 from: findHeader('from'),
                 to: findHeader('to'),
+                cc: findHeader('cc'),
                 date: findHeader('date'),
                 messageIdHeader: findHeader('message-id'),
                 body: this.extractBody(msg.payload),
@@ -223,13 +357,51 @@ export class GmailService {
      * it lands in Gmail for the user to read and send themselves. Prefer this
      * over `sendEmail` for anything the user has not explicitly asked to go out.
      */
-    async createDraft(fields: SendFields & { threadId?: string }): Promise<{ id: string; url: string }> {
+    async createDraft(fields: SendFields & { threadId?: string }): Promise<DraftResult> {
         const raw = this.buildRaw(fields);
         const { data } = await this.gmail.users.drafts.create({
             userId: 'me',
             requestBody: { message: fields.threadId ? { raw, threadId: fields.threadId } : { raw } }
         });
-        return { id: data.id || '', url: this.getDraftUrl(data.id || '') };
+        return this.describeDraft(data.id || '');
+    }
+
+    /**
+     * Read a saved draft's headers back out of Gmail.
+     *
+     * Every draft-writing tool reports its recipients from here rather than
+     * echoing the arguments it was handed. The distinction matters: echoing
+     * confirms what was asked for, while this confirms what Gmail actually
+     * stored and will actually send to. A reply whose recipient was derived
+     * rather than supplied is precisely the case where those two differ, and
+     * precisely the case where a wrong address needs to be visible before
+     * anyone presses send.
+     */
+    async describeDraft(draftId: string): Promise<DraftResult> {
+        const base = { id: draftId, url: this.getDraftUrl(draftId) };
+        try {
+            const { data } = await this.gmail.users.drafts.get({
+                userId: 'me',
+                id: draftId,
+                format: 'metadata'
+            });
+            const h = data.message?.payload?.headers || [];
+            const pick = (name: string) =>
+                h.find((x) => x.name?.toLowerCase() === name.toLowerCase())?.value || '';
+            return {
+                ...base,
+                to: pick('to'),
+                cc: pick('cc') || undefined,
+                bcc: pick('bcc') || undefined,
+                subject: pick('subject'),
+                threadId: data.message?.threadId || undefined
+            };
+        } catch {
+            // The draft exists — it was just written. Losing the read-back is
+            // not worth failing the write over, but the caller must not be told
+            // a recipient that was never confirmed, so report it as unknown.
+            return { ...base, to: '', subject: '' };
+        }
     }
 
     async listDrafts(maxResults = 20): Promise<Array<{ id: string; subject: string; to: string; snippet: string; url: string }>> {
@@ -258,18 +430,62 @@ export class GmailService {
     }
 
     /** Replace a draft's contents. Gmail has no partial update, so pass every field. */
-    async updateDraft(draftId: string, fields: SendFields & { threadId?: string }): Promise<{ id: string; url: string }> {
+    async updateDraft(draftId: string, fields: SendFields & { threadId?: string }): Promise<DraftResult> {
         const raw = this.buildRaw(fields);
         const { data } = await this.gmail.users.drafts.update({
             userId: 'me',
             id: draftId,
             requestBody: { message: fields.threadId ? { raw, threadId: fields.threadId } : { raw } }
         });
-        return { id: data.id || draftId, url: this.getDraftUrl(data.id || draftId) };
+        return this.describeDraft(data.id || draftId);
+    }
+
+    /**
+     * Read a draft's current contents, so update_draft can amend one field
+     * without the caller having to retype the rest.
+     *
+     * `drafts.update` is a whole-message replace with no partial form, so
+     * anything not supplied would otherwise be silently blanked.
+     */
+    async getDraft(draftId: string): Promise<DraftResult & { body: string; attachments: AttachmentRef[]; messageId: string }> {
+        const { data } = await this.gmail.users.drafts.get({ userId: 'me', id: draftId, format: 'full' });
+        const h = data.message?.payload?.headers || [];
+        const pick = (name: string) => h.find((x) => x.name?.toLowerCase() === name.toLowerCase())?.value || '';
+
+        return {
+            id: draftId,
+            url: this.getDraftUrl(draftId),
+            to: pick('to'),
+            cc: pick('cc') || undefined,
+            bcc: pick('bcc') || undefined,
+            subject: pick('subject'),
+            threadId: data.message?.threadId || undefined,
+            messageId: data.message?.id || '',
+            body: this.extractBody(data.message?.payload),
+            attachments: this.collectAttachments(data.message?.payload)
+        };
     }
 
     async deleteDraft(draftId: string): Promise<void> {
         await this.gmail.users.drafts.delete({ userId: 'me', id: draftId });
+    }
+
+    /**
+     * Re-download the files already attached to a draft.
+     *
+     * `drafts.update` replaces the entire message, so an edit that only changes
+     * the body would otherwise silently strip the attachments. Gmail offers no
+     * way to move a stored part into a new message, so they come down and go
+     * straight back up.
+     */
+    async draftAttachments(draft: { messageId: string; attachments: AttachmentRef[] }): Promise<OutgoingAttachment[]> {
+        return Promise.all(
+            draft.attachments.map(async (a) => ({
+                filename: a.filename,
+                mimeType: a.mimeType,
+                content: await this.getAttachment(draft.messageId, a.attachmentId)
+            }))
+        );
     }
 
     /** Send an existing draft as-is. Delivers immediately and cannot be recalled. */
@@ -556,44 +772,88 @@ export class GmailService {
             .trim();
     }
 
-    async createReply(messageId: string, replyMessage: string): Promise<{message: string, to: string, subject: string, replyMessage: string}> {
+    /**
+     * Draft a threaded reply to a message.
+     *
+     * The recipient rule is the interesting part. A reply normally goes to the
+     * sender, but "the sender" is the account itself whenever the message being
+     * replied to is one the user sent. The old behaviour resolved To: to the
+     * user's own address and reported success, so the draft looked entirely
+     * correct and would have gone precisely nowhere. Replying to your own sent
+     * mail plainly means continuing the conversation with the people you sent it
+     * to, so that is what happens, and `recipientSource` records which rule
+     * fired so the caller can say so out loud.
+     *
+     * An explicit `to` always wins, and if neither rule can find anyone this
+     * throws rather than quietly addressing the message to the user.
+     */
+    async createReply(
+        messageId: string,
+        replyMessage: string,
+        overrides: {
+            to?: string;
+            cc?: string;
+            bcc?: string;
+            subject?: string;
+            attachments?: OutgoingAttachment[];
+        } = {}
+    ): Promise<{ draft: DraftResult; recipientSource: string; selfAddressed: boolean }> {
         const email = await this.readEmail(messageId);
+        const me = await this.myAddress();
 
-        const subject = email.subject.startsWith('Re: ') ? email.subject : `Re: ${email.subject}`;
-        const to = email.from;
+        const subject = overrides.subject
+            ?? (/^re:/i.test(email.subject) ? email.subject : `Re: ${email.subject}`);
+
+        let to = overrides.to;
+        let cc = overrides.cc;
+        let recipientSource: string;
+
+        if (to) {
+            recipientSource = 'the "to" you supplied';
+        } else if (me && addressesOf(email.from).every((a) => a === me)) {
+            // Replying to our own sent message: answer the people it went to.
+            to = email.to;
+            if (cc === undefined) cc = email.cc;
+            recipientSource =
+                `the original message's To header, because ${me} sent it — ` +
+                `replying to its From would have addressed this draft back to you`;
+            if (!to) {
+                throw new Error(
+                    `Message ${messageId} was sent by you (${me}) and has no To header to reply to, so there is ` +
+                        `no recipient to derive. Pass an explicit "to".`
+                );
+            }
+        } else {
+            to = email.from;
+            recipientSource = "the original message's From header";
+            if (!to) {
+                throw new Error(`Message ${messageId} has no From header to reply to. Pass an explicit "to".`);
+            }
+        }
+
         // In-Reply-To / References must carry the RFC Message-ID header, not
         // Gmail's internal id or threadId. Those mean nothing to the recipient's
         // client, so a reply built from them arrives as a new conversation
         // instead of threading under the message it answers.
         const inReplyTo = email.messageIdHeader || undefined;
 
-        try {
-            const draft = await this.createDraft({
-                to,
-                subject,
-                body: replyMessage,
-                inReplyTo,
-                references: inReplyTo,
-                threadId: email.threadId || undefined
-            });
+        const draft = await this.createDraft({
+            to,
+            cc: cc || undefined,
+            bcc: overrides.bcc,
+            subject,
+            body: replyMessage,
+            attachments: overrides.attachments,
+            inReplyTo,
+            references: inReplyTo,
+            threadId: email.threadId || undefined
+        });
 
-            return {
-                message: `Reply draft created and saved to Gmail drafts.\n\n**Gmail draft URL:** ${draft.url}`,
-                to,
-                subject,
-                replyMessage
-            };
-        } catch (error) {
-            console.error('Failed to create draft:', error);
-            // Fall back to a compose URL so the reply is not simply lost.
-            const gmailComposeUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(replyMessage)}`;
-            return {
-                message: `Failed to create draft. Gmail compose URL: ${gmailComposeUrl}`,
-                to,
-                subject,
-                replyMessage
-            };
-        }
+        // Judged on what Gmail stored, not on what we asked for.
+        const stored = addressesOf(draft.to);
+        const selfAddressed = Boolean(me) && stored.length > 0 && stored.every((a) => a === me);
+
+        return { draft, recipientSource, selfAddressed };
     }
 
     // --- Filters -----------------------------------------------------------

@@ -1,18 +1,21 @@
 import { z } from 'zod';
 import type { GmailService } from '../gmail-service.js';
 import type { CalendarService } from '../calendar-service.js';
+import type { DriveService } from '../drive-service.js';
 
 /**
  * What a tool handler is given.
  *
- * Both services are built from the same OAuth client, so a tool can reach
- * across if it needs to. `authenticate` is supplied by the server rather than
- * imported, which is what lets authenticate_gmail be an ordinary tool instead
- * of a fake entry that throws and gets special-cased upstream.
+ * All three services are built from the same OAuth client, so a tool can reach
+ * across if it needs to — save_attachment_to_drive uses two of them at once.
+ * `authenticate` is supplied by the server rather than imported, which is what
+ * lets authenticate_gmail be an ordinary tool instead of a fake entry that
+ * throws and gets special-cased upstream.
  */
 export interface ToolContext {
     gmail: GmailService;
     calendar: CalendarService;
+    drive: DriveService;
     authenticate: () => Promise<string>;
 }
 
