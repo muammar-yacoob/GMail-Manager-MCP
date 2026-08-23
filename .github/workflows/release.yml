@@ -8,14 +8,19 @@ on:
 
 jobs:
   build:
-    # Run for release-triggering commits, including in merge commits
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      contains(toJSON(github.event.commits.*.message), 'feat:') ||
-      contains(toJSON(github.event.commits.*.message), 'feat!:') ||
-      contains(toJSON(github.event.commits.*.message), 'fix:') ||
-      contains(toJSON(github.event.commits.*.message), 'perf:') ||
-      contains(toJSON(github.event.commits.*.message), 'BREAKING CHANGE')
+    # No commit-message gate: semantic-release already decides whether a push
+    # warrants a release, and it reads the commits properly.
+    #
+    # This used to be a list of `contains(..., 'fix:')` checks, which quietly
+    # dropped every scoped conventional commit — `fix(auth):` does not contain
+    # the substring `fix:`. Releases were therefore skipped for most of the
+    # repo's actual history: package.json reached 1.8.0 while npm stayed on
+    # 1.7.4, with no failure anywhere to show for it. A skipped job looks
+    # exactly like a job that decided not to release, which is what made it
+    # survive so long.
+    #
+    # Running semantic-release unconditionally costs a minute and it exits
+    # cleanly when there is nothing to publish.
     runs-on: ubuntu-latest
     permissions:
       contents: write
