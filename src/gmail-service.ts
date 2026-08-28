@@ -4,8 +4,9 @@ import { basename, extname, dirname, resolve } from 'node:path';
 import { homedir } from 'node:os';
 import { google } from 'googleapis';
 import { OAuth2Client } from 'google-auth-library';
-import { runBatch, type BatchResult } from './batch.js';
+import { mapLimit, runBatch, type BatchResult } from './batch.js';
 import { parseUnsubscribeTargets, type UnsubscribeTargets } from './unsubscribe.js';
+import { sharedCache, type MailboxCache, type MailboxProbe, type SyncState } from './cache.js';
 
 /** Enough of the common types that attachments arrive with a sensible icon. */
 const MIME_BY_EXT: Record<string, string> = {
@@ -177,11 +178,26 @@ export interface EmailInfo {
     snippet?: string;
 }
 
-export interface AttachmentRef {
-    attachmentId: string;
+/**
+ * An attachment as described by the message, with no handle for fetching it.
+ *
+ * The split from `AttachmentRef` is deliberate and load-bearing. Gmail mints a
+ * fresh `attachmentId` on every read of a message, so an id is a token from one
+ * particular fetch rather than a property of the file. Message content is
+ * cached; attachment ids must never be, because a cached one would be an
+ * arbitrarily old token handed out as though it were current. Keeping the id
+ * off the cached shape makes that a type error rather than a bug to be found
+ * later — `readEmail` cannot return one, so nothing can accidentally fetch with
+ * it. `fetchMessage` is the fresh read that does produce them.
+ */
+export interface AttachmentSummary {
     filename: string;
     mimeType: string;
     size: number;
+}
+
+export interface AttachmentRef extends AttachmentSummary {
+    attachmentId: string;
 }
 
 export interface EmailDetails extends EmailInfo {
@@ -196,7 +212,7 @@ export interface EmailDetails extends EmailInfo {
      * and References must carry.
      */
     messageIdHeader: string;
-    attachments: AttachmentRef[];
+    attachments: AttachmentSummary[];
 }
 
 export interface Label {
@@ -222,42 +238,174 @@ export interface DraftResult {
     threadId?: string;
 }
 
+/** The search-result view of a message we already hold in full. */
+function summarise(details: EmailDetails): EmailInfo {
+    const { id, threadId, subject, from, to, date, snippet } = details;
+    return { id, threadId, subject, from, to, date, snippet };
+}
+
 export class GmailService {
     private gmail;
-    /** Cached for the life of the request; the address does not change under us. */
-    private ownAddress?: string;
+    /** Survives this instance: the service is rebuilt for every tool call. */
+    private cache: MailboxCache;
 
-    constructor(auth: OAuth2Client) {
+    constructor(auth: OAuth2Client, cache: MailboxCache = sharedCache()) {
         this.gmail = google.gmail({ version: 'v1', auth });
+        this.cache = cache;
     }
 
-    /** The signed-in account's own address, used to catch self-addressed drafts. */
+    /**
+     * The two calls the cache uses to decide what it may still serve.
+     *
+     * `getProfile` costs a single quota unit and answers both "who are we" and
+     * "has anything happened"; `history.list` then names exactly what changed.
+     * Together they are cheaper than one `messages.get`, which is what makes
+     * validating the cache on every search affordable.
+     */
+    private probe(): MailboxProbe {
+        return {
+            profile: async () => {
+                const { data } = await this.gmail.users.getProfile({ userId: 'me' });
+                return {
+                    emailAddress: (data.emailAddress || '').toLowerCase(),
+                    historyId: String(data.historyId || '')
+                };
+            },
+            history: async (startHistoryId: string) => {
+                const messageIds = new Set<string>();
+                const threadIds = new Set<string>();
+                let pageToken: string | undefined;
+
+                try {
+                    // Paged, but not indefinitely. A caller that has been away
+                    // long enough to accumulate thousands of changes learns
+                    // nothing useful from reading them all, and a partial read
+                    // would be a lie about what is still valid — so give up and
+                    // say so.
+                    for (let page = 0; page < 10; page++) {
+                        const { data } = await this.gmail.users.history.list({
+                            userId: 'me',
+                            startHistoryId,
+                            maxResults: 500,
+                            ...(pageToken ? { pageToken } : {})
+                        });
+
+                        for (const record of data.history || []) {
+                            const touched = [
+                                ...(record.messagesAdded || []).map((m) => m.message),
+                                ...(record.messagesDeleted || []).map((m) => m.message),
+                                ...(record.labelsAdded || []).map((m) => m.message),
+                                ...(record.labelsRemoved || []).map((m) => m.message)
+                            ];
+                            for (const message of touched) {
+                                if (message?.id) messageIds.add(message.id);
+                                if (message?.threadId) threadIds.add(message.threadId);
+                            }
+                        }
+
+                        pageToken = data.nextPageToken || undefined;
+                        if (!pageToken) return { messageIds: [...messageIds], threadIds: [...threadIds] };
+                    }
+                    // Ran out of pages before running out of history.
+                    return null;
+                } catch (err: any) {
+                    // Gmail answers 404 for a startHistoryId it has aged out and
+                    // 400 for one it will not accept. Either way there is a gap
+                    // we cannot see into, and `null` is how the cache is told to
+                    // stop trusting what it holds. Anything else is transient:
+                    // let it propagate, so a flaky network does not throw the
+                    // whole cache away.
+                    const status = Number(err?.code ?? err?.response?.status ?? 0);
+                    if (status === 404 || status === 400) return null;
+                    throw err;
+                }
+            }
+        };
+    }
+
+    /**
+     * Reconcile the cache with the mailbox before serving anything list-shaped.
+     *
+     * Never fails the caller: if the probe itself errors, the sync reports
+     * "everything changed", which costs a refetch and stays correct.
+     */
+    private async sync(): Promise<SyncState> {
+        // With caching off there is nothing to reconcile, so do not spend a
+        // request establishing that.
+        if (!this.cache.enabled) return { account: this.cache.account, historyId: '', unchanged: false };
+        try {
+            return await this.cache.sync(this.probe());
+        } catch {
+            // A probe that fails means "assume everything changed": the caller
+            // re-fetches, which is the old behaviour, and stays correct.
+            return { account: this.cache.account, historyId: '', unchanged: false };
+        }
+    }
+
+    /**
+     * The signed-in account's own address, used to catch self-addressed drafts.
+     *
+     * Held by the cache rather than by this object, because a new `GmailService`
+     * is constructed for every single tool call — the old per-instance field
+     * meant a `getProfile` round trip on every draft written.
+     */
     async myAddress(): Promise<string> {
-        if (this.ownAddress !== undefined) return this.ownAddress;
+        if (this.cache.account) return this.cache.account;
         try {
             const { data } = await this.gmail.users.getProfile({ userId: 'me' });
-            this.ownAddress = (data.emailAddress || '').toLowerCase();
+            return this.cache.rememberAccount(data.emailAddress || '');
         } catch {
-            this.ownAddress = '';
+            return '';
         }
-        return this.ownAddress;
     }
 
+    /**
+     * Search the mailbox, re-using what has not changed.
+     *
+     * The shape here is the whole point of the cache, so it is worth being
+     * explicit about which half is allowed to be old. The *ids* — which
+     * messages match, and in what order — come from Gmail on every call where
+     * anything at all has happened since the last one, so new mail, sent mail
+     * and anything relabelled show up immediately. Only the per-message
+     * headers and snippet are re-used, and only for ids this same call has just
+     * seen Gmail return, which is safe because a delivered message's content
+     * does not change.
+     *
+     * What that removes is the N+1: this used to cost one request per result,
+     * every time. Now a repeat search over an untouched mailbox costs one
+     * request in total, and a search after a couple of messages arrived costs
+     * three plus one per genuinely new message.
+     */
     async searchEmails(query: string, maxResults = 10): Promise<EmailInfo[]> {
-        const { data } = await this.gmail.users.messages.list({ userId: 'me', q: query, maxResults });
-        if (!data.messages?.length) return [];
-        
-        return Promise.all(data.messages.map(async (msg) => {
+        const { historyId, unchanged } = await this.sync();
+
+        let ids = unchanged ? await this.cache.getList(query, maxResults, historyId) : undefined;
+        if (!ids) {
+            const { data } = await this.gmail.users.messages.list({ userId: 'me', q: query, maxResults });
+            ids = (data.messages || []).map((m) => m.id!).filter(Boolean);
+            await this.cache.putList(query, maxResults, historyId, ids);
+        }
+        if (!ids.length) return [];
+
+        return mapLimit(ids, async (id) => {
+            const summary = await this.cache.getSummary(id);
+            if (summary) return summary;
+
+            // A message read in full earlier already answers this, so a search
+            // that turns up something the user has read costs nothing.
+            const full = await this.cache.getMessage(id);
+            if (full) return summarise(full);
+
             const { data: detail } = await this.gmail.users.messages.get({
                 userId: 'me',
-                id: msg.id!,
+                id,
                 format: 'metadata',
                 metadataHeaders: ['Subject', 'From', 'To', 'Date']
             });
             const h = detail.payload?.headers || [];
             const findHeader = (name: string) => h.find(x => x.name === name)?.value || '';
-            return {
-                id: msg.id!,
+            const info: EmailInfo = {
+                id,
                 threadId: detail.threadId,
                 subject: findHeader('Subject'),
                 from: findHeader('From'),
@@ -265,15 +413,43 @@ export class GmailService {
                 date: findHeader('Date'),
                 snippet: detail.snippet || ''
             };
-        }));
+            await this.cache.putSummary(id, info);
+            return info;
+        });
     }
     
+    /**
+     * A message in full.
+     *
+     * Served from cache without a round trip when we have it. There is no
+     * freshness question to answer: Gmail does not let the text of a delivered
+     * message change, and everything about it that *can* change — labels, read
+     * state, whether it is still in the inbox — is reported by the search path,
+     * which always asks Gmail.
+     */
     async readEmail(messageId: string): Promise<EmailDetails> {
+        const cached = await this.cache.getMessage(messageId);
+        if (cached) return cached;
+
+        const { details } = await this.fetchMessage(messageId);
+        return details;
+    }
+
+    /**
+     * Read a message from Gmail, bypassing the cache, and keep the attachment
+     * ids this particular fetch minted.
+     *
+     * The two callers that need this are the ones that go on to download an
+     * attachment. Their ids have to come from a live read — see
+     * `AttachmentSummary` for why a cached one would be worthless.
+     */
+    private async fetchMessage(messageId: string): Promise<{ details: EmailDetails; refs: AttachmentRef[] }> {
         const { data } = await this.gmail.users.messages.get({ userId: 'me', id: messageId, format: 'full' });
         const h = data.payload?.headers || [];
         const findHeader = (name: string) => h.find(x => x.name?.toLowerCase() === name.toLowerCase())?.value || '';
-        
-        return {
+        const refs = this.collectAttachments(data.payload);
+
+        const details: EmailDetails = {
             id: messageId,
             threadId: data.threadId || '',
             subject: findHeader('subject'),
@@ -281,10 +457,14 @@ export class GmailService {
             to: findHeader('to'),
             cc: findHeader('cc'),
             date: findHeader('date'),
+            snippet: data.snippet || '',
             messageIdHeader: findHeader('message-id'),
             body: this.extractBody(data.payload),
-            attachments: this.collectAttachments(data.payload)
+            attachments: refs.map(({ filename, mimeType, size }) => ({ filename, mimeType, size }))
         };
+
+        await this.cache.putMessage(messageId, details);
+        return { details, refs };
     }
 
     /** Every part that is a real attachment, flattened out of the MIME tree. */
@@ -320,7 +500,10 @@ export class GmailService {
         messageId: string,
         selector: { filename?: string; attachmentId?: string }
     ): Promise<AttachmentRef & { subject: string; from: string }> {
-        const email = await this.readEmail(messageId);
+        // A live read, never the cache: the ids below are only valid for the
+        // fetch that produced them.
+        const { details, refs } = await this.fetchMessage(messageId);
+        const email = { ...details, attachments: refs };
         const context = { subject: email.subject, from: email.from };
 
         if (!email.attachments.length) {
@@ -385,8 +568,23 @@ export class GmailService {
      * the ordering; this is the whole exchange in one call.
      */
     async getThread(threadId: string): Promise<EmailDetails[]> {
+        // A conversation, unlike a single message, does change: a reply lands
+        // in it. So this consults the history feed first, which names the
+        // threads that were touched — anything it did not name is still whole.
+        //
+        // Before the fetch, not after, and that ordering is the whole of the
+        // correctness argument. Reading the thread first and then asking for
+        // the current historyId would stamp this copy with a marker from
+        // *after* it was taken, so a reply landing in between would sit before
+        // the cursor and never be replayed — the thread would stay stale
+        // indefinitely. Establishing the cursor first is conservative: the
+        // worst case is re-reading a thread that had not actually changed.
+        await this.sync();
+        const cached = await this.cache.getThread(threadId);
+        if (cached) return cached;
+
         const { data } = await this.gmail.users.threads.get({ userId: 'me', id: threadId, format: 'full' });
-        return (data.messages || []).map((msg) => {
+        const messages = (data.messages || []).map((msg) => {
             const h = msg.payload?.headers || [];
             const findHeader = (name: string) =>
                 h.find((x) => x.name?.toLowerCase() === name.toLowerCase())?.value || '';
@@ -398,11 +596,17 @@ export class GmailService {
                 to: findHeader('to'),
                 cc: findHeader('cc'),
                 date: findHeader('date'),
+                snippet: msg.snippet || '',
                 messageIdHeader: findHeader('message-id'),
                 body: this.extractBody(msg.payload),
-                attachments: this.collectAttachments(msg.payload)
+                attachments: this.collectAttachments(msg.payload).map(
+                    ({ filename, mimeType, size }) => ({ filename, mimeType, size })
+                )
             };
         });
+
+        await this.cache.putThread(threadId, messages);
+        return messages;
     }
 
     /**
@@ -463,8 +667,12 @@ export class GmailService {
         const { data } = await this.gmail.users.drafts.list({ userId: 'me', maxResults });
         if (!data.drafts?.length) return [];
 
-        return Promise.all(
-            data.drafts.map(async (d) => {
+        // Drafts are never cached — they are the one thing in the mailbox the
+        // user is actively editing — but the fan-out still has to be bounded,
+        // or a 20-draft list is a 20-wide burst.
+        return mapLimit(
+            data.drafts,
+            async (d) => {
                 const { data: detail } = await this.gmail.users.drafts.get({
                     userId: 'me',
                     id: d.id!,
@@ -480,7 +688,7 @@ export class GmailService {
                     snippet: detail.message?.snippet || '',
                     url: this.getDraftUrl(d.id!)
                 };
-            })
+            }
         );
     }
 
@@ -534,18 +742,19 @@ export class GmailService {
      * straight back up.
      */
     async draftAttachments(draft: { messageId: string; attachments: AttachmentRef[] }): Promise<OutgoingAttachment[]> {
-        return Promise.all(
-            draft.attachments.map(async (a) => ({
-                filename: a.filename,
-                mimeType: a.mimeType,
-                content: await this.getAttachment(draft.messageId, a.attachmentId)
-            }))
-        );
+        return mapLimit(draft.attachments, async (a) => ({
+            filename: a.filename,
+            mimeType: a.mimeType,
+            content: await this.getAttachment(draft.messageId, a.attachmentId)
+        }));
     }
 
     /** Send an existing draft as-is. Delivers immediately and cannot be recalled. */
     async sendDraft(draftId: string): Promise<{ id: string; threadId: string }> {
         const { data } = await this.gmail.users.drafts.send({ userId: 'me', requestBody: { id: draftId } });
+        // The draft has just become a sent message, so no recorded id list
+        // describes the mailbox any more.
+        await this.cache.invalidateLists();
         return { id: data.id || '', threadId: data.threadId || '' };
     }
 
@@ -555,6 +764,7 @@ export class GmailService {
 
     async deleteEmail(id: string): Promise<void> {
         await this.gmail.users.messages.delete({ userId: 'me', id });
+        await this.cache.forget([id]);
     }
 
     /**
@@ -565,10 +775,12 @@ export class GmailService {
      */
     async trashEmail(id: string): Promise<void> {
         await this.gmail.users.messages.trash({ userId: 'me', id });
+        await this.cache.forget([id]);
     }
 
     async untrashEmail(id: string): Promise<void> {
         await this.gmail.users.messages.untrash({ userId: 'me', id });
+        await this.cache.forget([id]);
     }
 
     async batchDeleteEmails(ids: string[]): Promise<BatchResult> {
@@ -583,9 +795,23 @@ export class GmailService {
         return runBatch(ids, (id) => this.untrashEmail(id));
     }
     
+    /**
+     * The account's labels, held briefly in memory.
+     *
+     * Not tied to historyId — that tracks messages, not the label list itself —
+     * so this is the one genuinely time-based entry, with a short life and an
+     * explicit drop whenever a label is created or deleted here. It earns its
+     * place because `create_label` lists them first to avoid a 409, so every
+     * "file this under X" paid for a full label list.
+     */
     async listLabels(): Promise<Label[]> {
+        const cached = this.cache.getLabels();
+        if (cached) return cached;
+
         const { data } = await this.gmail.users.labels.list({ userId: 'me' });
-        return (data.labels || []) as Label[];
+        const labels = (data.labels || []) as Label[];
+        this.cache.putLabels(labels);
+        return labels;
     }
     
     async createLabel(name: string): Promise<Label> {
@@ -593,11 +819,13 @@ export class GmailService {
             userId: 'me',
             requestBody: { name, messageListVisibility: 'show', labelListVisibility: 'labelShow' }
         });
+        this.cache.forgetLabels();
         return data as Label;
     }
     
     async deleteLabel(id: string): Promise<void> {
         await this.gmail.users.labels.delete({ userId: 'me', id });
+        this.cache.forgetLabels();
     }
     
     async applyLabel(messageId: string, labelId: string): Promise<void> {
@@ -626,8 +854,18 @@ export class GmailService {
         return runBatch(messageIds, (id) => this.modifyMessage(id, body));
     }
 
+    /**
+     * Every label change goes through here, which is also where the cache is
+     * told about it.
+     *
+     * Our own writes advance the mailbox's historyId, so the next `sync` would
+     * notice anyway — but not until then, and a search fired immediately after
+     * an archive must already reflect it. Dropping the affected ids here closes
+     * that window rather than relying on a race.
+     */
     private async modifyMessage(id: string, requestBody: any): Promise<void> {
         await this.gmail.users.messages.modify({ userId: 'me', id, requestBody });
+        await this.cache.forget([id]);
     }
 
 
@@ -740,6 +978,9 @@ export class GmailService {
             userId: 'me',
             requestBody: fields.threadId ? { raw, threadId: fields.threadId } : { raw }
         });
+        // A message we just sent is new mail like any other: cached id lists
+        // no longer describe the mailbox that now contains it.
+        await this.cache.invalidateLists();
         return { id: data.id || '', threadId: data.threadId || '' };
     }
 
@@ -754,18 +995,18 @@ export class GmailService {
         messageId: string,
         overrides: { to?: string; cc?: string; bcc?: string; subject?: string; body?: string } = {}
     ): Promise<{ id: string; threadId: string; to: string; subject: string; attachments: number }> {
-        const original = await this.readEmail(messageId);
+        // Live read, not the cache: the attachments are carried over by
+        // downloading them, and that needs ids from this fetch.
+        const { details: original, refs } = await this.fetchMessage(messageId);
         const to = overrides.to ?? original.to;
         const subject = overrides.subject ?? original.subject;
         if (!to) throw new Error(`Message ${messageId} has no To header; pass an explicit "to".`);
 
-        const attachments = await Promise.all(
-            original.attachments.map(async (a) => ({
-                filename: a.filename,
-                mimeType: a.mimeType,
-                content: await this.getAttachment(messageId, a.attachmentId)
-            }))
-        );
+        const attachments = await mapLimit(refs, async (a) => ({
+            filename: a.filename,
+            mimeType: a.mimeType,
+            content: await this.getAttachment(messageId, a.attachmentId)
+        }));
 
         const sent = await this.sendEmail({
             to,
@@ -947,6 +1188,18 @@ export class GmailService {
      * can perform from a link we should only report, so it is fetched too.
      */
     async getUnsubscribeInfo(messageId: string): Promise<UnsubscribeTargets & { subject: string; from: string }> {
+        // Reported by one tool and acted on by another, so this is normally
+        // fetched twice in a row for the same message. Headers are fixed at
+        // delivery, so the second read is pure waste.
+        const cached = await this.cache.getUnsubscribe(messageId);
+        if (cached) {
+            return {
+                subject: cached.subject,
+                from: cached.from,
+                ...parseUnsubscribeTargets(cached.listUnsubscribe, cached.listUnsubscribePost)
+            };
+        }
+
         const { data } = await this.gmail.users.messages.get({
             userId: 'me',
             id: messageId,
@@ -956,10 +1209,18 @@ export class GmailService {
         const headers = data.payload?.headers || [];
         const pick = (n: string) => headers.find((h) => h.name?.toLowerCase() === n)?.value || '';
 
-        return {
+        const entry = {
             subject: pick('subject'),
             from: pick('from'),
-            ...parseUnsubscribeTargets(pick('list-unsubscribe'), pick('list-unsubscribe-post'))
+            listUnsubscribe: pick('list-unsubscribe'),
+            listUnsubscribePost: pick('list-unsubscribe-post')
+        };
+        await this.cache.putUnsubscribe(messageId, entry);
+
+        return {
+            subject: entry.subject,
+            from: entry.from,
+            ...parseUnsubscribeTargets(entry.listUnsubscribe, entry.listUnsubscribePost)
         };
     }
 }
