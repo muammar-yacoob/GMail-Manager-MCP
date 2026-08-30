@@ -65,6 +65,67 @@ export interface RunBatchOptions<T> {
     label?: (item: T) => string;
 }
 
+/**
+ * Run one operation, retrying while Gmail is only saying "not right now".
+ *
+ * Shared by every fan-out in the server so throttling is handled in one place
+ * rather than once per call site, which is how the read paths ended up with
+ * none of it at all.
+ */
+async function withRetries<R>(operation: () => Promise<R>, maxAttempts: number): Promise<R> {
+    let lastError: unknown;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+            return await operation();
+        } catch (err) {
+            lastError = err;
+            if (attempt === maxAttempts || !isRetryable(err)) break;
+            // Exponential backoff, plus jitter so the retries do not all
+            // wake up together and re-create the burst we just survived.
+            const backoff = Math.min(2 ** attempt * 250, 8_000);
+            await sleep(backoff + Math.random() * 250);
+        }
+    }
+    throw lastError;
+}
+
+/**
+ * Bounded, retrying, order-preserving `Promise.all`.
+ *
+ * The read paths — searching, listing drafts, pulling a message's attachments
+ * back down — all fanned out with a bare `Promise.all` over every id at once.
+ * That is the same unbounded burst `runBatch` exists to prevent, just on the
+ * other side of the API: a `search_emails` for 50 results fired 50 concurrent
+ * `messages.get` calls, and Gmail's per-user quota answered a good share of
+ * them with 429. The failure surfaced as a rejected search rather than as
+ * throttling, because nothing looked at why.
+ *
+ * Unlike `runBatch`, a failure here is fatal: these callers are assembling one
+ * result out of every part, so a hole in it is not a result.
+ */
+export async function mapLimit<T, R>(
+    items: T[],
+    mapper: (item: T, index: number) => Promise<R>,
+    options: { concurrency?: number; maxAttempts?: number } = {}
+): Promise<R[]> {
+    const concurrency = options.concurrency ?? 5;
+    const maxAttempts = options.maxAttempts ?? 5;
+
+    const results = new Array<R>(items.length);
+    let cursor = 0;
+
+    const worker = async (): Promise<void> => {
+        while (cursor < items.length) {
+            const index = cursor++;
+            results[index] = await withRetries(() => mapper(items[index], index), maxAttempts);
+        }
+    };
+
+    const workers = Math.max(1, Math.min(concurrency, items.length));
+    await Promise.all(Array.from({ length: workers }, worker));
+    return results;
+}
+
 export async function runBatch<T>(
     items: T[],
     operation: (item: T) => Promise<unknown>,
@@ -81,26 +142,11 @@ export async function runBatch<T>(
     const worker = async (): Promise<void> => {
         while (cursor < items.length) {
             const item = items[cursor++];
-            let lastError: unknown;
-
-            for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-                try {
-                    await operation(item);
-                    successes++;
-                    lastError = undefined;
-                    break;
-                } catch (err) {
-                    lastError = err;
-                    if (attempt === maxAttempts || !isRetryable(err)) break;
-                    // Exponential backoff, plus jitter so the retries do not all
-                    // wake up together and re-create the burst we just survived.
-                    const backoff = Math.min(2 ** attempt * 250, 8_000);
-                    await sleep(backoff + Math.random() * 250);
-                }
-            }
-
-            if (lastError !== undefined) {
-                errors.push({ item: label(item), reason: describeError(lastError) });
+            try {
+                await withRetries(() => operation(item), maxAttempts);
+                successes++;
+            } catch (err) {
+                errors.push({ item: label(item), reason: describeError(err) });
             }
         }
     };

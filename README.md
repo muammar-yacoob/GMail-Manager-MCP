@@ -327,6 +327,38 @@ tools detect that case and tell you to re-run authentication:
 npx @spark-apps/gmail-manager-mcp@latest auth
 ```
 
+## 🗄️ Caching
+
+Mail is cached locally so the same message is not downloaded twice, but never at
+the expense of being current. Gmail hands out a mailbox-wide `historyId` and a
+feed of what changed since any earlier value of it, so this server validates its
+cache against Gmail rather than expiring it on a timer:
+
+- **Nothing has changed** — the cached answer is provably still exact, and a
+  repeated search costs a single request instead of one per result.
+- **Something has changed** — the list of matching messages is always re-fetched,
+  so new mail, sent mail and anything relabelled show up immediately. Only the
+  per-message headers and bodies are reused, which is safe because Gmail does not
+  let the content of a delivered message change.
+
+There is no staleness window to tune: a message that arrives between two searches
+appears in the second one.
+
+| Variable | Default | Effect |
+|:---------|:--------|:-------|
+| `GMAIL_CACHE` | `full` | `full` keeps the cache in `~/.gmail-mcp/cache/` (owner-only), `memory` keeps it in RAM for the life of the process, `off` disables it |
+| `GMAIL_CACHE_MAX_MESSAGES` | `2000` | Messages held before the least recently used are dropped |
+| `GMAIL_CACHE_MAX_THREADS` | `300` | Conversations held |
+| `GMAIL_CACHE_MAX_QUERIES` | `200` | Search results remembered |
+
+```json
+"env": { "GMAIL_CACHE": "memory" }
+```
+
+Set `GMAIL_CACHE=memory` on a shared machine if you would rather no mail content
+touched the disk. The cache is dropped automatically when you authenticate as a
+different account, and deleting `~/.gmail-mcp/cache/` clears it by hand.
+
 ## 💬 Example Commands
 
 <details>

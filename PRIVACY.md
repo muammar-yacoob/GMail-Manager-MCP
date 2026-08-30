@@ -24,6 +24,7 @@ Gmail Manager MCP is a Model Context Protocol (MCP) server that helps you manage
 ### Local Storage Only
 - **OAuth Credentials**: Stored in `~/.gmail-mcp/credentials.json` on your local machine
 - **Configuration Files**: OAuth keys (`gcp-oauth.keys.json`) are stored locally as specified by you
+- **Cached Mail**: Message headers and bodies you have already read are cached in `~/.gmail-mcp/cache/mailbox.json`, so the same message is not downloaded from Gmail repeatedly. The file is created owner-readable only, sits beside the OAuth token that already grants access to the same mailbox, and is emptied automatically when you authenticate as a different account. Set `GMAIL_CACHE=memory` to keep the cache in memory only, or `GMAIL_CACHE=off` to disable it; deleting the file clears it at any time.
 - **No Cloud Storage**: No data is stored on our servers or in the cloud
 
 ### Data Security
@@ -34,7 +35,7 @@ Gmail Manager MCP is a Model Context Protocol (MCP) server that helps you manage
 ## Data Retention
 
 - **Local Control**: You have complete control over your data since it's stored locally
-- **Data Deletion**: Uninstalling the application or deleting the `~/.gmail-mcp/` directory removes all stored credentials
+- **Data Deletion**: Uninstalling the application or deleting the `~/.gmail-mcp/` directory removes all stored credentials and any cached mail
 - **Revoke Access**: You can revoke the application's access to your Gmail account at any time through your [Google Account settings](https://myaccount.google.com/permissions)
 
 ## Third-Party Services
