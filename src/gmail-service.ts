@@ -73,6 +73,63 @@ const mb = (bytes: number) => `${(bytes / 1024 / 1024).toFixed(1)} MB`;
  * That extra entry is enough to defeat an every()-based self-address check, so
  * commas inside quotes and inside angle brackets are stepped over.
  */
+/**
+ * Collapse a stacked subject line down to one prefix.
+ *
+ * Long threads accrete `RE: RE: External: FW: Re:` in front of the real
+ * subject, one layer per hop, and every reply adds another. The words carry no
+ * information beyond "this is a reply" or "this was forwarded", and they push
+ * the actual subject out of the preview pane on a phone. So strip every leading
+ * marker, including the localised and gateway-injected ones, then put back a
+ * single `Re:` or `Fwd:` depending on what the caller is composing.
+ *
+ * Forwarding wins over replying when both appear, because the last thing done
+ * to the message is the thing the recipient needs to know.
+ */
+export function tidySubject(subject: string | undefined | null, kind: 'reply' | 'forward' | 'none' = 'none'): string {
+    const raw = (subject ?? '').trim();
+    if (!raw) return '';
+
+    // re / fwd / fw and their common non-English equivalents, plus the
+    // `External:` and `[EXTERNAL]` banners corporate mail gateways prepend.
+    const marker = /^\s*(?:\[?\s*(re|aw|sv|vs|res|odp|r|fw|fwd|wg|tr|enc|ext|external)\s*\]?\s*(?:\[\d+\])?\s*:)\s*/i;
+    // Some gateways stamp "[EXTERNAL]" with no colon at all, so it needs its
+    // own pattern rather than an optional colon on the one above, which would
+    // then eat a bracketed word that is part of the real subject.
+    const banner = /^\s*\[\s*(external|ext|extern|external sender)\s*\]\s*/i;
+    const forwardish = /^(fw|fwd|wg|tr|enc)$/i;
+
+    let core = raw;
+    let sawForward = false;
+    let sawReply = false;
+
+    for (;;) {
+        const b = banner.exec(core);
+        if (b) { core = core.slice(b[0].length); continue; }
+
+        const m = marker.exec(core);
+        if (!m) break;
+        const word = m[1].toLowerCase();
+        if (forwardish.test(word)) sawForward = true;
+        else if (word !== 'ext' && word !== 'external') sawReply = true;
+        core = core.slice(m[0].length);
+    }
+
+    core = core.trim();
+
+    const wanted =
+        kind === 'forward' || (kind === 'none' && sawForward) ? 'Fwd: '
+        : kind === 'reply' || (kind === 'none' && sawReply) ? 'Re: '
+        : '';
+
+    // A subject that was nothing but prefixes, or was empty to begin with, has
+    // no core to decorate. Returning "Re: " with nothing after it is worse than
+    // the bare marker, and inventing a subject for a blank one is worse still.
+    if (!core) return wanted.trim();
+
+    return wanted + core;
+}
+
 export function addressesOf(header: string | undefined | null): string[] {
     if (!header) return [];
 
@@ -883,6 +940,11 @@ export class GmailService {
      * a raw UTF-8 Subject header is not legal and silently arrives as mojibake.
      */
     private buildRaw(fields: SendFields): string {
+        // Every compose path lands here, so this is the one place that has to
+        // normalise the subject. Idempotent: a subject already reduced to a
+        // single "Re:" survives unchanged.
+        fields = { ...fields, subject: tidySubject(fields.subject) };
+
         const encodeHeader = (value: string) =>
             /^[\x20-\x7E]*$/.test(value)
                 ? value
@@ -1097,8 +1159,10 @@ export class GmailService {
         const email = await this.readEmail(messageId);
         const me = await this.myAddress();
 
-        const subject = overrides.subject
-            ?? (/^re:/i.test(email.subject) ? email.subject : `Re: ${email.subject}`);
+        // Always rebuild the subject rather than passing the thread's own
+        // through, so a subject that already reads "RE: RE: External: RE: ..."
+        // comes back as a single "Re:".
+        const subject = tidySubject(overrides.subject ?? email.subject, 'reply');
 
         let to = overrides.to;
         let cc = overrides.cc;
