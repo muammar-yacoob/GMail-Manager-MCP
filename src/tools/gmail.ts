@@ -21,6 +21,27 @@ const composeFields = {
     threadId: z.string().optional().describe("Thread ID to attach to, so the message threads with an existing conversation")
 };
 
+/**
+ * House style for anything composed on the user's behalf.
+ *
+ * Appended to every composing tool's description so a model reaching for the
+ * tool sees the constraints before it writes, not after the user rejects the
+ * draft. These are not preferences: mail from this account goes to housing
+ * officers, mediators, lenders and clinicians who are rationing attention
+ * across large caseloads, and who have discretion over the outcome. A long,
+ * cool, rights-reciting email loses that discretion.
+ */
+const DRAFTING_RULES = [
+    "",
+    "DRAFTING RULES, apply to every draft without being asked:",
+    "1. Concise. The shortest message that makes one ask. Delete any sentence that is not the ask or a fact the ask needs. One purpose per email.",
+    "2. Do not overshare. Send only what the recipient asked for. No background, no justification, no pre-empting objections, no attaching documents nobody requested.",
+    "3. Thankful and civil. Open by thanking them for something they actually did. Ask, never demand: 'would you be able to', not 'please provide'. Never passive aggressive, never threatening, never entitled. Banned: 'as I have already said', 'I would remind you', 'a gentle chase', reciting the recipient's obligations, or framing a deadline as a consequence for them.",
+    "4. Subject lines short and clean, with at most one Re: or Fwd: and no stacked or gateway prefixes. The tool normalises this, so do not hand-build 'RE: RE: FW:' chains.",
+    "5. Read the whole thread with that recipient first, so the draft neither repeats a point already made nor omits something they are still waiting on.",
+    "6. Sign off 'Thank you,' then the first name only. No full legal name, no date of birth, no address block unless the recipient asked for it."
+].join("\n");
+
 const messageIds = z.array(z.string()).min(1).describe("Array of email message IDs");
 
 /**
@@ -367,7 +388,7 @@ export const gmailTools = defineTools({
     // --- Composing ---------------------------------------------------------
 
     create_reply: {
-        description: "Draft a threaded reply to a message, saved to Gmail Drafts and not sent. Replies to the original sender by default; pass 'to' to redirect it, or 'cc'/'bcc' to widen it. Replying to a message you sent yourself answers its original recipients rather than looping the draft back to your own address. Always check the To line it reports back before sending.",
+        description: "Draft a threaded reply to a message, saved to Gmail Drafts and not sent. Replies to the original sender by default; pass 'to' to redirect it, or 'cc'/'bcc' to widen it. Replying to a message you sent yourself answers its original recipients rather than looping the draft back to your own address. Always check the To line it reports back before sending." + DRAFTING_RULES,
         schema: z.object({
             messageId: z.string().describe("Email message ID to reply to"),
             replyMessage: z.string().describe("The reply message content to create as a draft"),
@@ -391,7 +412,7 @@ export const gmailTools = defineTools({
     },
 
     create_draft: {
-        description: "Compose a new email into Gmail Drafts without sending it: arbitrary To/Cc/Bcc, subject, body and optional local file attachments. Not tied to any thread. Returns a draft URL the user can open, review and send themselves. This is the safe default for composing mail on the user's behalf.",
+        description: "Compose a new email into Gmail Drafts without sending it: arbitrary To/Cc/Bcc, subject, body and optional local file attachments. Not tied to any thread. Returns a draft URL the user can open, review and send themselves. This is the safe default for composing mail on the user's behalf." + DRAFTING_RULES,
         schema: z.object(composeFields),
         handler: async ({ gmail }, v) => {
             const attachments = v.attachments?.length ? await loadAttachments(v.attachments) : undefined;
@@ -431,7 +452,7 @@ export const gmailTools = defineTools({
     },
 
     update_draft: {
-        description: "Edit an existing draft in place, keeping the same draft ID and URL. Pass only the fields you want to change; anything omitted keeps its current value, and existing attachments are carried over unless 'attachments' is supplied. Use this to correct a draft rather than creating a second one.",
+        description: "Edit an existing draft in place, keeping the same draft ID and URL. Pass only the fields you want to change; anything omitted keeps its current value, and existing attachments are carried over unless 'attachments' is supplied. Use this to correct a draft rather than creating a second one." + DRAFTING_RULES,
         schema: z.object({
             draftId: z.string().describe("Draft ID to edit, from list_drafts"),
             to: z.string().optional().describe("Replace the recipients. Omit to keep the current ones"),
@@ -589,7 +610,7 @@ export const gmailTools = defineTools({
  */
 export const sendTools = defineTools({
     send_email: {
-        description: "Send a new email immediately, optionally with local file attachments. This delivers straight away and cannot be recalled afterwards. Prefer create_draft unless the user has explicitly asked for it to be sent.",
+        description: "Send a new email immediately, optionally with local file attachments. This delivers straight away and cannot be recalled afterwards. Prefer create_draft unless the user has explicitly asked for it to be sent." + DRAFTING_RULES,
         schema: z.object(composeFields),
         handler: async ({ gmail }, v) => {
             const attachments = v.attachments?.length ? await loadAttachments(v.attachments) : undefined;
