@@ -1,4 +1,5 @@
-import { google, calendar_v3 } from 'googleapis';
+// Per-API import rather than the `googleapis` barrel; see gmail-service.ts.
+import { calendar as calendarApi, calendar_v3 } from 'googleapis/build/src/apis/calendar/index.js';
 import { OAuth2Client } from 'google-auth-library';
 
 /** Maps our tool-facing notification levels onto the API's `sendUpdates`. */
@@ -90,7 +91,7 @@ export class CalendarService {
     private primaryEmail: string | null = null;
 
     constructor(auth: OAuth2Client) {
-        this.calendar = google.calendar({ version: 'v3', auth });
+        this.calendar = calendarApi({ version: 'v3', auth });
     }
 
     /**

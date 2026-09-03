@@ -1,5 +1,6 @@
 import { Readable } from 'node:stream';
-import { google } from 'googleapis';
+// Per-API import rather than the `googleapis` barrel; see gmail-service.ts.
+import { drive as driveApi } from 'googleapis/build/src/apis/drive/index.js';
 import { OAuth2Client } from 'google-auth-library';
 
 export interface UploadedFile {
@@ -28,7 +29,7 @@ export class DriveService {
     private drive;
 
     constructor(auth: OAuth2Client) {
-        this.drive = google.drive({ version: 'v3', auth });
+        this.drive = driveApi({ version: 'v3', auth });
     }
 
     /**
