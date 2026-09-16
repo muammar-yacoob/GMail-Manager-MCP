@@ -2,7 +2,7 @@ import { zodToJsonSchema } from 'zod-to-json-schema';
 import { gmailTools, sendTools, sendingEnabled } from './gmail.js';
 import { calendarTools } from './calendar.js';
 import { describeError } from '../batch.js';
-import { hasCalendarScope, hasDriveScope } from '../scopes.js';
+import { hasCalendarScope, hasDriveScope, hasSettingsScope } from '../scopes.js';
 import { reauthCommand } from '../reauth.js';
 import type { ToolContext, ToolMap, ToolResult } from './registry.js';
 
@@ -28,6 +28,9 @@ export const tools: ToolMap = {
 
 const CALENDAR_TOOL_NAMES = new Set(Object.keys(calendarTools));
 const DRIVE_TOOL_NAMES = new Set(['save_attachment_to_drive']);
+// Filter writes are the only calls that need gmail.settings.basic. list_filters
+// reads fine without it, so the gap only shows up on the first create/delete.
+const SETTINGS_TOOL_NAMES = new Set(['create_filter', 'delete_filter']);
 
 export const getToolDefinitions = () =>
     Object.entries(tools).map(([name, spec]) => ({
@@ -96,6 +99,15 @@ function explain(error: any, toolName: string): string {
             `download_attachment still works in the meantime; it only touches the local disk.`;
     }
 
+    if (SETTINGS_TOOL_NAMES.has(toolName) && (status === 403 || status === 401)) {
+        return `${describeError(error)}\n\n` +
+            `Filters live behind gmail.settings.basic, a scope separate from mailbox access, so a token ` +
+            `issued before it was requested reads and sends mail while every filter write fails. Listing ` +
+            `filters keeps working, which makes this easy to mistake for a bug.\n` +
+            `Fix it by re-running authentication once:\n` +
+            `  ${reauthCommand()}`;
+    }
+
     if (status === 429) {
         return `${describeError(error)}\n\nGmail is rate limiting this account. Retry in a moment, or use the batch tools, which throttle and retry on your behalf.`;
     }
@@ -104,4 +116,4 @@ function explain(error: any, toolName: string): string {
 }
 
 /** Re-exported so callers can check a token before making a doomed call. */
-export { hasCalendarScope, hasDriveScope };
+export { hasCalendarScope, hasDriveScope, hasSettingsScope };
