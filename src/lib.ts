@@ -59,6 +59,7 @@ Please complete the following steps:
 4. Add Required Scopes
    Visit: https://console.cloud.google.com/auth/scopes
    Add: https://mail.google.com/
+   Add: https://www.googleapis.com/auth/gmail.settings.basic
    Add: https://www.googleapis.com/auth/calendar
    Add: https://www.googleapis.com/auth/drive.file
 
@@ -194,5 +195,5 @@ export { getCredentials, authenticateWeb, getOAuthClient, hasValidCredentials } 
 export { GmailService } from "./gmail-service.js";
 export { CalendarService } from "./calendar-service.js";
 export { DriveService } from "./drive-service.js";
-export { SCOPES, hasCalendarScope, hasDriveScope } from "./scopes.js";
+export { SCOPES, hasCalendarScope, hasDriveScope, hasSettingsScope } from "./scopes.js";
 export { getToolDefinitions, handleToolCall } from "./tools/index.js";

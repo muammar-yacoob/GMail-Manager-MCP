@@ -11,8 +11,20 @@
  * user has to re-run `auth` after any change here.
  */
 
-/** Full mailbox access: read, send, modify, permanently delete. */
-export const GMAIL_SCOPES = ['https://mail.google.com/'];
+/**
+ * Full mailbox access: read, send, modify, permanently delete.
+ *
+ * `mail.google.com` covers messages but deliberately stops at the mailbox
+ * boundary: filters, forwarding and vacation settings sit behind a separate
+ * scope. Without `gmail.settings.basic` every create_filter / delete_filter
+ * call comes back as a bare "Insufficient Permission", which reads like a bug
+ * rather than a missing grant. list_filters works either way, which makes the
+ * omission easy to miss until the first write.
+ */
+export const GMAIL_SCOPES = [
+    'https://mail.google.com/',
+    'https://www.googleapis.com/auth/gmail.settings.basic',
+];
 
 /**
  * Read/write calendars and events, plus free/busy lookups for suggest_time.
@@ -52,6 +64,16 @@ export function hasCalendarScope(grantedScope: string | undefined | null): boole
     if (!grantedScope) return false;
     const granted = grantedSet(grantedScope);
     return CALENDAR_SCOPES.every((s) => granted.has(s));
+}
+
+/**
+ * True when the token can write mailbox settings, i.e. create or delete
+ * filters. A token issued before settings joined GMAIL_SCOPES still reads and
+ * sends mail perfectly well, so the only symptom is a 403 on filter writes.
+ */
+export function hasSettingsScope(grantedScope: string | undefined | null): boolean {
+    if (!grantedScope) return false;
+    return grantedSet(grantedScope).has('https://www.googleapis.com/auth/gmail.settings.basic');
 }
 
 /**
