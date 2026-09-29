@@ -6,25 +6,29 @@ import { join } from 'node:path';
 
 /**
  * Every calendar 403 used to be answered with "your credentials predate
- * Calendar support, re-run auth". The error that actually shows up in practice
- * says nothing of the kind: the token carries the Calendar scope and the
- * Calendar API is disabled in the Cloud project, which re-authenticating cannot
- * fix. These pin the three outcomes apart, using the real response bodies.
+ * Calendar support, re-run auth", and Drive and the filter tools said the same
+ * of their own scopes. The error that actually shows up in practice says
+ * nothing of the kind: the token carries the scope and the API is disabled in
+ * the Cloud project, which re-authenticating cannot fix. These pin the three
+ * outcomes apart, using the real response bodies.
  */
 
-const CONSOLE_URL = 'https://console.developers.google.com/apis/api/calendar-json.googleapis.com/overview?project=39441050708';
-const DISABLED_MESSAGE =
-    'Google Calendar API has not been used in project 39441050708 before or it is disabled. ' +
-    `Enable it by visiting ${CONSOLE_URL} then retry. If you enabled this API recently, wait a few ` +
-    'minutes for the action to propagate to our systems and retry.';
+const consoleUrlFor = service => `https://console.developers.google.com/apis/api/${service}/overview?project=39441050708`;
+const CONSOLE_URL = consoleUrlFor('calendar-json.googleapis.com');
 
 /** As googleapis surfaces it: legacy `errors[]` and the rpc envelope together. */
-const apiDisabledError = () =>
-    Object.assign(new Error(DISABLED_MESSAGE), {
+const apiDisabledError = (title = 'Google Calendar API', service = 'calendar-json.googleapis.com') => {
+    const url = consoleUrlFor(service);
+    const message =
+        `${title} has not been used in project 39441050708 before or it is disabled. ` +
+        `Enable it by visiting ${url} then retry. If you enabled this API recently, wait a few ` +
+        'minutes for the action to propagate to our systems and retry.';
+
+    return Object.assign(new Error(message), {
         code: 403,
         errors: [
             {
-                message: DISABLED_MESSAGE,
+                message,
                 domain: 'usageLimits',
                 reason: 'accessNotConfigured',
                 // Google really does send the bare console root here, which is
@@ -38,23 +42,24 @@ const apiDisabledError = () =>
                 error: {
                     code: 403,
                     status: 'PERMISSION_DENIED',
-                    message: DISABLED_MESSAGE,
+                    message,
                     details: [
                         {
                             '@type': 'type.googleapis.com/google.rpc.ErrorInfo',
                             reason: 'SERVICE_DISABLED',
                             domain: 'googleapis.com',
-                            metadata: { service: 'calendar-json.googleapis.com', activationUrl: CONSOLE_URL }
+                            metadata: { service, activationUrl: url }
                         },
                         {
                             '@type': 'type.googleapis.com/google.rpc.Help',
-                            links: [{ description: 'Google developers console API activation', url: CONSOLE_URL }]
+                            links: [{ description: 'Google developers console API activation', url }]
                         }
                     ]
                 }
             }
         }
     });
+};
 
 const insufficientScopeError = () =>
     Object.assign(new Error('Request had insufficient authentication scopes.'), {
@@ -73,10 +78,11 @@ const insufficientScopeError = () =>
         }
     });
 
-const forbiddenError = () =>
-    Object.assign(new Error('You need to have writer access to this calendar.'), {
+/** A 403 that is neither a scope nor a disabled API: nothing to add to it. */
+const forbiddenError = (message = 'You need to have writer access to this calendar.') =>
+    Object.assign(new Error(message), {
         code: 403,
-        errors: [{ message: 'You need to have writer access to this calendar.', domain: 'calendar', reason: 'forbiddenForNonOrganizer' }]
+        errors: [{ message, domain: 'global', reason: 'forbidden' }]
     });
 
 /** Point credential lookup at a token file this test owns, then load the module. */
@@ -131,4 +137,41 @@ test('a token that records no scopes at all is not accused', async () => {
     const message = explain(forbiddenError(), 'list_events');
 
     assert.doesNotMatch(message, /predate Calendar support/);
+});
+
+test('a disabled Drive API is not blamed on the token either', async () => {
+    const explain = await explainWith(ALL_SCOPES);
+    const message = explain(apiDisabledError('Google Drive API', 'drive.googleapis.com'), 'save_attachment_to_drive');
+
+    assert.match(message, /Drive API is switched off/);
+    assert.ok(message.includes(consoleUrlFor('drive.googleapis.com')));
+    assert.doesNotMatch(message, /predate Drive support/);
+});
+
+test('a Drive 403 with the scope granted is passed through', async () => {
+    const explain = await explainWith(ALL_SCOPES);
+    const message = explain(forbiddenError('The user does not have sufficient permissions for this file.'), 'save_attachment_to_drive');
+
+    assert.equal(message, 'The user does not have sufficient permissions for this file.');
+});
+
+test('a Drive 403 on a token without drive.file still gets the re-auth hint', async () => {
+    const explain = await explainWith('https://mail.google.com/');
+    const message = explain(forbiddenError(), 'save_attachment_to_drive');
+
+    assert.match(message, /predate Drive support/);
+});
+
+test('a filter 403 with gmail.settings.basic granted is passed through', async () => {
+    const explain = await explainWith(ALL_SCOPES);
+    const message = explain(forbiddenError('Filters quota exceeded.'), 'create_filter');
+
+    assert.equal(message, 'Filters quota exceeded.');
+});
+
+test('a filter 403 on a token without gmail.settings.basic gets the re-auth hint', async () => {
+    const explain = await explainWith('https://mail.google.com/');
+    const message = explain(forbiddenError(), 'create_filter');
+
+    assert.match(message, /gmail\.settings\.basic/);
 });
