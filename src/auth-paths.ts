@@ -48,6 +48,25 @@ export function credentialsPath(): string {
     return process.env.GMAIL_CREDENTIALS_PATH || path.join(CONFIG_DIR, 'credentials.json');
 }
 
+/**
+ * The scopes the saved token was actually granted, verbatim, or null when that
+ * cannot be established.
+ *
+ * Google records the granted scopes alongside the tokens, which makes this the
+ * one place that can settle "did this token ever carry Calendar?" without
+ * asking Google. Null is returned for a missing or unreadable file rather than
+ * an empty string, so a caller can tell "no scopes" apart from "no idea" and
+ * avoid blaming a token it has not read.
+ */
+export function storedScope(credsPath: string = credentialsPath()): string | null {
+    try {
+        const scope = JSON.parse(fs.readFileSync(credsPath, 'utf8'))?.scope;
+        return typeof scope === 'string' && scope.trim() ? scope : null;
+    } catch {
+        return null;
+    }
+}
+
 export interface OAuthKeys {
     client_id: string;
     client_secret: string;

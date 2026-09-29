@@ -3,6 +3,8 @@ import { gmailTools, sendTools, sendingEnabled } from './gmail.js';
 import { calendarTools } from './calendar.js';
 import { describeError } from '../batch.js';
 import { hasCalendarScope, hasDriveScope, hasSettingsScope } from '../scopes.js';
+import { storedScope } from '../auth-paths.js';
+import { apiDisabled, activationUrl, scopeRefused } from './google-errors.js';
 import { reauthCommand } from '../reauth.js';
 import type { ToolContext, ToolMap, ToolResult } from './registry.js';
 
@@ -32,6 +34,11 @@ const DRIVE_TOOL_NAMES = new Set(['save_attachment_to_drive']);
 // reads fine without it, so the gap only shows up on the first create/delete.
 const SETTINGS_TOOL_NAMES = new Set(['create_filter', 'delete_filter']);
 
+// Service names as Google's own console URLs spell them; only used to build a
+// fallback link when the error body does not carry one.
+const CALENDAR_SERVICE = 'calendar-json.googleapis.com';
+const DRIVE_SERVICE = 'drive.googleapis.com';
+
 export const getToolDefinitions = () =>
     Object.entries(tools).map(([name, spec]) => ({
         name,
@@ -55,38 +62,56 @@ export async function handleToolCall(ctx: ToolContext, name: string, args: unkno
 /**
  * Turn an API failure into something the caller can act on.
  *
- * The one that matters most: a token issued before Calendar was added still
- * works perfectly for mail, so the user has no reason to suspect their
- * credentials. Every calendar call then fails with a bare 403 that says
- * nothing about re-authenticating.
+ * The rule here, learned the hard way: only say what the error actually
+ * supports. A 403 is several unrelated failures sharing a status code, and a
+ * confident wrong diagnosis is worse than a bare message, because it ends the
+ * investigation. Every hint below is gated on something Google said or on the
+ * scopes recorded with the saved token.
  */
-function explain(error: any, toolName: string): string {
+export function explain(error: any, toolName: string): string {
     const status = Number(error?.code ?? error?.response?.status ?? 0);
 
     if (CALENDAR_TOOL_NAMES.has(toolName) && (status === 403 || status === 401)) {
-        return `${describeError(error)}\n\n` +
-            `This usually means the saved credentials predate Calendar support. Google cannot add ` +
-            `scopes to a token it already issued, so mail keeps working while calendar access does not.\n` +
-            `Fix it by re-running authentication once:\n` +
-            `  ${reauthCommand()}`;
+        // This used to claim, for every 403, that the credentials predated
+        // Calendar support. The common case is nothing of the kind: the token
+        // carries the Calendar scope and the Calendar API is simply switched
+        // off in the Cloud project. That hint cost a session of debugging
+        // against a grant that was never missing.
+        if (apiDisabled(error)) {
+            return `${describeError(error)}\n\n` +
+                `Google is refusing at the project level, not the token level: the Google Calendar API is ` +
+                `switched off in the Google Cloud project behind your OAuth client. Re-running authentication ` +
+                `will not help; the API has to be enabled once in the console:\n` +
+                `  ${activationUrl(error, CALENDAR_SERVICE)}\n` +
+                `Click Enable, wait a minute for it to propagate, then retry. Mail is unaffected meanwhile.`;
+        }
+
+        // Either Google named the scopes as the problem, or the saved token can
+        // be read and demonstrably lacks Calendar. An unreadable token file says
+        // nothing, so it does not get to accuse itself.
+        const grantedScope = storedScope();
+        if (scopeRefused(error) || (grantedScope !== null && !hasCalendarScope(grantedScope))) {
+            return `${describeError(error)}\n\n` +
+                `The saved credentials predate Calendar support. Google cannot add scopes to a token it ` +
+                `already issued, so mail keeps working while calendar access does not.\n` +
+                `Fix it by re-running authentication once:\n` +
+                `  ${reauthCommand()}`;
+        }
+
+        // Anything else - a sharing restriction, a domain policy, a quota rule -
+        // falls through to Google's own message, unembellished.
     }
 
     if (DRIVE_TOOL_NAMES.has(toolName) && (status === 403 || status === 401)) {
         // Two very different failures arrive as 403 here and the fixes do not
         // overlap, so telling them apart matters. "Re-run auth" against a
         // disabled API sends the user round the consent flow to no effect.
-        const reason = error?.errors?.[0]?.reason ?? '';
-        const disabledApi =
-            reason === 'accessNotConfigured' || /has not been used in project|is disabled/i.test(error?.message ?? '');
-
-        if (disabledApi) {
-            const project = String(error?.message ?? '').match(/project (\d+)/)?.[1];
+        if (apiDisabled(error)) {
             return `${describeError(error)}\n\n` +
                 `The Drive scope is granted, but the Drive API itself is switched off in the Google Cloud ` +
                 `project behind your OAuth client. Re-running authentication will not help; the API has to be ` +
                 `enabled once in the console:\n` +
-                `  https://console.cloud.google.com/apis/api/drive.googleapis.com/overview` +
-                (project ? `?project=${project}` : '') + `\n` +
+                `  ${activationUrl(error, DRIVE_SERVICE)}\n` +
                 `Click Enable, wait a minute for it to propagate, then retry.\n\n` +
                 `download_attachment works regardless; it only touches the local disk.`;
         }
