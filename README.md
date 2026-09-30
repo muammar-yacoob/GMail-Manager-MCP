@@ -90,8 +90,32 @@ cp /mnt/c/Users/YourUsername/gcp-oauth.keys.json ./gcp-oauth.keys.json
 
 ## 📥 Installation
 
+**Claude Code**, one line, nothing to install first:
+
+```bash
+claude mcp add gmail-manager -- npx -y @spark-apps/gmail-manager-mcp@latest
+```
+
+Add `-s user` to make it available in every project instead of just this one.
+
+Then authorise your Google account once:
+
+```bash
+npx @spark-apps/gmail-manager-mcp@latest auth
+```
+
+That needs an OAuth keys file. See [Quick Setup](#-quick-setup) above if you have not made one yet.
+
 <details>
-<summary><strong>📦 Install from npm registry (Easier ⚡) </strong></summary>
+<summary><strong>📦 Other clients, or a global install</strong></summary>
+
+The server runs straight from npm, so `npx` is enough for any MCP client (see [Configure MCP Client](#-configure-mcp-client) for the JSON form):
+
+```bash
+npx -y @spark-apps/gmail-manager-mcp@latest
+```
+
+Prefer it on your PATH as `gmail-manager`:
 
 ```bash
 npm i -g @spark-apps/gmail-manager-mcp
@@ -186,7 +210,7 @@ Add to your MCP client config file (Claude Desktop example):
 
 | Tool | Description |
 |:-----|:------------|
-| `trash_emails` | Move to Trash — recoverable for 30 days. **Prefer this** |
+| `trash_emails` | Move to Trash, recoverable for 30 days. **Prefer this** |
 | `untrash_emails` | Pull messages back out of Trash |
 | `archive_emails` | Remove from inbox, keep everything else |
 | `mark_emails` | Mark read or unread |
@@ -214,7 +238,7 @@ Add to your MCP client config file (Claude Desktop example):
 
 ### ✍️ Drafts
 
-Everything here writes to Drafts. Nothing is delivered — see [Sending](#-sending) below.
+Everything here writes to Drafts. Nothing is delivered. See [Sending](#-sending) below.
 
 | Tool | Description |
 |:-----|:------------|
@@ -248,7 +272,7 @@ draft first and keeps every field you did not pass, attachments included.
 | `download_attachment` | Save one to a local path. Missing directories are created |
 | `save_attachment_to_drive` | Upload one straight to Google Drive, optionally into a folder |
 
-Outgoing attachments are local file paths — `~` is expanded — assembled into a
+Outgoing attachments are local file paths (`~` is expanded), assembled into a
 proper MIME multipart message and sent base64url-encoded via `raw`.
 
 Gmail's 25 MB ceiling applies to the *encoded* message, and base64 adds about a
@@ -256,7 +280,7 @@ third, so the real limit is roughly **18 MB of actual files**. Oversized
 attachments are refused up front, with the per-file arithmetic, rather than
 being uploaded and rejected by Google with an opaque 400.
 
-`save_attachment_to_drive` needs the Drive scope — see [Scopes](#-scopes).
+`save_attachment_to_drive` needs the Drive scope. See [Scopes](#-scopes).
 
 ### 📤 Sending
 
@@ -334,9 +358,9 @@ the expense of being current. Gmail hands out a mailbox-wide `historyId` and a
 feed of what changed since any earlier value of it, so this server validates its
 cache against Gmail rather than expiring it on a timer:
 
-- **Nothing has changed** — the cached answer is provably still exact, and a
+- **Nothing has changed**: the cached answer is provably still exact, and a
   repeated search costs a single request instead of one per result.
-- **Something has changed** — the list of matching messages is always re-fetched,
+- **Something has changed**: the list of matching messages is always re-fetched,
   so new mail, sent mail and anything relabelled show up immediately. Only the
   per-message headers and bodies are reused, which is safe because Gmail does not
   let the content of a delivered message change.
@@ -417,7 +441,7 @@ different account, and deleting `~/.gmail-mcp/cache/` clears it by hand.
 Unsubscribing uses the sender's own published opt-out. Where they support one-click
 (RFC 8058) it completes on its own; where the only route is emailing them, it asks
 first, since that sends mail from your account. A plain link with no one-click
-declaration is handed back for you to open — arbitrary URLs found in mail are never
+declaration is handed back for you to open. Arbitrary URLs found in mail are never
 visited, and no response body from a sender is ever read back into the conversation.
 
 </details>
