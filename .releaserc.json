@@ -26,12 +26,6 @@
     [
       "@semantic-release/github",
       {
-        "assets": [
-          {
-            "path": "gmail-manager-mcp-${nextRelease.version}.tar.gz",
-            "label": "Gmail Manager MCP Distribution"
-          }
-        ],
         "failComment": false,
         "failTitle": false,
         "labels": false

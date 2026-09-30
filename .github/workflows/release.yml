@@ -12,12 +12,11 @@ jobs:
     # warrants a release, and it reads the commits properly.
     #
     # This used to be a list of `contains(..., 'fix:')` checks, which quietly
-    # dropped every scoped conventional commit — `fix(auth):` does not contain
+    # dropped every scoped conventional commit: `fix(auth):` does not contain
     # the substring `fix:`. Releases were therefore skipped for most of the
-    # repo's actual history: package.json reached 1.8.0 while npm stayed on
-    # 1.7.4, with no failure anywhere to show for it. A skipped job looks
-    # exactly like a job that decided not to release, which is what made it
-    # survive so long.
+    # repo's actual history, with no failure anywhere to show for it. A skipped
+    # job looks exactly like a job that decided not to release, which is what
+    # made it survive so long.
     #
     # Running semantic-release unconditionally costs a minute and it exits
     # cleanly when there is nothing to publish.
@@ -57,37 +56,68 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
+      # NODE_AUTH_TOKEN is what actually authenticates the npm publish, and its
+      # absence is why nothing has reached npm since 17 Aug 2026.
+      #
+      # c277ea0 switched this job to npm trusted publishing (OIDC) and removed
+      # the token, but the matching trusted publisher was never registered on
+      # npmjs.com. So every run since has died in verifyConditions:
+      #
+      #   OIDC token exchange with the npm registry failed:
+      #     404 OIDC token exchange error - package not found
+      #   npm error 401 Unauthorized - GET .../-/whoami
+      #   EINVALIDNPMTOKEN Invalid npm token.
+      #
+      # semantic-release tries OIDC, falls back to token auth, finds no token,
+      # and refuses to run. Nine consecutive pushes to main failed this way
+      # while npm kept serving 1.7.4, whose server still self-reports 1.3.5.
+      #
+      # This restores the credential that worked before that switch. It is
+      # deliberately temporary: npm withdraws direct-publish rights from
+      # 2FA-bypass granular tokens in Jan 2027, so register the trusted
+      # publisher (muammar-yacoob / GMail-Manager-MCP / release.yml,
+      # environment blank) and drop NODE_AUTH_TOKEN before then.
+      #
+      # No --provenance: npm only accepts a sigstore bundle once a trusted
+      # publisher exists, so requesting it now fails E422 after a green build.
       - name: Semantic Release
         id: semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npx semantic-release
 
-      - name: Create Distribution Package
-        if: steps.semantic-release.outputs.new_release_published == 'true'
+      # A no-release run exits 0, which is indistinguishable from a successful
+      # release unless you say so. That ambiguity is how the substring gate
+      # above hid a month of unreleased work. If a push changed src/ and
+      # semantic-release still published nothing, that is almost always a
+      # commit that skipped conventional-commit syntax, so make it loud.
+      - name: Report no release
+        if: steps.semantic-release.outputs.new_release_published != 'true'
         run: |
-          # Create distribution directory
-          mkdir -p dist-package
-
-          # Copy essential files
-          cp package.json dist-package/
-          cp README.md dist-package/ 2>/dev/null || true
-          cp LICENSE dist-package/ 2>/dev/null || true
-
-          # Copy built distribution
-          cp -r dist dist-package/
-
-          # Update package.json version if new release
-          VERSION="${{ steps.semantic-release.outputs.new_release_version }}"
-          if [ ! -z "$VERSION" ]; then
-            cd dist-package
-            npm version "$VERSION" --no-git-tag-version
-            cd ..
+          echo "semantic-release published nothing for ${{ github.sha }}."
+          # github.event.before is empty on workflow_dispatch and all-zeros on
+          # a branch's first push, so only diff when it names a real commit.
+          BEFORE="${{ github.event.before }}"
+          if [ -n "$BEFORE" ] && git cat-file -e "$BEFORE^{commit}" 2>/dev/null \
+             && git diff --name-only "$BEFORE" "${{ github.sha }}" | grep -q '^src/'; then
+            echo "::warning title=Unreleased changes::This push changed src/ but semantic-release produced no release, so npm is still on the previous version. Check the commit subjects use conventional-commit syntax (feat:, fix:)."
           fi
 
-      - name: Create Release Archive
+      - name: Confirm published version
         if: steps.semantic-release.outputs.new_release_published == 'true'
         run: |
-          cd dist-package
-          tar -czf ../gmail-manager-mcp-${{ steps.semantic-release.outputs.new_release_version }}.tar.gz *
-          cd ..
+          VERSION="${{ steps.semantic-release.outputs.new_release_version }}"
+          echo "Released v$VERSION. Confirming npm is serving it."
+          for i in 1 2 3 4 5 6; do
+            NPM_VERSION=$(npm view @spark-apps/gmail-manager-mcp version 2>/dev/null || echo "none")
+            if [ "$NPM_VERSION" = "$VERSION" ]; then
+              echo "npm now serves @spark-apps/gmail-manager-mcp@$NPM_VERSION."
+              exit 0
+            fi
+            echo "npm reports $NPM_VERSION, waiting for $VERSION (attempt $i)."
+            sleep 10
+          done
+          echo "::error title=Release did not reach npm::semantic-release reported v$VERSION but npm still serves $NPM_VERSION."
+          exit 1
